@@ -1,16 +1,15 @@
 # DemoIT CRM – projekti- ja disaininõuded
 
-**Dokumendi versioon:** 1.1  
-**Süsteemi arendusversioon:** 1.1  
+**Dokumendi versioon:** 1.2  
+**Süsteemi arendusversioon:** 1.2  
 **Põhikeel:** English  
-**Raamistik:** Laravel  
-**Andmebaas:** MySQL / SQL  
+**Tehniline alus:** raamistikust sõltumatu veebilahendus, SQL/MySQL ja serveri-/rakenduskihi kokkulepitav teostus
 
 ## 1. Eesmärk
 
 DemoIT CRM on modulaarne ettevõtte haldussüsteem, mis sobib eri tüüpi ettevõtetele. Klient saab aktiveerida ainult vajalikud moodulid ning aktiivsed moodulid peavad omavahel andmeid ja töövooge jagama.
 
-Süsteem koosneb avalikust veebilehest, C-panelist ehk Client Panelist ning peaadministraatori/arenduse keskkonnast.
+Süsteem koosneb avalikust veebilehest, C-panelist ehk Client Panelist ning peaadministraatori/arenduse keskkonnast. Konkreetset veebiraamistikku, ORM-i või programmeerimiskeelt ei määrata selles etapis kohustuslikult.
 
 ## 2. Keskkonnad
 
@@ -24,7 +23,7 @@ Avalik veebileht tutvustab kogu lahendust, mooduleid, demo kasutamist ja süstee
 
 Kasutaja siseneb kliendikoodi, kasutajatunnuse ja parooliga. Pärast autentimist kuvatakse ainult aktiivse kliendi ja kasutaja õigustega seotud moodulid ning andmed.
 
-Kavandatud kliendivaate aadress võib olla `www.demoit.eu/#kliendinumber`, kuid URL-i fragmenti ei tohi kasutada turvakontrollina. Tegelik kliendikontekst peab tulema serveripoolsest autentimisest ja sessioonist.
+Kavandatud kliendivaate aadress võib olla `www.demoit.eu/#kliendinumber`, kuid URL-i fragmenti ei tohi kasutada turvakontrollina. Tegelik kliendikontekst peab tulema serveripoolsest autentimisest ja sessioonist või samaväärsest turvalisest autentimismehhanismist.
 
 ### Peaadministraatori keskkond
 
@@ -57,7 +56,7 @@ Kliendi põhiosad:
 - seadistused;
 - tugi.
 
-Kõik ligipääsud tuleb kontrollida serveris, mitte ainult kasutajaliideses.
+Kõik ligipääsud tuleb kontrollida serveris või samaväärses usaldusväärses rakenduskihis, mitte ainult kasutajaliideses.
 
 ## 5. Peaadministraatori menüü
 
@@ -123,17 +122,18 @@ Demo on avalik vaaterežiim. Demoandmeid ei saa lisada, muuta ega kustutada. Nä
 
 ## 9. Kvaliteedi- ja turvanõuded
 
-Süsteem peab olema mobiilis kasutatav, ligipääsetav, turvaline, hooldatav ja laiendatav. Paroole säilitatakse ainult räsituna. Kasutaja, kliendi, mooduli, õiguste ja andmete muudatused lähevad auditlogisse. Füüsilise kustutamise asemel kasutatakse deaktiveerimist, kui andmete ja logide säilitamine on vajalik.
+Süsteem peab olema mobiilis kasutatav, ligipääsetav, turvaline, hooldatav ja laiendatav. Paroole säilitatakse ainult turvaliselt räsituna. Kasutaja, kliendi, mooduli, õiguste ja andmete muudatused lähevad auditlogisse. Füüsilise kustutamise asemel kasutatakse deaktiveerimist, kui andmete ja logide säilitamine on vajalik.
 
 ## 10. Arenduse tööjärjekord
 
 1. Kinnita struktuur ja andmemudel.
-2. Loo algseadistuse ja autentimise loogika.
-3. Loo peaadministraatori keskkond.
-4. Loo kliendi- ja moodulihaldus.
-5. Loo keelemoodul.
-6. Loo C-paneli baasstruktuur.
-7. Lisa moodulid järk-järgult.
-8. Testi kliendieraldust, õigusi, mobiilivaadet ja logisid.
+2. Vali ja dokumenteeri rakenduse tehniline teostus eraldi otsusena.
+3. Loo algseadistuse ja autentimise loogika.
+4. Loo peaadministraatori keskkond.
+5. Loo kliendi- ja moodulihaldus.
+6. Loo keelemoodul.
+7. Loo C-paneli baasstruktuur.
+8. Lisa moodulid järk-järgult.
+9. Testi kliendieraldust, õigusi, mobiilivaadet ja logisid.
 
 Ära loo enne koodi, kui vastava etapi struktuur ja nõuded on kinnitatud.
