@@ -10,6 +10,7 @@ A client-based modular CRM built with PHP, PDO and MySQL. It includes a system a
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.27 | 30.09.2026 | Kõigi versioonide täielik ingliskeelne tõlge lisatud kakskeelsesse muudatuste logisse. |
 | 1.26 | 30.09.2026 | Töötaja loomise vormist eemaldatud organisatsiooniüksuse valik. |
 | 1.25 | 30.09.2026 | Töötaja muutmisvormist eemaldatud organisatsiooniüksuse valik; salvestamisel säilib varasem seos. |
 | 1.24 | 30.09.2026 | Sisselogitud kasutaja nime näidatakse kasutajatunnuse asemel päises ja töölaudadel. |
@@ -43,6 +44,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.27 | 30.09.2026 | Full English translation of all releases added to the bilingual changelog. |
 | 1.26 | 30.09.2026 | Removed the organisation unit selector from the Add employee form. |
 | 1.25 | 30.09.2026 | Removed the organisation unit selector from employee editing while retaining existing assignments. |
 | 1.24 | 30.09.2026 | Signed-in person's name replaces the username in the header and dashboards. |
@@ -70,4 +72,4 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 | 1.2 | 20.09.2026 | Switched from Laravel to plain PHP and PDO. |
 | 1.1 | 20.09.2026 | Initial requirements, database, roles, architecture and AI development documentation. |
 
-For the detailed release notes, affected modules, database changes and test results, see the [full changelog (in Estonian)](CHANGELOG.md).
+For detailed release notes, affected modules, database changes and test results, see the [full bilingual changelog](CHANGELOG.md).

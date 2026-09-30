@@ -29,6 +29,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/011_signed_in_display_name.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.24' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/012_employee_edit_org_unit.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.25' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/013_employee_create_org_unit.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.26' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/014_bilingual_changelog.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.27' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

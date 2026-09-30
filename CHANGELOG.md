@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.27 – 30. september 2026
+
+- Lisatud kõigi versioonide 1.1–1.26 täielik ingliskeelne tõlge faili `CHANGELOG.md`, säilitades eestikeelsed kirjed ja teadaolevad piirangud. Muudatuste logi on nüüd kakskeelne.
+- Mõjutatud failid: `CHANGELOG.md`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/014_bilingual_changelog.sql`.
+- Andmebaasimuudatus: skeem ei muutu; idempotentne migratsioon registreerib versiooni 1.27 tabelis `system_version_logs`.
+- Kontrollitud: mõlemas keeles versioonide arv ja järjekord kattuvad, README versioonitabelid ja PHP süntaks kontrollitud. Rakenduse käitumine ei muutu.
+- Järgmiseks versiooniks pärast 1.27 on `1.28`.
+
 ## Versioon 1.26 – 30. september 2026
 
 - Töötaja loomise vormist (`views/panel/users/create.php`) eemaldatud organisatsiooniüksuse valik. `UserService::createForClient()` käsitleb puuduva `org_unit_id` väärtusena `null`, seega loomise loogika jääb muutmata.
@@ -231,3 +239,245 @@
 ## Versioonireegel
 
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
+
+# DemoIT CRM - Changelog (English)
+
+## Version 1.27 - September 30, 2026
+
+- Added a full English translation of versions 1.1-1.26 to `CHANGELOG.md`, retaining the Estonian entries and documented limitations. The changelog is now bilingual.
+- Affected files: `CHANGELOG.md`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php`, and `sql/014_bilingual_changelog.sql`.
+- Database: no schema changes; an idempotent migration records version 1.27 in `system_version_logs`.
+- Verified: version counts and order match in both languages; README version tables and PHP syntax checked. Application behavior is unchanged.
+- The next version after 1.27 is `1.28`.
+
+## Version 1.26 - September 30, 2026
+
+- Removed the organisation unit selector from the employee creation form (`views/panel/users/create.php`). `UserService::createForClient()` already treats a missing `org_unit_id` as `null`, so creation logic is unchanged.
+- The creation route (`public/index.php`) no longer queries organisation units for this form. The employee edit form is unchanged.
+- Affected files: `views/panel/users/create.php`, `public/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php`, and `sql/013_employee_create_org_unit.sql`.
+- Database: no schema changes; an idempotent migration records version 1.26 in `system_version_logs`.
+- Verified: PHP syntax and the live employee creation form; the organisation unit selector is absent. No employee was created during testing.
+- The next version after 1.26 is `1.27`.
+
+## Version 1.25 - September 30, 2026
+
+- Removed the organisation unit selector from the employee edit form (`views/panel/users/edit.php`). The creation form remains unchanged.
+- Updated `UserService::updateForClient()` to retain the existing assignment when `org_unit_id` is omitted; the edit route (`public/index.php`) no longer queries organisation units for this form.
+- Affected files: `views/panel/users/edit.php`, `public/index.php`, `src/Services/UserService.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php`, and `sql/012_employee_edit_org_unit.sql`.
+- Database: no schema changes; an idempotent migration records version 1.25 in `system_version_logs`.
+- Verified: PHP syntax and the live employee edit form; the organisation unit selector is absent. Retention of an existing assignment on save still needs database-backed verification.
+- The next version after 1.25 is `1.26`.
+
+## Version 1.24 - September 30, 2026
+
+- Login now stores `system_users.full_name` in the session. The header, home page, and system and client dashboards display the person's name, falling back to the username if the name is missing.
+- Affected files: `src/Services/AuthService.php`, `src/Support/ClientContext.php`, `views/layout/header.php`, `views/home.php`, `views/admin/dashboard.php`, `views/panel/dashboard.php`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php`, and `sql/011_signed_in_display_name.sql`.
+- Database: no schema changes; a new idempotent migration records version 1.24 in `system_version_logs`.
+- Verified: PHP syntax, logging back in with a real account, and the name displayed on the home page and client dashboard. The username is used if the name is blank.
+- The next version after 1.24 is `1.25`.
+
+## Version 1.23 - September 30, 2026
+
+- Added a bilingual summary of every existing version and a link to the full changelog on GitHub's landing page (`README.md`).
+- Restored the version 1.1 documentation entry from Git history.
+- Affected files: `README.md`, `CHANGELOG.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `sql/010_readme_version_history.sql`, and `src/Services/SchemaInstaller.php`. Application module behavior is unchanged.
+- Database: a new idempotent migration records version 1.23 in `system_version_logs`; no schema changes.
+- Verified: README version lists match the changelog; PHP syntax and migration registration checks.
+- The next version after 1.23 is `1.24`.
+
+## Version 1.22 - September 30, 2026
+
+- Added `docs/06-tootajate-mooduli-kasutusjuhend.md`, a manual for system and client administrators covering module activation, employee management, account activation, passwords, legacy SQL dump import, audit logs, and troubleshooting.
+- Added `docs/07-tootajate-mooduli-ai-arendusjuhend.md`, a normative AI/developer guide covering tenant isolation, transactional provisioning, the data model, service responsibilities, security rules, migrations, and the required test matrix.
+- Updated the main AI prompt to system version 1.22, linked the new module guides, and clarified shared MySQL database isolation by `client_id` and the project version policy.
+- Added `sql/009_employee_module_documentation.sql` to register the documentation release in existing installations.
+- The next version after 1.22 is `1.23`.
+
+## Version 1.21 - September 30, 2026
+
+- Registered employee functionality as the optional `employees` module. The C-panel employee menu and all `/panel/users*` routes are available only when the module is activated for the company.
+- Added per-company module provisioning: `system_client_module_provisions` tracks the schema version and readiness of each company/module data space.
+- Added `employee_module_settings`, created when a company activates the employees module, to define that company's default level F employee role.
+- Module activation, the client/module link, and the required company data are created in one database transaction. Provisioning failure rolls back the entire activation.
+- Deactivation does not delete company data; reactivation checks and updates provisioning idempotently.
+- Uses the approved shared MySQL database with `client_id`-based tenant isolation, not dynamic hosting-level MySQL users or separate databases.
+- The next version after 1.21 is `1.22`.
+
+## Version 1.20 - September 30, 2026
+
+- Added upload of a legacy database SQL dump under employee management (`/panel/users/import`), accessible only to the client administrator.
+- Import reads only `INSERT` rows for the legacy `db_user_data` table; it never executes the uploaded SQL against the database.
+- The legacy `db_users_id` becomes the employee code and username. Names, valid email addresses, phone numbers, and valid creation/update timestamps are preserved.
+- Imported accounts are inactive and have level F access. Passwords are not imported, and records with existing matching usernames are skipped.
+- Uploads are limited to `.sql` files of at most 5 MB; the action is recorded in the audit log.
+- The next version after 1.20 is `1.21`.
+
+## Version 1.19 - September 30, 2026
+
+- Expanded user management into an employees module with employee name, code/username, email, phone, access level, and organisation unit.
+- New employees are inactive with level F access by default; an administrator can activate the account after reviewing its details.
+- Added an employee edit view and protection against removing the last active client administrator role.
+- Account activation and password resets generate a temporary password and email the login details. If sending fails, the temporary password is shown to the administrator.
+- Added the automatic migration `sql/006_employee_users.sql` to add `system_users.phone` to existing installations.
+- The next version after 1.19 is `1.20`.
+
+## Version 1.18 - September 20, 2026
+
+- Converted Organisation and Substitutes into a real optional `organisation` module, following the Patients model: `sql/005_module_organisation.sql` registers it in the catalog. The `system_org_units` and `system_substitutes` tables already existed.
+- Added `ModuleService::isActiveForClient()` as a general helper and refactored `PatientService` to use it.
+- `/panel/org*` and `/panel/substitutes*` now require the client's module activation (`require_organisation_module()` / `require_organisation_manager()`), returning 403 otherwise.
+- The C-panel menu shows Organisation and Substitutes links only when an administrator has activated the module for the client via `/admin/clients/view`.
+- Extended `SchemaInstaller` to support row-check migrations that register rows in existing tables, in addition to migrations creating new tables.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.18 is `1.19`.
+
+## Version 1.17 - September 20, 2026
+
+- Removed Organisation and Substitutes links from the C-panel menu. The `/panel/org` and `/panel/substitutes` routes and the `OrgUnitService` and `SubstituteService` remain unchanged; they were planned to become a separate optional module like Patients.
+- The next version after 1.17 is `1.18`.
+
+## Version 1.16 - September 20, 2026
+
+- Added `UserService::resetPassword()`: the system administrator can reset a client user's password on `/admin/clients/view` (Users, Reset password); a `client_admin` can reset other users' passwords on `/panel/users`. The one-time temporary password is displayed, and `must_change_password` forces a change.
+- Added `UserService::changeOwnPassword()` and `/panel/account` so any signed-in user can change their own password, confirming the current password and supplying at least eight characters. Added My account and Change my password links to the C-panel.
+- All password changes are audited (`user.password_reset`, `user.password_changed_self`).
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.16 is `1.17`.
+
+## Version 1.15 - September 20, 2026
+
+- Added `/admin/roles` to rename role display labels without changing technical `role_key` values, with links from Users & permissions and System settings.
+- Added `RoleService::listAll()` and `RoleService::updateName()`; renames are audited as `role.renamed`.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.15 is `1.16`.
+
+## Version 1.14 - September 20, 2026
+
+- Fixed a 500 error on `/admin` and dependent pages: `ADMIN_SYSTEM_ROLES` was declared in `public/index.php` after the routing logic. It is now declared near the start of the file, before requests are handled.
+- Verified on the live site with `APP_DEBUG=1` temporarily enabled: the `/admin` dashboard, client list, modules, and system logs worked. `APP_DEBUG` was returned to `0` afterward.
+- The next version after 1.14 is `1.15`.
+
+## Version 1.13 - September 20, 2026
+
+- Added the first real business module, Patients: `sql/004_module_patients.sql` creates the `patients` table and registers the module in `system_modules`.
+- Created `PatientService` for client-scoped patient creation, listing, activation, and deactivation (soft delete; doc 01 section 9).
+- `/panel/patients`, `/panel/patients/create`, and `/panel/patients/toggle` are available only after an administrator activates the module for the client via `/admin/clients/view`.
+- The C-panel menu dynamically shows only modules activated for the client (doc 01 section 4); previously the menu was static.
+- Verified: all PHP files passed `php -l`.
+- Open question: module activation plus login is currently sufficient to access Patients. Fine-grained view/create/edit permissions within the module are still needed as it grows.
+- The next version after 1.13 is `1.14`.
+
+## Version 1.12 - September 20, 2026
+
+- Added `sql/003_notifications_support.sql` with `system_notifications` and `system_support_tickets`. Updated `SchemaInstaller` to check each migration separately against its own marker table, so this and future migrations also apply automatically to existing installations.
+- Created `NotificationService`: administrators can notify an individual user or an entire client (`/admin/notifications`); users can view and mark their own notifications as read (`/panel/notifications`).
+- Created `ReportService` for basic system- and client-scoped statistics on active users, modules, organisation units, and open support tickets (`/panel/reports`).
+- Created `SupportService`: client users can submit tickets (`/panel/support`, `/panel/support/create`); administrators can view and manage all open tickets (`/admin/support`).
+- Updated the menu: Notifications, Support, and Reports & statistics are no longer placeholders.
+- Verified: all PHP files passed `php -l`.
+- Note: the C-panel Notifications and admin Support links were added beyond the exact menus in doc 01 sections 4-5 to make those workflows usable end to end.
+- The next version after 1.12 is `1.13`.
+
+## Version 1.11 - September 20, 2026
+
+- Created `SettingsService` and the System settings admin page (`/admin/settings`) for managing the `system_settings` key/value table.
+- Created the Client management page (`/panel/client`): all client users can view their client's address, phone, email, and representative; only `client_admin` can edit them via `ClientService::updateOwnDetails()`.
+- Updated the menu: System settings and Client management are no longer placeholders.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.11 is `1.12`.
+
+## Version 1.10 - September 20, 2026
+
+- Confirmed on the live site that the landing page, initial setup, and automatic SQL schema installation work with the root `index.php` and `.htaccess` configuration.
+- Added `AuditLogService::listRecent()` with action, client code, and username filters.
+- Created the admin System logs page (`/admin/logs`) per docs 01 section 5 and 02 section 10; it was previously just a menu placeholder.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.10 is `1.11`.
+
+## Version 1.9 - September 20, 2026
+
+- Added root-level `index.php` to forward requests to `public/index.php`; the hosting environment requires a real `index.php` in the web root rather than only a `.htaccess` rewrite.
+- Updated `.htaccess` with `DirectoryIndex index.php`; all routes except static `public/assets` files and existing files/directories now forward to the root entry point.
+- Added `SchemaInstaller`: on the first request it checks for `system_initial_setup` and, if absent, automatically runs `sql/001_core_schema.sql` and `sql/002_client_modules.sql`. Manual phpMyAdmin setup is no longer required.
+- Added front-controller exception handling and `views/errors/500.php` to avoid a blank 500 page. Setting `APP_DEBUG=1` in `.env` shows technical details; it is off by default.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.9 is `1.10`.
+
+## Version 1.8 - September 20, 2026
+
+- Created `OrgUnitService` for listing and creating client-scoped A-F hierarchy units (departments, groups, teams) at `/panel/org` and `/panel/org/create`, including parent units and managers (docs 02 section 8 and 03 section 2).
+- Employee creation at `/panel/users/create` gained an organisation unit selector, stored in `system_user_roles.org_unit_id`.
+- Created `SubstituteService`: requests for temporary substitutes (`/panel/substitutes/create`), automatic eligibility calculations (same unit/level, subordinate, or direct superior; doc 03 section 5), and client-admin approval or rejection (`/panel/substitutes/approve`, `/reject`; doc 03 section 6).
+- Delegated permissions are stored as JSON; every request and decision is audited.
+- Verified: all PHP files passed `php -l`.
+- Open question: automatic activation and ending of a substitute assignment based on its date range needs a cron-like background job. Current states are limited to `pending`, `approved`, and `rejected`.
+- The next version after 1.8 is `1.9`.
+
+## Version 1.7 - September 20, 2026
+
+- Expanded `UserService` for client user creation (`/panel/users/create`) with role selection (`client_admin`, A-F, `viewer`, `temp_substitute`) and an automatically generated one-time temporary password; added activation/deactivation (`/panel/users/toggle`).
+- Added a server-side rule preventing a client from losing its last active administrator: deactivating the final active `client_admin` is blocked (doc 03 section 4).
+- Adding/deactivating users requires the `client_admin` role; all client users can view the list.
+- Added `RoleService::listAssignableClientRoles()`.
+- Verified: all PHP files passed `php -l`.
+- Open question: the temporary substitute workflow (doc 03 section 5) and A-F organisation unit UI were still missing. Roles could be assigned, but unit selection was not yet available in the UI.
+- The next version after 1.7 is `1.8`.
+
+## Version 1.6 - September 20, 2026
+
+- Added `sql/002_client_modules.sql`, creating `system_client_modules` for per-client module activation.
+- Added the admin client detail page (`/admin/clients/view?id=`) with client information, user list, and module activation/deactivation via `ModuleService::toggleClientActivation()`.
+- Built the C-panel foundation (doc 01 sections 4 and 7): dashboard at `/panel`, active modules at `/panel/modules`, a read-only users and roles view at `/panel/users`, and shared header/footer and side menu.
+- Added `UserService` queries for client users and roles.
+- The home page now directs users with system roles to `/admin` and regular users to `/panel`.
+- Verified: all PHP files passed `php -l`.
+- Open question: editing users and roles, role assignment, deactivation, substitutes, and organisation units were planned for the next stage; `/panel/users` was read-only.
+- The next version after 1.6 is `1.7`.
+
+## Version 1.5 - September 20, 2026
+
+- Created the module catalog (`ModuleService`): listing at `/admin/modules`, creation at `/admin/modules/create` (key, name, description, demo availability), and activation/deactivation without deleting data (docs 01 section 5 and 02 section 7).
+- Created language management (`LanguageService`, `TranslationService`): manage languages at `/admin/languages` (English cannot be disabled), translations and their English base values at `/admin/translations`, and a missing-translations report at `/admin/translations/missing` (docs 01 section 5 and 02 section 6).
+- All creations and changes are recorded in the audit log.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.5 is `1.6`.
+
+## Version 1.4 - September 20, 2026
+
+- Built the system administrator foundation with role-based access control (`RoleService`) on `/admin/*`, a shared header/footer, left menu, and workspace (doc 01 sections 3-5).
+- Built the first client management workflow (`ClientService`, doc 01 section 6): list clients at `/admin/clients` and create a client at `/admin/clients/create`, including its first user with the client administrator role and a one-time temporary password.
+- Client code `13666` is reserved and cannot be assigned to a regular client; client code uniqueness is validated before creation.
+- New actions (creating clients and their first users) are written to the audit log.
+- Verified: all PHP files passed `php -l`.
+- The next version after 1.4 is `1.5`.
+
+## Version 1.3 - September 20, 2026
+
+- Added the initial database schema in `sql/001_core_schema.sql`: 18 `system_*` tables for clients, users, roles, permissions, organisation units, substitutes, modules, languages, translations, audit logs, version logs, and initial setup, with seed data for English, reserved client `13666`, and base roles/permissions. The file can be rerun and was designed for direct phpMyAdmin execution.
+- Built the plain PHP and PDO application skeleton: `public/index.php` front controller; `config/env.php` and `config/database.php`; `InitialSetupService`, `AuthService`, and `AuditLogService`; and the `ClientContext` and `Csrf` helpers.
+- Built one-time initial setup (`/setup`) to create the first system administrator, and C-panel login (`/login`, `/logout`) using client code, username, and password. Added a Bootstrap 5 home page and shared full-width, 75 px header/footer (doc 01 section 3).
+- Added `.htaccess` rules blocking direct access to `config/`, `src/`, `sql/`, `views/`, `docs/`, and `.env`, while routing requests through the front controller.
+- Security measures: `password_hash()` / `password_verify()`, PDO prepared statements, session-based form CSRF protection, basic login rate limiting, and audit logging for important actions.
+- Verified: all PHP files passed `php -l`. A local database connection could not be checked because remote MySQL access was blocked; at that stage the schema had to be run manually in phpMyAdmin.
+- Open question: the person/account/membership model spanning multiple clients (doc 02 section 5) was initially simplified to one user per client, to be extended if needed.
+- The next version after 1.3 is `1.4`.
+
+## Version 1.2 - September 20, 2026
+
+- Confirmed Laravel is not used: the backend is plain PHP with PDO/MySQLi and no framework.
+- Removed Laravel references from `docs/02-sql-andmebaasi-loogika.md`.
+- Removed `docs/04-laravel-arhitektuur-ja-mudelid.md` and replaced it with `docs/04-php-arhitektuur-ja-mudelid.md`, describing the plain PHP and PDO architecture (front controller, services, PDO prepared statements, session authentication).
+- Updated `docs/05-ai-eeskirjad-ja-prompt.md` to assume plain PHP with PDO/MySQLi and Bootstrap rather than Laravel.
+- Retained MySQL/SQL, client context, modules, roles, language management, initial users, demo functionality, and audit logs.
+- The next version after 1.2 is `1.3`.
+
+## Version 1.1 - September 20, 2026
+
+- Added initial documentation covering project requirements and design, SQL database logic, users and roles, architecture, and AI development rules (`docs/01`-`docs/05`). The architecture document described Laravel at the time; version 1.2 switched to plain PHP and PDO.
+- Affected modules: documentation and development guidance. No database schema or application code was added in this version.
+- Test results were not documented in the original version 1.1 commit.
+- The next version after 1.1 is `1.2`.
+
+## Versioning rule
+
+Every additional functional, technical, or documented change increments the latest version number by one. Each release entry must include its date, a description of the change, affected files or modules, database changes, and test results.
