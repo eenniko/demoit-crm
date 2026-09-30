@@ -1,1 +1,67 @@
-# demoit-crm
+# DemoIT CRM
+
+Kliendipõhine moodulitega CRM, mis kasutab PHP-d, PDO-d ja MySQL-i. Projekt sisaldab peaadministraatori keskkonda, kliendipaneeli ning aktiveeritavaid patsiendi-, organisatsiooni- ja töötajate mooduleid.
+
+A client-based modular CRM built with PHP, PDO and MySQL. It includes a system administrator workspace, a client panel and optional patients, organisation and employees modules.
+
+## Versioonide ajalugu / Version history
+
+### Eesti keeles
+
+| Versioon | Kuupäev | Olulisemad muudatused |
+| --- | --- | --- |
+| 1.23 | 30.09.2026 | Kakskeelne GitHubi README versiooniülevaade ja versioonilogi registrikanne. |
+| 1.22 | 30.09.2026 | Töötajate mooduli kasutus- ja AI arendusjuhend ning dokumentatsioonipaketi migratsioon. |
+| 1.21 | 30.09.2026 | Aktiveeritav töötajate moodul, ettevõttepõhine provisioneerimine ja mooduli seaded. |
+| 1.20 | 30.09.2026 | Vana SQL-dumpi töötajate import koos failikontrolli ja auditlogiga. |
+| 1.19 | 30.09.2026 | Töötajate andmed ja muutmisvaade, konto aktiveerimine ning ajutised paroolid. |
+| 1.18 | 20.09.2026 | Organisatsioon ja asendajad aktiveeritava moodulina koos marsruutide ligipääsukontrolliga. |
+| 1.17 | 20.09.2026 | Organisatsiooni ja asendajate lingid peideti kliendipaneelis kuni mooduliks muutmiseni. |
+| 1.16 | 20.09.2026 | Paroolide lähtestamine, oma parooli muutmine ja auditlogi. |
+| 1.15 | 20.09.2026 | Rollide kuvatavate nimede haldus peaadministraatori keskkonnas. |
+| 1.14 | 20.09.2026 | Parandatud peaadministraatori marsruutide 500 viga. |
+| 1.13 | 20.09.2026 | Patsiendimoodul ning kliendi aktiivsetest moodulitest sõltuv menüü. |
+| 1.12 | 20.09.2026 | Teavitused, raportid, tugi ja olemasolevate paigalduste automigratsioonid. |
+| 1.11 | 20.09.2026 | Süsteemi seaded, kliendi andmete haldus ja kontaktandmete muutmine. |
+| 1.10 | 20.09.2026 | Administraatori auditlogi vaade ja kinnitatud paigaldusvoog. |
+| 1.9 | 20.09.2026 | Juurkataloogi marsruutimine, automaatne SQL-skeemi paigaldus ja 500 vea vaade. |
+| 1.8 | 20.09.2026 | Organisatsiooniüksused ja ajutiste asendajate taotlused. |
+| 1.7 | 20.09.2026 | Kliendi kasutajate loomine ja viimase aktiivse administraatori kaitse. |
+| 1.6 | 20.09.2026 | Kliendipaneel ning kliendipõhine moodulite aktiveerimine. |
+| 1.5 | 20.09.2026 | Moodulite, keelte ja tõlgete haldus. |
+| 1.4 | 20.09.2026 | Peaadministraatori keskkond ja kliendi loomine. |
+| 1.3 | 20.09.2026 | Esmane andmebaas, PHP rakendus, sisselogimine ja algseadistus. |
+| 1.2 | 20.09.2026 | Laraveli asemel vanilla PHP ja PDO arhitektuur. |
+| 1.1 | 20.09.2026 | Projekti nõuete, andmebaasi, rollide, arhitektuuri ja AI arendusjuhendi esmane dokumentatsioon. |
+
+Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja testimismärkused on kirjas [täielikus muudatuste logis](CHANGELOG.md).
+
+### In English
+
+| Version | Date | Highlights |
+| --- | --- | --- |
+| 1.23 | 30.09.2026 | Bilingual GitHub README version overview and version log registration. |
+| 1.22 | 30.09.2026 | Employees module user and AI development guides, plus documentation migration. |
+| 1.21 | 30.09.2026 | Optional employees module, per-client provisioning and module settings. |
+| 1.20 | 30.09.2026 | Legacy SQL dump employee import with file validation and audit logging. |
+| 1.19 | 30.09.2026 | Employee records and editing, account activation and temporary passwords. |
+| 1.18 | 20.09.2026 | Organisation and substitutes as an optional module with route access control. |
+| 1.17 | 20.09.2026 | Organisation and substitutes links hidden pending module activation support. |
+| 1.16 | 20.09.2026 | Password resets, self-service password changes and audit logging. |
+| 1.15 | 20.09.2026 | System administrator management of display names for roles. |
+| 1.14 | 20.09.2026 | Fixed a 500 error affecting system administrator routes. |
+| 1.13 | 20.09.2026 | Patients module and a menu driven by the client's active modules. |
+| 1.12 | 20.09.2026 | Notifications, reports, support and automatic migrations for existing installs. |
+| 1.11 | 20.09.2026 | System settings and client contact detail management. |
+| 1.10 | 20.09.2026 | System administrator audit log view and verified installation flow. |
+| 1.9 | 20.09.2026 | Root routing, automatic SQL schema installation and a 500 error page. |
+| 1.8 | 20.09.2026 | Organisation units and temporary substitute requests. |
+| 1.7 | 20.09.2026 | Client user creation and protection of the last active administrator. |
+| 1.6 | 20.09.2026 | Client panel and per-client module activation. |
+| 1.5 | 20.09.2026 | Module, language and translation management. |
+| 1.4 | 20.09.2026 | System administrator workspace and client creation. |
+| 1.3 | 20.09.2026 | Initial database, PHP application, login and setup. |
+| 1.2 | 20.09.2026 | Switched from Laravel to plain PHP and PDO. |
+| 1.1 | 20.09.2026 | Initial requirements, database, roles, architecture and AI development documentation. |
+
+For the detailed release notes, affected modules, database changes and test results, see the [full changelog (in Estonian)](CHANGELOG.md).

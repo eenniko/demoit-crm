@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.23 – 30. september 2026
+
+- GitHubi avalehele (`README.md`) lisatud kõigi seniste versioonide kakskeelne lühikokkuvõte ja link täielikule muudatuste logile.
+- Taastatud versiooni 1.1 dokumentatsioonimuudatuste kirje Giti ajaloo põhjal.
+- Mõjutatud failid: `README.md`, `CHANGELOG.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `sql/010_readme_version_history.sql` ja `src/Services/SchemaInstaller.php`. Rakenduse moodulite käitumine ei muutu.
+- Andmebaasimuudatus: uus idempotentne migratsioon registreerib versiooni 1.23 tabelis `system_version_logs`; skeemimuudatusi ei ole.
+- Kontrollitud: README versioonide loend kattub muudatuste logi versioonidega; PHP süntaksi kontroll ja migratsiooni registreeringu kontroll.
+- Järgmiseks versiooniks pärast 1.23 on `1.24`.
+
 ## Versioon 1.22 – 30. september 2026
 
 - Lisatud `docs/06-tootajate-mooduli-kasutusjuhend.md`: süsteemiadministraatori ja kliendiadministraatori käsiraamat mooduli aktiveerimise, töötajate halduse, konto aktiveerimise, paroolide, vana SQL-dumpi impordi, auditlogi ja tõrkeotsingu kohta.
@@ -185,6 +194,13 @@
 - Uuendatud AI-prompt (`docs/05-ai-eeskirjad-ja-prompt.md`), et see eeldaks vanilla PHP + PDO/MySQLi + Bootstrap stacki, mitte Laravelit.
 - Säilitatud MySQL/SQL, kliendikontekst, moodulid, rollid, keelehaldus, algkasutajad, demo ja auditlogid.
 - Järgmiseks versiooniks pärast 1.2 on `1.3`.
+
+## Versioon 1.1 – 20. september 2026
+
+- Lisatud projekti nõuete ja disaini, SQL-andmebaasi, kasutajate ja rollide, arhitektuuri ning AI arendusreeglite esmased dokumendid (`docs/01`–`docs/05`). Arhitektuuridokument kirjeldas sel ajal Laravelit; versioonis 1.2 mindi üle vanilla PHP ja PDO peale.
+- Mõjutatud moodulid: dokumentatsioon ja arendusjuhised. Andmebaasi skeemi ega rakenduskoodi selles versioonis ei lisatud.
+- Testitulemusi algses versiooni 1.1 commit'is ei dokumenteeritud.
+- Järgmiseks versiooniks pärast 1.1 on `1.2`.
 
 ## Versioonireegel
 
