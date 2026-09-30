@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.25 – 30. september 2026
+
+- Töötaja muutmisvormist (`views/panel/users/edit.php`) eemaldatud organisatsiooniüksuse valik. Töötaja loomise vorm jääb muutmata.
+- Muudetud `UserService::updateForClient()` nii, et puuduva `org_unit_id` korral säilib olemasolev seos; muutmisvaade (`public/index.php`) ei päri enam vormi jaoks üksuste loendit.
+- Mõjutatud failid: `views/panel/users/edit.php`, `public/index.php`, `src/Services/UserService.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/012_employee_edit_org_unit.sql`.
+- Andmebaasimuudatus: skeem ei muutu; idempotentne migratsioon registreerib versiooni 1.25 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja töötaja muutmisvorm live-veebis; organisatsiooniüksuse valikut ei kuvata. Salvestamise mõju olemasolevale seosele vajab andmebaasiga kontrolli.
+- Järgmiseks versiooniks pärast 1.25 on `1.26`.
+
 ## Versioon 1.24 – 30. september 2026
 
 - Sisselogimisel salvestatakse `system_users.full_name` sessiooni; päis, avaleht ning süsteemi- ja kliendipaneeli töölauad kuvavad nüüd inimese nime. Puuduva nime korral jääb varuvariandiks kasutajatunnus.

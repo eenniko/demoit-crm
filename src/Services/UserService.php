@@ -131,7 +131,6 @@ class UserService
         $email = trim((string) ($data['email'] ?? ''));
         $phone = trim((string) ($data['phone'] ?? ''));
         $roleKey = trim((string) ($data['role_key'] ?? 'level_f'));
-        $orgUnitId = !empty($data['org_unit_id']) ? (int) $data['org_unit_id'] : null;
 
         if ($fullName === '' || $email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return [false, 'Employee name and a valid e-mail address are required.'];
@@ -144,6 +143,9 @@ class UserService
         if ($user === null) {
             return [false, 'Employee not found.'];
         }
+        $orgUnitId = array_key_exists('org_unit_id', $data)
+            ? (!empty($data['org_unit_id']) ? (int) $data['org_unit_id'] : null)
+            : $user['org_unit_id'];
 
         $currentRoleStmt = db()->prepare(
             "SELECT r.role_key FROM system_user_roles ur

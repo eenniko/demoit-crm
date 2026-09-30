@@ -600,7 +600,6 @@ function handle_panel_users_edit(string $method): void
         'error' => $error,
         'employee' => $employee,
         'roles' => RoleService::listAssignableClientRoles(),
-        'orgUnits' => OrgUnitService::listForClient(ClientContext::clientId()),
     ], 'users');
 }
 
