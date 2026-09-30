@@ -1,0 +1,25 @@
+Options -Indexes
+RewriteEngine On
+DirectoryIndex index.php
+
+# Never serve these directly, even though the whole repo is deployed to the web root.
+RewriteRule ^(config|src|sql|views|docs)(/|$) - [F,L]
+RewriteRule ^\.env(\.example)?$ - [F,L]
+RewriteRule ^\.git(/|$) - [F,L]
+RewriteRule ^\.vscode(/|$) - [F,L]
+
+# Serve real static files from /public/assets as-is.
+RewriteCond %{REQUEST_URI} ^/assets/
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
+RewriteRule ^(.*)$ public/$1 [L]
+
+# Never rewrite requests for the front controller itself or real files/folders.
+RewriteCond %{REQUEST_URI} !^/index\.php$
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]
+
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>

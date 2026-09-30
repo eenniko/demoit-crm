@@ -1,10 +1,10 @@
 # DemoIT CRM – SQL-andmebaasi loogika
 
-**Versioon:** 1.1
+**Versioon:** 1.2
 
 ## 1. Põhimõte
 
-Andmebaas on MySQL-iga ühilduv ning peab toetama Laravelit. SQL-juhend peab hiljem sisaldama otse phpMyAdminis käivitatavaid `CREATE TABLE`, indeksite ja välisvõtmete lauseid.
+Andmebaas on MySQL-iga ühilduv ning kasutatakse otse PDO/MySQLi kaudu (ilma ORM-ita). SQL-juhend peab hiljem sisaldama otse phpMyAdminis käivitatavaid `CREATE TABLE`, indeksite ja välisvõtmete lauseid.
 
 ## 2. Süsteemi põhitabelid
 
@@ -38,7 +38,7 @@ Enne realiseerimist tuleb kinnitada, kas kasutatakse:
 2. ühiseid tabeleid `client_id` väljaga;
 3. hübriidlahendust.
 
-Laravel + MySQL hooldatavuse seisukohalt tuleb eelistada ühiseid tabeleid või hübriidi, kuid kui prefiksilahendus kinnitatakse, peab rakendus tabelinimed serveris valideerima ja koostama ainult usaldatud kliendikoodist.
+Hooldatavuse seisukohalt tuleb eelistada ühiseid tabeleid või hübriidi, kuid kui prefiksilahendus kinnitatakse, peab rakendus tabelinimed serveris valideerima ja koostama ainult usaldatud kliendikoodist.
 
 ## 4. Kliendi andmed
 
