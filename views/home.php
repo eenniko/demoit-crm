@@ -1,6 +1,6 @@
 <div class="container">
     <?php if (ClientContext::isLoggedIn()): ?>
-        <h1 class="h3">Welcome, <?= e(ClientContext::username()) ?></h1>
+        <h1 class="h3">Welcome, <?= e(ClientContext::displayName()) ?></h1>
         <p class="text-muted">Client: <?= e(ClientContext::clientCode()) ?></p>
         <?php if (RoleService::hasAnyRole(ClientContext::userId(), ClientContext::clientId(), ['system_admin', 'developer', 'client_manager', 'client_support'])): ?>
             <a class="btn btn-primary" href="/admin">Open admin panel</a>

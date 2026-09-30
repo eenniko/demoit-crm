@@ -14,7 +14,7 @@
     </a>
     <nav class="d-flex align-items-center gap-3">
         <?php if (ClientContext::isLoggedIn()): ?>
-            <span class="text-muted">Signed in as <strong><?= e(ClientContext::username()) ?></strong></span>
+            <span class="text-muted">Signed in as <strong><?= e(ClientContext::displayName()) ?></strong></span>
             <a class="btn btn-outline-secondary btn-sm" href="/logout">Log out</a>
         <?php else: ?>
             <a class="btn btn-outline-primary btn-sm" href="/login">Client login</a>

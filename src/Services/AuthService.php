@@ -22,7 +22,7 @@ class AuthService
         }
 
         $stmt = db()->prepare(
-            'SELECT u.id, u.client_id, u.password_hash, u.status, u.must_change_password, c.client_code, c.status AS client_status
+            'SELECT u.id, u.client_id, u.full_name, u.password_hash, u.status, u.must_change_password, c.client_code, c.status AS client_status
              FROM system_users u
              INNER JOIN system_clients c ON c.id = u.client_id
              WHERE c.client_code = :client_code AND u.username = :username
@@ -45,7 +45,7 @@ class AuthService
         }
 
         self::clearAttempts($clientCode, $username);
-        ClientContext::login((int) $user['id'], (int) $user['client_id'], $user['client_code'], $username);
+        ClientContext::login((int) $user['id'], (int) $user['client_id'], $user['client_code'], $username, (string) ($user['full_name'] ?? ''));
         AuditLogService::log((int) $user['id'], (int) $user['client_id'], 'auth.login_success', 'system_users', (string) $user['id']);
 
         if ((int) $user['must_change_password'] === 1) {

@@ -45,13 +45,19 @@ class ClientContext
         return $_SESSION['username'] ?? null;
     }
 
-    public static function login(int $userId, int $clientId, string $clientCode, string $username): void
+    public static function displayName(): ?string
+    {
+        return ($_SESSION['full_name'] ?? '') ?: self::username();
+    }
+
+    public static function login(int $userId, int $clientId, string $clientCode, string $username, string $fullName = ''): void
     {
         session_regenerate_id(true);
         $_SESSION['user_id'] = $userId;
         $_SESSION['client_id'] = $clientId;
         $_SESSION['client_code'] = $clientCode;
         $_SESSION['username'] = $username;
+        $_SESSION['full_name'] = trim($fullName);
     }
 
     public static function logout(): void

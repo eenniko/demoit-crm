@@ -26,6 +26,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/008_module_tenant_provisioning.sql', 'rowCheck' => "SELECT 1 FROM system_modules WHERE module_key = 'employees' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'system_client_module_provisions') AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_module_settings') LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/009_employee_module_documentation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.22' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/010_readme_version_history.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.23' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/011_signed_in_display_name.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.24' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

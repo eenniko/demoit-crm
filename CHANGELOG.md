@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.24 – 30. september 2026
+
+- Sisselogimisel salvestatakse `system_users.full_name` sessiooni; päis, avaleht ning süsteemi- ja kliendipaneeli töölauad kuvavad nüüd inimese nime. Puuduva nime korral jääb varuvariandiks kasutajatunnus.
+- Mõjutatud failid: `src/Services/AuthService.php`, `src/Support/ClientContext.php`, `views/layout/header.php`, `views/home.php`, `views/admin/dashboard.php`, `views/panel/dashboard.php`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/011_signed_in_display_name.sql`.
+- Andmebaasimuudatus: skeem ei muutu; uus idempotentne migratsioon registreerib versiooni 1.24 tabelis `system_version_logs`.
+- Kontrollitud: muudetud PHP failide süntaks; päris kontoga uuesti sisselogimine ning nime kuvamine avalehel ja kliendipaneeli töölaual. Tühja nime korral kasutatakse kasutajatunnust.
+- Järgmiseks versiooniks pärast 1.24 on `1.25`.
+
 ## Versioon 1.23 – 30. september 2026
 
 - GitHubi avalehele (`README.md`) lisatud kõigi seniste versioonide kakskeelne lühikokkuvõte ja link täielikule muudatuste logile.

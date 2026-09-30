@@ -10,6 +10,7 @@ A client-based modular CRM built with PHP, PDO and MySQL. It includes a system a
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.24 | 30.09.2026 | Sisselogitud kasutaja nime näidatakse kasutajatunnuse asemel päises ja töölaudadel. |
 | 1.23 | 30.09.2026 | Kakskeelne GitHubi README versiooniülevaade ja versioonilogi registrikanne. |
 | 1.22 | 30.09.2026 | Töötajate mooduli kasutus- ja AI arendusjuhend ning dokumentatsioonipaketi migratsioon. |
 | 1.21 | 30.09.2026 | Aktiveeritav töötajate moodul, ettevõttepõhine provisioneerimine ja mooduli seaded. |
@@ -40,6 +41,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.24 | 30.09.2026 | Signed-in person's name replaces the username in the header and dashboards. |
 | 1.23 | 30.09.2026 | Bilingual GitHub README version overview and version log registration. |
 | 1.22 | 30.09.2026 | Employees module user and AI development guides, plus documentation migration. |
 | 1.21 | 30.09.2026 | Optional employees module, per-client provisioning and module settings. |
