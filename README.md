@@ -10,6 +10,7 @@ A client-based modular CRM built with PHP, PDO and MySQL. It includes a system a
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.26 | 30.09.2026 | Töötaja loomise vormist eemaldatud organisatsiooniüksuse valik. |
 | 1.25 | 30.09.2026 | Töötaja muutmisvormist eemaldatud organisatsiooniüksuse valik; salvestamisel säilib varasem seos. |
 | 1.24 | 30.09.2026 | Sisselogitud kasutaja nime näidatakse kasutajatunnuse asemel päises ja töölaudadel. |
 | 1.23 | 30.09.2026 | Kakskeelne GitHubi README versiooniülevaade ja versioonilogi registrikanne. |
@@ -42,6 +43,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.26 | 30.09.2026 | Removed the organisation unit selector from the Add employee form. |
 | 1.25 | 30.09.2026 | Removed the organisation unit selector from employee editing while retaining existing assignments. |
 | 1.24 | 30.09.2026 | Signed-in person's name replaces the username in the header and dashboards. |
 | 1.23 | 30.09.2026 | Bilingual GitHub README version overview and version log registration. |

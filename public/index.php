@@ -563,7 +563,6 @@ function handle_panel_users_create(string $method): void
         'error' => $error,
         'old' => $old,
         'roles' => RoleService::listAssignableClientRoles(),
-        'orgUnits' => OrgUnitService::listForClient(ClientContext::clientId()),
     ], 'users');
 }
 

@@ -38,17 +38,6 @@
             <?php endforeach; ?>
         </select>
     </div>
-    <div class="col-md-6">
-        <label class="form-label" for="org_unit_id">Organisation unit (optional)</label>
-        <select class="form-select" id="org_unit_id" name="org_unit_id">
-            <option value="">None</option>
-            <?php foreach ($orgUnits as $unit): ?>
-                <option value="<?= (int) $unit['id'] ?>" <?= (string) ($old['org_unit_id'] ?? '') === (string) $unit['id'] ? 'selected' : '' ?>>
-                    <?= e($unit['org_level']) ?> — <?= e($unit['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
     <div class="col-12">
         <button class="btn btn-primary" type="submit">Create employee</button>
     </div>

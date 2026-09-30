@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.26 – 30. september 2026
+
+- Töötaja loomise vormist (`views/panel/users/create.php`) eemaldatud organisatsiooniüksuse valik. `UserService::createForClient()` käsitleb puuduva `org_unit_id` väärtusena `null`, seega loomise loogika jääb muutmata.
+- Loomise marsruut (`public/index.php`) ei päri enam vormi jaoks organisatsiooniüksuste loendit. Töötaja muutmisvorm jääb samaks.
+- Mõjutatud failid: `views/panel/users/create.php`, `public/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/013_employee_create_org_unit.sql`.
+- Andmebaasimuudatus: skeem ei muutu; idempotentne migratsioon registreerib versiooni 1.26 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja töötaja loomise vorm live-veebis; organisatsiooniüksuse valikut ei kuvata. Uut töötajat testi käigus ei loodud.
+- Järgmiseks versiooniks pärast 1.26 on `1.27`.
+
 ## Versioon 1.25 – 30. september 2026
 
 - Töötaja muutmisvormist (`views/panel/users/edit.php`) eemaldatud organisatsiooniüksuse valik. Töötaja loomise vorm jääb muutmata.
