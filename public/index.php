@@ -23,6 +23,7 @@ require_once __DIR__ . '/../src/Services/NotificationService.php';
 require_once __DIR__ . '/../src/Services/ReportService.php';
 require_once __DIR__ . '/../src/Services/SupportService.php';
 require_once __DIR__ . '/../src/Services/PatientService.php';
+require_once __DIR__ . '/../src/Services/PropertyService.php';
 require_once __DIR__ . '/../views/render.php';
 require_once __DIR__ . '/../views/admin/render.php';
 require_once __DIR__ . '/../views/panel/render.php';
@@ -257,6 +258,18 @@ switch (true) {
 
     case $path === '/panel/patients/toggle':
         handle_panel_patients_toggle($method);
+        break;
+
+    case $path === '/panel/property':
+        handle_panel_property_index();
+        break;
+
+    case $path === '/panel/property/create':
+        handle_panel_property_create($method);
+        break;
+
+    case $path === '/panel/property/edit':
+        handle_panel_property_edit($method);
         break;
 
     case $path === '/':
@@ -1356,6 +1369,124 @@ function handle_panel_support_create(string $method): void
     }
 
     render_panel_page('New support ticket', 'support/create.php', ['error' => $error, 'old' => $old], 'support');
+}
+
+function require_property_module(): bool
+{
+    if (!ClientContext::isLoggedIn()) {
+        header('Location: /login');
+        return false;
+    }
+
+    if (!ModuleService::isActiveForClient(ClientContext::clientId(), 'property')) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return false;
+    }
+
+    return true;
+}
+
+function require_property_manager(): bool
+{
+    if (!require_property_module()) {
+        return false;
+    }
+    if (!RoleService::hasAnyRole(ClientContext::userId(), ClientContext::clientId(), ['client_admin'])) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return false;
+    }
+
+    return true;
+}
+
+function handle_panel_property_index(): void
+{
+    if (!require_property_module()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    render_panel_page('Property structure', 'property/index.php', [
+        'nodes' => PropertyService::listTreeForClient($clientId),
+        'canManage' => RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']),
+        'message' => $_GET['message'] ?? null,
+    ], 'property');
+}
+
+function handle_panel_property_create(string $method): void
+{
+    if (!require_property_manager()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $parentId = (int) ($method === 'POST' ? ($_POST['parent_id'] ?? 0) : ($_GET['parent'] ?? 0));
+    $parent = $parentId > 0 ? PropertyService::findForClient($clientId, $parentId) : null;
+    $allowedTypes = PropertyService::allowedChildTypes($parent['node_type'] ?? null);
+    if (($parentId > 0 && $parent === null) || $allowedTypes === []) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    $error = null;
+    $old = [];
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            $old = $_POST;
+            [$success, $message] = PropertyService::create($clientId, $_POST, ClientContext::userId());
+            if ($success) {
+                header('Location: /panel/property?message=' . rawurlencode($message));
+                exit;
+            }
+            $error = $message;
+        }
+    }
+
+    render_panel_page('Add location', 'property/create.php', [
+        'parent' => $parent,
+        'allowedTypes' => $allowedTypes,
+        'error' => $error,
+        'old' => $old,
+    ], 'property');
+}
+
+function handle_panel_property_edit(string $method): void
+{
+    if (!require_property_manager()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $nodeId = (int) ($method === 'POST' ? ($_POST['id'] ?? 0) : ($_GET['id'] ?? 0));
+    $node = PropertyService::findForClient($clientId, $nodeId);
+    if ($node === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    $error = null;
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            $name = is_string($_POST['name'] ?? null) ? $_POST['name'] : '';
+            [$success, $message] = PropertyService::rename($clientId, $nodeId, $name, ClientContext::userId());
+            if ($success) {
+                header('Location: /panel/property?message=' . rawurlencode($message));
+                exit;
+            }
+            $error = $message;
+            $node['name'] = $name;
+        }
+    }
+
+    render_panel_page('Edit location', 'property/edit.php', ['node' => $node, 'error' => $error], 'property');
 }
 
 function require_patients_module(): bool

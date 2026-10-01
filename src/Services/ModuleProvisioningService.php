@@ -11,6 +11,7 @@ class ModuleProvisioningService
         'employees' => '1.0',
         'organisation' => '1.0',
         'patients' => '1.0',
+        'property' => '1.0',
     ];
 
     public static function provision(int $clientId, int $moduleId, string $moduleKey): void

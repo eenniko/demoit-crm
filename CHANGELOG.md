@@ -1,5 +1,15 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.28 – 1. oktoober 2026
+
+- Lisatud eraldi aktiveeritav `property` moodul koos kliendipõhise `property_nodes` tabeli ja mooduli kataloogikirjega (`sql/015_property_structure.sql`). See ei kasuta teiste moodulite andmetabeleid.
+- Kliendipaneeli struktuurivaade ning loomise ja nime muutmise vormid võimaldavad lisada hoone, selle alla korpuse või korruse, korpuse alla korruse ning korruse alla ruumi ja nende nimesid muuta (`views/panel/property/`, `public/index.php`, `views/panel/shell.php`). Lugemine nõuab aktiivset moodulit; loomine ja muutmine kliendiadministraatori õigust ja CSRF-kontrolli.
+- `PropertyService` kontrollib vanema kuulumist samale kliendile, lubatud tasemete järjekorda ja nime ning salvestab loomise ja nime muutmise auditlogisse. Andmebaasi sama kliendi välisvõti takistab klientidevahelisi vanemseoseid.
+- Lisatud kakskeelne kasutusjuhend `docs/08-kinnistu-struktuuri-moodul.md` ja uuendatud `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `CHANGELOG.md`, `src/Services/SchemaInstaller.php` ning `src/Services/ModuleProvisioningService.php`.
+- Andmebaasimuudatus: uus `property_nodes` tabel; migratsioon registreerib versiooni 1.28 tabelis `system_version_logs`. Olemasolevate moodulite andmeskeeme ei muudeta.
+- Kontrollitud: PHP süntaks, lubatud vanem-laps tüübid ja UTF-8 nimepiirang; live-veebis struktuurivaade, vanemakohased loomise vormid ja nime muutmise vorm. Olematu kirje annab 404; olemasoleva nime uuesti salvestamine õnnestus nime muutmata. Uusi kirjeid ega eraldi klientidevahelist andmebaasitesti ei tehtud.
+- Järgmiseks versiooniks pärast 1.28 on `1.29`.
+
 ## Versioon 1.27 – 30. september 2026
 
 - Lisatud kõigi versioonide 1.1–1.26 täielik ingliskeelne tõlge faili `CHANGELOG.md`, säilitades eestikeelsed kirjed ja teadaolevad piirangud. Muudatuste logi on nüüd kakskeelne.
@@ -241,6 +251,16 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.28 - October 1, 2026
+
+- Added a separate optional `property` module with a client-scoped `property_nodes` table and module catalog entry (`sql/015_property_structure.sql`). It does not use other modules' data tables.
+- The client panel tree, creation and rename forms support buildings, optional wings or direct floors, floors under wings, rooms under floors, and editing their names (`views/panel/property/`, `public/index.php`, `views/panel/shell.php`). Reading requires an active module; creation and renaming require the client administrator role and CSRF protection.
+- `PropertyService` validates same-client parents, allowed level transitions and names, and audits creation and renaming. A same-client database foreign key prevents cross-client parent references.
+- Added a bilingual guide at `docs/08-kinnistu-struktuuri-moodul.md` and updated `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `CHANGELOG.md`, `src/Services/SchemaInstaller.php`, and `src/Services/ModuleProvisioningService.php`.
+- Database: new `property_nodes` table; the migration records version 1.28 in `system_version_logs`. Schemas owned by existing modules are unchanged.
+- Verified: PHP syntax, allowed parent/child types and UTF-8 name length; the live tree, context-aware creation forms and rename form. A nonexistent entry returns 404; resubmitting an existing name succeeded without changing the name. No records were created and no separate cross-client database test was run.
+- The next version after 1.28 is `1.29`.
 
 ## Version 1.27 - September 30, 2026
 

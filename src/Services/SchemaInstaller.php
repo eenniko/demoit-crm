@@ -30,6 +30,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/012_employee_edit_org_unit.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.25' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/013_employee_create_org_unit.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.26' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/014_bilingual_changelog.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.27' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/015_property_structure.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.28' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'property_nodes') AND EXISTS (SELECT 1 FROM system_modules WHERE module_key = 'property') LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

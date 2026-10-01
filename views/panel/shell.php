@@ -22,6 +22,11 @@
                         <a class="nav-link ps-4 <?= $activeMenu === 'patients' ? 'active' : 'link-dark' ?>" href="/panel/patients">Patients</a>
                     </li>
                 <?php endif; ?>
+                <?php if (in_array('property', $activeModuleKeys ?? [], true)): ?>
+                    <li class="nav-item">
+                        <a class="nav-link ps-4 <?= $activeMenu === 'property' ? 'active' : 'link-dark' ?>" href="/panel/property">Property structure</a>
+                    </li>
+                <?php endif; ?>
                 <?php if (in_array('organisation', $activeModuleKeys ?? [], true)): ?>
                     <li class="nav-item">
                         <span class="nav-link disabled text-uppercase small text-muted mb-0 pb-0">Modules</span>
