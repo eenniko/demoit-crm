@@ -1,11 +1,13 @@
 # DemoIT CRM
 
-Kliendipõhine moodulitega CRM, mis kasutab PHP-d, PDO-d ja MySQL-i. Projekt sisaldab peaadministraatori keskkonda, kliendipaneeli ning eraldi aktiveeritavaid patsiendi-, organisatsiooni-, töötajate ja kinnistustruktuuri mooduleid.
+Kliendipõhine moodulitega CRM, mis kasutab PHP-d, PDO-d ja MySQL-i. Projekt sisaldab peaadministraatori keskkonda, kliendipaneeli ning eraldi aktiveeritavaid patsiendi-, organisatsiooni-, töötajate, kinnistustruktuuri ja töölepingute mooduleid.
 
-A client-based modular CRM built with PHP, PDO and MySQL. It includes a system administrator workspace, a client panel, and independently activated patients, organisation, employees and property structure modules.
+A client-based modular CRM built with PHP, PDO and MySQL. It includes a system administrator workspace, a client panel, and independently activated patients, organisation, employees, property structure and employment modules.
 
 Kinnistustruktuuri eraldi mooduli kasutus: [juhend](docs/08-kinnistu-struktuuri-moodul.md).
 Property structure module: [usage guide](docs/08-kinnistu-struktuuri-moodul.md).
+Töölepingute moodul: [kasutusjuhend](docs/09-toolepingute-moodul.md).
+Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 ## Versioonide ajalugu / Version history
 
@@ -13,6 +15,7 @@ Property structure module: [usage guide](docs/08-kinnistu-struktuuri-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.30 | 01.10.2026 | Ametite, osakondade ja tähtajatu/tähtajalise põhi- ning ajutise töökohaga lepingute moodul. |
 | 1.29 | 01.10.2026 | Kliendipaneeli moodulilingid koondatud ühe „Modules” pealkirja alla. |
 | 1.28 | 01.10.2026 | Eraldi kinnistustruktuuri moodul: hooned, korpused, korrused, ruumid ja nende nimede muutmine. |
 | 1.27 | 30.09.2026 | Kõigi versioonide täielik ingliskeelne tõlge lisatud kakskeelsesse muudatuste logisse. |
@@ -49,6 +52,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.30 | 01.10.2026 | Employment module for job titles, departments, and open-ended primary and temporary workplace contracts. |
 | 1.29 | 01.10.2026 | Grouped client panel module links under a single “Modules” heading. |
 | 1.28 | 01.10.2026 | Independent property structure module for buildings, wings, floors, rooms and renaming. |
 | 1.27 | 30.09.2026 | Full English translation of all releases added to the bilingual changelog. |

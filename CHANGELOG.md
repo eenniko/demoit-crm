@@ -1,5 +1,16 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.30 – 1. oktoober 2026
+
+- Lisatud eraldi aktiveeritav `employment` moodul ametinimetuste, osakondade ning töötajate põhilepingute ja ajutiste töökohtade haldamiseks.
+- Leping seob sama kliendi töötaja, ametinimetuse, valikulise osakonna, juhi ja `property_nodes` asukoha. Alguskuupäev on kohustuslik; tühi lõppkuupäev tähendab tähtajatut lepingut. Kliendiadministraator saab katalooge ja lepinguid lisada/muuta ning peita kataloogikirjeid.
+- Põhilepingute kaasavad kuupäevavahemikud ei tohi sama töötaja puhul kattuda. Ajutise lepingu periood peab täielikult mahtuma põhilepingu sisse ja kasutama teist kinnistu asukohta; põhilepingu muutmine ei tohi muuta seotud ajutist kohta kehtetuks.
+- Lisatud eraldi kliendipõhised tabelid `employment_job_titles`, `employment_departments`, `employment_contracts` ja migratsioon `sql/017_employment_module.sql`. Lepingute välisvõtmed piiravad töötaja, juhi, ameti, osakonna ja kinnistuüksuse samale kliendile.
+- Mõjutatud failid: `public/index.php`, `src/Services/EmploymentCatalogService.php`, `src/Services/EmploymentContractService.php`, `src/Services/ModuleProvisioningService.php`, `src/Services/SchemaInstaller.php`, `views/panel/shell.php`, `views/panel/employment/`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/09-toolepingute-moodul.md` ja `CHANGELOG.md`.
+- Andmebaasimuudatus: uus ametite, osakondade ja lepingute skeem; idempotentne migratsioon lisab vajadusel töötaja kliendi-ID liitindeksi ning registreerib versiooni 1.30. Lepinguvorm eeldab kliendile aktiveeritud kinnistustruktuuri moodulit.
+- Kontrollitud: PHP süntaks, kuupäevaintervallide piir- ja avatud lõpu juhtumid, kliendipiirangute/migratsiooni struktuur ning vormide õiguskontroll. Lepingu liik jääb pärast loomist muutumatuks. Päris lepinguid ei loodud; MySQL-i kattuvuskontroll vajab live-keskkonnas kliendiadministraatori aktiveeritud mooduliga verifitseerimist.
+- Järgmiseks versiooniks pärast 1.30 on `1.31`.
+
 ## Versioon 1.29 – 1. oktoober 2026
 
 - Kliendipaneeli külgmenüüs koondatud „Active modules” ja kõik kliendile aktiveeritud moodulilingid ühe „Modules” pealkirja alla; korduvad pealkirjad eemaldatud.
@@ -259,6 +270,17 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.30 - October 1, 2026
+
+- Added a separately activated `employment` module for job titles, departments, primary contracts and temporary workplace assignments.
+- Each contract links a same-client employee, job title, optional department, manager and `property_nodes` location. A start date is required; a blank end date means open-ended. Client administrators can add/edit contracts and catalogs and hide catalog entries.
+- Inclusive primary contract periods cannot overlap for the same employee. A temporary contract must fit entirely within a primary contract at a different property location; editing a primary contract cannot invalidate its linked temporary assignments.
+- Added separate client-scoped `employment_job_titles`, `employment_departments`, and `employment_contracts` tables in `sql/017_employment_module.sql`. Contract foreign keys keep employee, manager, title, department and property references within the same client.
+- Affected files: `public/index.php`, `src/Services/EmploymentCatalogService.php`, `src/Services/EmploymentContractService.php`, `src/Services/ModuleProvisioningService.php`, `src/Services/SchemaInstaller.php`, `views/panel/shell.php`, `views/panel/employment/`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/09-toolepingute-moodul.md`, and `CHANGELOG.md`.
+- Database: new job title, department and contract tables; an idempotent migration adds the employee composite client index if needed and records version 1.30. Contract forms require the property structure module to be active for the client.
+- Verified: PHP syntax, date interval boundary/open-end cases, tenant constraints/migration structure, and form permission checks. Contract type is immutable after creation. No real contracts were created; MySQL-backed overlap behavior still needs verification in the live environment with the module activated for a client administrator.
+- The next version after 1.30 is `1.31`.
 
 ## Version 1.29 - October 1, 2026
 

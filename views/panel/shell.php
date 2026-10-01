@@ -20,6 +20,9 @@
                     <?php if (in_array('property', $activeModuleKeys ?? [], true)): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'property' ? 'active' : 'link-dark' ?>" href="/panel/property">Property structure</a>
                     <?php endif; ?>
+                    <?php if (in_array('employment', $activeModuleKeys ?? [], true)): ?>
+                        <a class="nav-link ps-4 <?= $activeMenu === 'employment' ? 'active' : 'link-dark' ?>" href="/panel/employment/contracts">Employment</a>
+                    <?php endif; ?>
                     <?php if (in_array('organisation', $activeModuleKeys ?? [], true)): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'org' ? 'active' : 'link-dark' ?>" href="/panel/org">Organisation</a>
                         <a class="nav-link ps-4 <?= $activeMenu === 'substitutes' ? 'active' : 'link-dark' ?>" href="/panel/substitutes">Substitutes</a>

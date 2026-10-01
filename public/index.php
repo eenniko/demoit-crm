@@ -24,6 +24,8 @@ require_once __DIR__ . '/../src/Services/ReportService.php';
 require_once __DIR__ . '/../src/Services/SupportService.php';
 require_once __DIR__ . '/../src/Services/PatientService.php';
 require_once __DIR__ . '/../src/Services/PropertyService.php';
+require_once __DIR__ . '/../src/Services/EmploymentCatalogService.php';
+require_once __DIR__ . '/../src/Services/EmploymentContractService.php';
 require_once __DIR__ . '/../views/render.php';
 require_once __DIR__ . '/../views/admin/render.php';
 require_once __DIR__ . '/../views/panel/render.php';
@@ -270,6 +272,36 @@ switch (true) {
 
     case $path === '/panel/property/edit':
         handle_panel_property_edit($method);
+        break;
+
+    case $path === '/panel/employment':
+        header('Location: /panel/employment/contracts');
+        break;
+
+    case $path === '/panel/employment/contracts':
+        handle_panel_employment_contracts();
+        break;
+
+    case $path === '/panel/employment/contracts/create':
+        handle_panel_employment_contract_form($method, null);
+        break;
+
+    case $path === '/panel/employment/contracts/edit':
+        $contractId = filter_var($_GET['id'] ?? $_POST['id'] ?? null, FILTER_VALIDATE_INT);
+        if ($contractId === false || $contractId <= 0) {
+            http_response_code(404);
+            render_page('Not found', 'errors/404.php');
+            break;
+        }
+        handle_panel_employment_contract_form($method, $contractId);
+        break;
+
+    case $path === '/panel/employment/titles':
+        handle_panel_employment_catalog($method, 'titles');
+        break;
+
+    case $path === '/panel/employment/departments':
+        handle_panel_employment_catalog($method, 'departments');
         break;
 
     case $path === '/':
@@ -1487,6 +1519,136 @@ function handle_panel_property_edit(string $method): void
     }
 
     render_panel_page('Edit location', 'property/edit.php', ['node' => $node, 'error' => $error], 'property');
+}
+
+function require_employment_module(): bool
+{
+    if (!ClientContext::isLoggedIn()) {
+        header('Location: /login');
+        return false;
+    }
+    if (!ModuleService::isActiveForClient(ClientContext::clientId(), 'employment')) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return false;
+    }
+
+    return true;
+}
+
+function require_employment_manager(): bool
+{
+    if (!require_employment_module()) {
+        return false;
+    }
+    if (!RoleService::hasAnyRole(ClientContext::userId(), ClientContext::clientId(), ['client_admin'])) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return false;
+    }
+
+    return true;
+}
+
+function handle_panel_employment_contracts(): void
+{
+    if (!require_employment_module()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    render_panel_page('Employment contracts', 'employment/contracts.php', [
+        'contracts' => EmploymentContractService::listForClient($clientId),
+        'canManage' => RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']),
+        'message' => $_GET['message'] ?? null,
+        'error' => $_GET['error'] ?? null,
+    ], 'employment');
+}
+
+function handle_panel_employment_contract_form(string $method, ?int $contractId): void
+{
+    if (!require_employment_manager()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    if (!ModuleService::isActiveForClient($clientId, 'property')) {
+        http_response_code(403);
+        render_page('Property module required', 'errors/403.php');
+        return;
+    }
+    $contract = $contractId !== null ? EmploymentContractService::findForClient($clientId, $contractId) : null;
+    if ($contractId !== null && $contract === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    $error = null;
+    $old = [];
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            foreach (['employee_id', 'property_node_id', 'job_title_id', 'department_id', 'manager_user_id', 'contract_type', 'start_date', 'end_date'] as $field) {
+                $old[$field] = is_string($_POST[$field] ?? null) ? $_POST[$field] : '';
+            }
+            [$success, $message] = EmploymentContractService::save($clientId, $contractId, $_POST, ClientContext::userId());
+            if ($success) {
+                header('Location: /panel/employment/contracts?message=' . rawurlencode($message));
+                exit;
+            }
+            $error = $message;
+        }
+    }
+
+    render_panel_page($contractId === null ? 'Add contract' : 'Edit contract', 'employment/contract-form.php', [
+        'contract' => $contract,
+        'old' => $old,
+        'error' => $error,
+        'options' => EmploymentContractService::formOptions($clientId, $contract),
+    ], 'employment');
+}
+
+function handle_panel_employment_catalog(string $method, string $catalog): void
+{
+    if (!require_employment_module()) {
+        return;
+    }
+    $clientId = ClientContext::clientId();
+    $canManage = RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']);
+    $error = null;
+    $message = $_GET['message'] ?? null;
+
+    if ($method === 'POST') {
+        if (!$canManage) {
+            http_response_code(403);
+            render_page('Forbidden', 'errors/403.php');
+            return;
+        }
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } elseif (($_POST['action'] ?? '') === 'toggle') {
+            $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+            [$success, $result] = EmploymentCatalogService::toggleStatus($clientId, $catalog, $id !== false && $id > 0 ? $id : 0, ClientContext::userId());
+            $success ? $message = $result : $error = $result;
+        } else {
+            $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+            $id = $id !== false && $id > 0 ? $id : 0;
+            $name = is_string($_POST['name'] ?? null) ? $_POST['name'] : '';
+            [$success, $result] = EmploymentCatalogService::save($clientId, $catalog, $id > 0 ? $id : null, $name, ClientContext::userId());
+            $success ? $message = $result : $error = $result;
+        }
+    }
+
+    render_panel_page($catalog === 'titles' ? 'Job titles' : 'Departments', 'employment/catalog.php', [
+        'catalog' => $catalog,
+        'catalogLabel' => $catalog === 'titles' ? 'Job title' : 'Department',
+        'entries' => EmploymentCatalogService::listForClient($clientId, $catalog),
+        'canManage' => $canManage,
+        'message' => $message,
+        'error' => $error,
+    ], 'employment');
 }
 
 function require_patients_module(): bool
