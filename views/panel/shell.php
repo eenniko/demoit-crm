@@ -8,32 +8,23 @@
                 <li class="nav-item">
                     <a class="nav-link <?= $activeMenu === 'client' ? 'active' : 'link-dark' ?>" href="/panel/client">Client management</a>
                 </li>
-                <?php if (in_array('employees', $activeModuleKeys ?? [], true)): ?>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $activeMenu === 'users' ? 'active' : 'link-dark' ?>" href="/panel/users">Employees &amp; permissions</a>
-                    </li>
-                <?php endif; ?>
                 <li class="nav-item">
-                    <a class="nav-link <?= $activeMenu === 'modules' ? 'active' : 'link-dark' ?>" href="/panel/modules">Active modules</a>
-                </li>
-                <?php if (in_array('patients', $activeModuleKeys ?? [], true)): ?>
-                    <li class="nav-item">
-                        <span class="nav-link disabled text-uppercase small text-muted mb-0 pb-0">Modules</span>
+                    <span class="nav-link disabled text-uppercase small text-muted mb-0 pb-0">Modules</span>
+                    <a class="nav-link ps-4 <?= $activeMenu === 'modules' ? 'active' : 'link-dark' ?>" href="/panel/modules">Active modules</a>
+                    <?php if (in_array('employees', $activeModuleKeys ?? [], true)): ?>
+                        <a class="nav-link ps-4 <?= $activeMenu === 'users' ? 'active' : 'link-dark' ?>" href="/panel/users">Employees &amp; permissions</a>
+                    <?php endif; ?>
+                    <?php if (in_array('patients', $activeModuleKeys ?? [], true)): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'patients' ? 'active' : 'link-dark' ?>" href="/panel/patients">Patients</a>
-                    </li>
-                <?php endif; ?>
-                <?php if (in_array('property', $activeModuleKeys ?? [], true)): ?>
-                    <li class="nav-item">
+                    <?php endif; ?>
+                    <?php if (in_array('property', $activeModuleKeys ?? [], true)): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'property' ? 'active' : 'link-dark' ?>" href="/panel/property">Property structure</a>
-                    </li>
-                <?php endif; ?>
-                <?php if (in_array('organisation', $activeModuleKeys ?? [], true)): ?>
-                    <li class="nav-item">
-                        <span class="nav-link disabled text-uppercase small text-muted mb-0 pb-0">Modules</span>
+                    <?php endif; ?>
+                    <?php if (in_array('organisation', $activeModuleKeys ?? [], true)): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'org' ? 'active' : 'link-dark' ?>" href="/panel/org">Organisation</a>
                         <a class="nav-link ps-4 <?= $activeMenu === 'substitutes' ? 'active' : 'link-dark' ?>" href="/panel/substitutes">Substitutes</a>
-                    </li>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link <?= $activeMenu === 'reports' ? 'active' : 'link-dark' ?>" href="/panel/reports">Reports &amp; statistics</a>
                 </li>

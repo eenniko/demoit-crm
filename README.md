@@ -13,6 +13,7 @@ Property structure module: [usage guide](docs/08-kinnistu-struktuuri-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.29 | 01.10.2026 | Kliendipaneeli moodulilingid koondatud ühe „Modules” pealkirja alla. |
 | 1.28 | 01.10.2026 | Eraldi kinnistustruktuuri moodul: hooned, korpused, korrused, ruumid ja nende nimede muutmine. |
 | 1.27 | 30.09.2026 | Kõigi versioonide täielik ingliskeelne tõlge lisatud kakskeelsesse muudatuste logisse. |
 | 1.26 | 30.09.2026 | Töötaja loomise vormist eemaldatud organisatsiooniüksuse valik. |
@@ -48,6 +49,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.29 | 01.10.2026 | Grouped client panel module links under a single “Modules” heading. |
 | 1.28 | 01.10.2026 | Independent property structure module for buildings, wings, floors, rooms and renaming. |
 | 1.27 | 30.09.2026 | Full English translation of all releases added to the bilingual changelog. |
 | 1.26 | 30.09.2026 | Removed the organisation unit selector from the Add employee form. |

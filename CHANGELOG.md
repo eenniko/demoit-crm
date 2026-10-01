@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.29 – 1. oktoober 2026
+
+- Kliendipaneeli külgmenüüs koondatud „Active modules” ja kõik kliendile aktiveeritud moodulilingid ühe „Modules” pealkirja alla; korduvad pealkirjad eemaldatud.
+- Mõjutatud failid: `views/panel/shell.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/016_group_panel_modules.sql`.
+- Andmebaasimuudatus: skeem ei muutu; idempotentne migratsioon registreerib versiooni 1.29 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ning live-kliendipaneeli menüü struktuur ja moodulite aktiivse oleku järgi kuvamine.
+- Järgmiseks versiooniks pärast 1.29 on `1.30`.
+
 ## Versioon 1.28 – 1. oktoober 2026
 
 - Lisatud eraldi aktiveeritav `property` moodul koos kliendipõhise `property_nodes` tabeli ja mooduli kataloogikirjega (`sql/015_property_structure.sql`). See ei kasuta teiste moodulite andmetabeleid.
@@ -251,6 +259,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.29 - October 1, 2026
+
+- Grouped Active modules and all module links activated for the client under one Modules heading in the client panel sidebar; removed duplicate headings.
+- Affected files: `views/panel/shell.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php`, and `sql/016_group_panel_modules.sql`.
+- Database: no schema changes; an idempotent migration records version 1.29 in `system_version_logs`.
+- Verified: PHP syntax and the live client panel menu structure and visibility based on module activation.
+- The next version after 1.29 is `1.30`.
 
 ## Version 1.28 - October 1, 2026
 
