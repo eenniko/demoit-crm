@@ -26,6 +26,7 @@ require_once __DIR__ . '/../src/Services/PatientService.php';
 require_once __DIR__ . '/../src/Services/PropertyService.php';
 require_once __DIR__ . '/../src/Services/EmploymentCatalogService.php';
 require_once __DIR__ . '/../src/Services/EmploymentContractService.php';
+require_once __DIR__ . '/../src/Services/ScheduleService.php';
 require_once __DIR__ . '/../views/render.php';
 require_once __DIR__ . '/../views/admin/render.php';
 require_once __DIR__ . '/../views/panel/render.php';
@@ -276,6 +277,14 @@ switch (true) {
 
     case $path === '/panel/property/reorder':
         handle_panel_property_reorder($method);
+        break;
+
+    case $path === '/panel/schedule':
+        handle_panel_schedule($method);
+        break;
+
+    case $path === '/panel/schedule/templates':
+        handle_panel_schedule_templates($method);
         break;
 
     case $path === '/panel/employment':
@@ -1684,6 +1693,112 @@ function handle_panel_employment_catalog(string $method, string $catalog): void
         'message' => $message,
         'error' => $error,
     ], 'employment');
+}
+
+function require_schedule_modules(): bool
+{
+    if (!ClientContext::isLoggedIn()) {
+        header('Location: /login');
+        return false;
+    }
+    foreach (['schedule', 'employment', 'property'] as $moduleKey) {
+        if (!ModuleService::isActiveForClient(ClientContext::clientId(), $moduleKey)) {
+            http_response_code(403);
+            render_page('Forbidden', 'errors/403.php');
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function handle_panel_schedule(string $method): void
+{
+    if (!require_schedule_modules()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    $isClientAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
+    $monthValue = $method === 'POST' ? ($_POST['month'] ?? '') : ($_GET['month'] ?? date('Y-m'));
+    $month = ScheduleService::monthInfo(is_string($monthValue) ? $monthValue : '');
+    if ($month === null) {
+        http_response_code(400);
+        render_page('Invalid month', 'errors/404.php');
+        return;
+    }
+
+    $error = null;
+    $message = $_GET['message'] ?? null;
+    $oldAssignments = [];
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            [$success, $result] = ScheduleService::saveMonth(
+                $clientId,
+                $userId,
+                $isClientAdmin,
+                $month['month'],
+                $_POST['assignments'] ?? []
+            );
+            if ($success) {
+                header('Location: /panel/schedule?month=' . rawurlencode($month['month']) . '&message=' . rawurlencode($result));
+                exit;
+            }
+            $error = $result;
+        }
+    }
+
+    $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month);
+    render_panel_page('Work schedule', 'schedule/index.php', [
+        'month' => $month,
+        'contracts' => $data['contracts'],
+        'templates' => $data['templates'],
+        'entries' => $data['entries'],
+        'oldAssignments' => $oldAssignments,
+        'canManage' => $isClientAdmin || $data['contracts'] !== [],
+        'canManageTemplates' => $isClientAdmin,
+        'message' => $message,
+        'error' => $error,
+    ], 'schedule');
+}
+
+function handle_panel_schedule_templates(string $method): void
+{
+    if (!require_schedule_modules()) {
+        return;
+    }
+    if (!RoleService::hasAnyRole(ClientContext::userId(), ClientContext::clientId(), ['client_admin'])) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $message = $_GET['message'] ?? null;
+    $error = null;
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } elseif (($_POST['action'] ?? '') === 'toggle') {
+            $templateId = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+            [$success, $result] = ScheduleService::toggleTemplate($clientId, $templateId !== false && $templateId > 0 ? $templateId : 0, ClientContext::userId());
+            $success ? $message = $result : $error = $result;
+        } else {
+            $templateId = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+            $templateId = $templateId !== false && $templateId > 0 ? $templateId : 0;
+            [$success, $result] = ScheduleService::saveTemplate($clientId, $templateId > 0 ? $templateId : null, $_POST, ClientContext::userId());
+            $success ? $message = $result : $error = $result;
+        }
+    }
+
+    render_panel_page('Schedule settings', 'schedule/templates.php', [
+        'templates' => ScheduleService::listTemplates($clientId),
+        'message' => $message,
+        'error' => $error,
+    ], 'schedule');
 }
 
 function require_patients_module(): bool

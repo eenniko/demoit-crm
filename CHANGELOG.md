@@ -1,5 +1,16 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.36 – 3. oktoober 2026
+
+- Lisatud eraldi aktiveeritav `schedule` moodul kuupõhise töötajate graafiku ja vahetusemallide jaoks. Graafik kuvab töötaja põhilepingu järgi hoone/korpuse/korruse ja osakonna kaupa; manager näeb ainult töötajaid, kelle kehtival põhilepingul on tema määratud juhiks. Kliendiadministraator näeb kõiki.
+- Iga töötaja ja päeva kohta saab valida ühe vahetuse või erandi; tühi `Off` lahter tähendab vaba päeva. Mallid sisaldavad algusaega ja kestust kuni 24 tundi; graafikusse saab lisada vahetusi üle südaöö.
+- Vaikimisi mallid: `12Ö` (20:00, 12h), `12P` (08:00, 12h), `24H` (08:00, 24h), `8P` (08:00, 8h) ning erandid `HP`, `K`, `LHP`, `LIP`, `P`, `TV`, `X` (08:00, 8h). Kliendiadministraator saab malle eraldi **Shift settings** vaates lisada, muuta ja peita.
+- Kuu kokkuvõte näitab koormuse põhjal normtunde (E–R tööpäevad × 8 tundi) ja planeeritud vahetustunde; erandeid planeeritud töötundide hulka ei arvestata. Riigipühade mahaarvamist ei rakendata.
+- Mõjutatud failid: `sql/023_employee_scheduling.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `src/Services/ModuleProvisioningService.php`, `public/index.php`, `views/panel/shell.php`, `views/panel/schedule/`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud kliendipõhised vahetusemallide ja päevagraafiku tabelid; migratsioon registreerib mooduli ning versiooni 1.36.
+- Kontrollitud: PHP süntaks, 2026. aasta oktoobri 22 tööpäeva, vaikimisi 12/24-tunni mallide vorming, manageri lepingu-põhine ligipääs, päevagraafiku vaate renderdus ja kliendipõhised võõrvõtmed. Live-keskkonnas ega päris töötajatele graafikukirjeid ei salvestatud.
+- Järgmiseks versiooniks pärast 1.36 on `1.37`.
+
 ## Versioon 1.35 – 3. oktoober 2026
 
 - Töötajate nimekirja lisatud **Active contract** veerg, mis näitab töötaja tänase kuupäeva järgi kehtivaid põhilepinguid ja/või ajutisi töökohti. Tähtajatu leping jääb kehtivaks kuni lõppkuupäev lisatakse.
@@ -49,23 +60,24 @@
 ## Versioon 1.30 – 1. oktoober 2026
 
 - Lisatud eraldi aktiveeritav `employment` moodul ametinimetuste, osakondade ning töötajate põhilepingute ja ajutiste töökohtade haldamiseks.
-- Leping seob sama kliendi töötaja, ametinimetuse, valikulise osakonna, juhi ja `property_nodes` asukoha. Alguskuupäev on kohustuslik; tühi lõppkuupäev tähendab tähtajatut lepingut. Kliendiadministraator saab katalooge ja lepinguid lisada/muuta ning peita kataloogikirjeid.
+- Leping seob sama kliendi töötaja, ametinimetuse, valikulise osakonna, juhi ja `property_nodes` asukoha. Alguskuupäev on kohustuslik; tühi lõppkuupäev tähendab tähtajatut lepingut. Kliendiadministraator saab lepinguid ja katalooge lisada/muuta ning kataloogikirjeid peita.
 - Põhilepingute kaasavad kuupäevavahemikud ei tohi sama töötaja puhul kattuda. Ajutise lepingu periood peab täielikult mahtuma põhilepingu sisse ja kasutama teist kinnistu asukohta; põhilepingu muutmine ei tohi muuta seotud ajutist kohta kehtetuks.
-- Lisatud eraldi kliendipõhised tabelid `employment_job_titles`, `employment_departments`, `employment_contracts` ja migratsioon `sql/017_employment_module.sql`. Lepingute välisvõtmed piiravad töötaja, juhi, ameti, osakonna ja kinnistuüksuse samale kliendile.
+- Lisatud kliendipõhised tabelid `employment_job_titles`, `employment_departments` ja `employment_contracts` ning migratsioon `sql/017_employment_module.sql`. Lepingute välisvõtmed piiravad töötaja, juhi, ameti, osakonna ja kinnistuüksuse samale kliendile.
 - Mõjutatud failid: `public/index.php`, `src/Services/EmploymentCatalogService.php`, `src/Services/EmploymentContractService.php`, `src/Services/ModuleProvisioningService.php`, `src/Services/SchemaInstaller.php`, `views/panel/shell.php`, `views/panel/employment/`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/09-toolepingute-moodul.md` ja `CHANGELOG.md`.
-- Andmebaasimuudatus: uus ametite, osakondade ja lepingute skeem; idempotentne migratsioon lisab vajadusel töötaja kliendi-ID liitindeksi ning registreerib versiooni 1.30. Lepinguvorm eeldab kliendile aktiveeritud kinnistustruktuuri moodulit.
-- Kontrollitud: PHP süntaks, kuupäevaintervallide piir- ja avatud lõpu juhtumid, kliendipiirangute/migratsiooni struktuur ning vormide õiguskontroll. Lepingu liik jääb pärast loomist muutumatuks. Päris lepinguid ei loodud; MySQL-i kattuvuskontroll vajab live-keskkonnas kliendiadministraatori aktiveeritud mooduliga verifitseerimist.
+- Andmebaasimuudatus: lisatud ameti, osakonna ja lepingu tabelid; idempotentne migratsioon lisab vajadusel töötaja kliendipõhise koondindeksi ja registreerib versiooni 1.30. Lepingu vormid eeldavad kliendil aktiivset kinnistu struktuuri moodulit.
+- Kontrollitud: PHP süntaks, perioodipiiride ja tähtajatu lepingu juhud, kliendipiirangud, migratsiooni struktuur ning vormi õiguskontrollid. Lepingu tüüpi ei saa pärast loomist muuta. Päris lepinguid ei loodud; kattuvuste MySQL-käitumine vajab live-keskkonnas kliendiadministraatoriga kontrollimist.
 - Järgmiseks versiooniks pärast 1.30 on `1.31`.
 
 ## Versioon 1.29 – 1. oktoober 2026
 
-- Kliendipaneeli külgmenüüs koondatud „Active modules” ja kõik kliendile aktiveeritud moodulilingid ühe „Modules” pealkirja alla; korduvad pealkirjad eemaldatud.
+- Kliendipaneeli külgmenüüs koondatud **Active modules** ja kõik kliendile aktiveeritud moodulilingid ühe **Modules** pealkirja alla; korduvad pealkirjad eemaldatud.
 - Mõjutatud failid: `views/panel/shell.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/016_group_panel_modules.sql`.
 - Andmebaasimuudatus: skeem ei muutu; idempotentne migratsioon registreerib versiooni 1.29 tabelis `system_version_logs`.
 - Kontrollitud: PHP süntaks ning live-kliendipaneeli menüü struktuur ja moodulite aktiivse oleku järgi kuvamine.
 - Järgmiseks versiooniks pärast 1.29 on `1.30`.
 
 ## Versioon 1.28 – 1. oktoober 2026
+
 
 - Lisatud eraldi aktiveeritav `property` moodul koos kliendipõhise `property_nodes` tabeli ja mooduli kataloogikirjega (`sql/015_property_structure.sql`). See ei kasuta teiste moodulite andmetabeleid.
 - Kliendipaneeli struktuurivaade ning loomise ja nime muutmise vormid võimaldavad lisada hoone, selle alla korpuse või korruse, korpuse alla korruse ning korruse alla ruumi ja nende nimesid muuta (`views/panel/property/`, `public/index.php`, `views/panel/shell.php`). Lugemine nõuab aktiivset moodulit; loomine ja muutmine kliendiadministraatori õigust ja CSRF-kontrolli.
@@ -77,14 +89,13 @@
 
 ## Versioon 1.27 – 30. september 2026
 
-- Lisatud kõigi versioonide 1.1–1.26 täielik ingliskeelne tõlge faili `CHANGELOG.md`, säilitades eestikeelsed kirjed ja teadaolevad piirangud. Muudatuste logi on nüüd kakskeelne.
+- Lisatud täielik versioonide 1.1–1.26 ingliskeelne tõlge faili `CHANGELOG.md`, säilitades eestikeelsed kirjed ja dokumenteeritud piirangud. Muudatuste logi on nüüd kakskeelne.
 - Mõjutatud failid: `CHANGELOG.md`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/014_bilingual_changelog.sql`.
 - Andmebaasimuudatus: skeem ei muutu; idempotentne migratsioon registreerib versiooni 1.27 tabelis `system_version_logs`.
-- Kontrollitud: mõlemas keeles versioonide arv ja järjekord kattuvad, README versioonitabelid ja PHP süntaks kontrollitud. Rakenduse käitumine ei muutu.
+- Kontrollitud: versioonide arv ja järjestus mõlemas keeles, README versioonitabelid ja PHP süntaks. Rakenduse käitumine ei muutu.
 - Järgmiseks versiooniks pärast 1.27 on `1.28`.
 
 ## Versioon 1.26 – 30. september 2026
-
 - Töötaja loomise vormist (`views/panel/users/create.php`) eemaldatud organisatsiooniüksuse valik. `UserService::createForClient()` käsitleb puuduva `org_unit_id` väärtusena `null`, seega loomise loogika jääb muutmata.
 - Loomise marsruut (`public/index.php`) ei päri enam vormi jaoks organisatsiooniüksuste loendit. Töötaja muutmisvorm jääb samaks.
 - Mõjutatud failid: `views/panel/users/create.php`, `public/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `src/Services/SchemaInstaller.php` ja `sql/013_employee_create_org_unit.sql`.
@@ -317,6 +328,17 @@ Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab v
 
 # DemoIT CRM - Changelog (English)
 
+## Version 1.36 - October 3, 2026
+
+- Added a separately activated `schedule` module for monthly employee rosters and shift templates. The roster groups primary-contract employees by building/wing/floor and department; managers see only employees whose valid primary contract names them as manager. Client administrators can see all employees.
+- One shift or exception can be assigned per employee per day; an empty `Off` cell means a day off. Templates have a start time and duration up to 24 hours, so shifts can continue past midnight.
+- Default templates: `12Ö` (20:00, 12h), `12P` (08:00, 12h), `24H` (08:00, 24h), `8P` (08:00, 8h), and exceptions `HP`, `K`, `LHP`, `LIP`, `P`, `TV`, `X` (08:00, 8h). Client administrators can add, edit and hide templates under **Shift settings**.
+- The monthly summary shows workload-based required hours (Monday-Friday workdays × 8 hours) and planned shift hours; exceptions are not counted as planned working hours. Public holidays are not deducted.
+- Affected files: `sql/023_employee_scheduling.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `src/Services/ModuleProvisioningService.php`, `public/index.php`, `views/panel/shell.php`, `views/panel/schedule/`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, and `docs/10-graafiku-moodul.md`.
+- Database: added client-scoped shift-template and daily-schedule tables; the migration registers the module and version 1.36.
+- Verified: PHP syntax, 22 workdays in October 2026, default 12/24-hour template formatting, manager contract-scoped access, monthly view rendering and client-scoped foreign keys. No live schedule entries were saved.
+- The next version after 1.36 is `1.37`.
+
 ## Version 1.35 - October 3, 2026
 
 - Added an **Active contract** column to the employee list, showing primary and/or temporary contracts valid today. An open-ended contract remains valid until an end date is added.
@@ -363,15 +385,17 @@ Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab v
 - Verified: PHP syntax, the 0.01–100.00% input range and monthly-hours formula; the live calculator returned 80 hours for 20 × 8 × 50%, and the Workloads catalog and migration loaded. The existing contract form was tested without submission; no contract or workload catalog entry was changed.
 - The next version after 1.31 is `1.32`.
 
+
+
 ## Version 1.30 - October 1, 2026
 
 - Added a separately activated `employment` module for job titles, departments, primary contracts and temporary workplace assignments.
-- Each contract links a same-client employee, job title, optional department, manager and `property_nodes` location. A start date is required; a blank end date means open-ended. Client administrators can add/edit contracts and catalogs and hide catalog entries.
-- Inclusive primary contract periods cannot overlap for the same employee. A temporary contract must fit entirely within a primary contract at a different property location; editing a primary contract cannot invalidate its linked temporary assignments.
-- Added separate client-scoped `employment_job_titles`, `employment_departments`, and `employment_contracts` tables in `sql/017_employment_module.sql`. Contract foreign keys keep employee, manager, title, department and property references within the same client.
+- Each contract links a same-client employee, job title, optional department, manager and `property_nodes` location. A start date is required; a blank end date means open-ended. Client administrators can add or edit contracts and catalogs, and hide catalog entries.
+- Inclusive primary contract periods cannot overlap for the same employee. A temporary contract must fit entirely within a primary contract at a different property location; editing a primary contract cannot invalidate linked temporary assignments.
+- Added client-scoped `employment_job_titles`, `employment_departments`, and `employment_contracts` tables in `sql/017_employment_module.sql`. Contract foreign keys keep employee, manager, title, department and property references within the same client.
 - Affected files: `public/index.php`, `src/Services/EmploymentCatalogService.php`, `src/Services/EmploymentContractService.php`, `src/Services/ModuleProvisioningService.php`, `src/Services/SchemaInstaller.php`, `views/panel/shell.php`, `views/panel/employment/`, `README.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/09-toolepingute-moodul.md`, and `CHANGELOG.md`.
 - Database: new job title, department and contract tables; an idempotent migration adds the employee composite client index if needed and records version 1.30. Contract forms require the property structure module to be active for the client.
-- Verified: PHP syntax, date interval boundary/open-end cases, tenant constraints/migration structure, and form permission checks. Contract type is immutable after creation. No real contracts were created; MySQL-backed overlap behavior still needs verification in the live environment with the module activated for a client administrator.
+- Verified: PHP syntax, date interval boundary and open-end cases, tenant constraints, migration structure, and form permission checks. Contract type is immutable after creation. No real contracts were created; MySQL-backed overlap behavior still needs live verification with the module activated for a client administrator.
 - The next version after 1.30 is `1.31`.
 
 ## Version 1.29 - October 1, 2026
