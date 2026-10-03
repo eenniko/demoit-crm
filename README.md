@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.47 | 03.10.2026 | Töötajate gruppe saab eraldi kokku-lahti klappida. |
 | 1.46 | 03.10.2026 | Graafiku modaalis kuvatakse ainult aktiivseid malle. |
 | 1.45 | 03.10.2026 | Värvivalik piirdub vikerkaare värvide, musta ja valgega. |
 | 1.44 | 03.10.2026 | Vahetuse- ja erandimallidele saab määrata graafikus kuvatava värvi. |
@@ -68,6 +69,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.47 | 03.10.2026 | Employee groups can be collapsed and expanded independently. |
 | 1.46 | 03.10.2026 | Schedule modal lists active templates only. |
 | 1.45 | 03.10.2026 | Color choices limited to rainbow colors, black and white. |
 | 1.44 | 03.10.2026 | Shift and exception templates have configurable schedule colors. |

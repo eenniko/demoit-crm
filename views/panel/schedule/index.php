@@ -41,16 +41,28 @@
             </thead>
             <tbody>
                 <?php $previousGroup = null; ?>
+                <?php $groupIndex = 0; ?>
+                <?php $groupId = ''; ?>
                 <?php foreach ($contracts as $contract): ?>
                     <?php
                     $contractId = (int) $contract['contract_id'];
                     $groupLabel = $contract['property_path'] . ' · ' . ($contract['department_name'] ?: 'No department');
                     if ($groupLabel !== $previousGroup):
                         $previousGroup = $groupLabel;
+                        $groupIndex++;
+                        $groupId = 'schedule-group-' . $groupIndex;
                     ?>
-                        <tr class="table-light"><th colspan="<?= 4 + (int) $month['days'] ?>"><?= e($groupLabel) ?></th></tr>
+                        <tr class="table-light">
+                            <th colspan="<?= 4 + (int) $month['days'] ?>">
+                                <button class="schedule-group-toggle" type="button" data-schedule-group="<?= e($groupId) ?>" aria-expanded="true">
+                                    <span class="schedule-group-indicator" aria-hidden="true">▾</span>
+                                    <span><?= e($groupLabel) ?></span>
+                                    <span class="visually-hidden">Collapse group</span>
+                                </button>
+                            </th>
+                        </tr>
                     <?php endif; ?>
-                    <tr data-contract-id="<?= $contractId ?>">
+                    <tr data-contract-id="<?= $contractId ?>" data-schedule-group="<?= e($groupId) ?>">
                         <th scope="row" class="schedule-employee">
                             <?= e($contract['full_name'] ?: $contract['username']) ?>
                             <small class="d-block text-muted"><?= e($contract['username']) ?></small>
@@ -155,6 +167,20 @@
                 let activeCellButton = null;
                 let saveAfterClose = false;
                 let isSaving = false;
+
+                form.querySelectorAll('.schedule-group-toggle').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                        const shouldExpand = !isExpanded;
+                        const group = button.dataset.scheduleGroup;
+                        form.querySelectorAll(`tr[data-schedule-group="${group}"]`).forEach((row) => {
+                            row.hidden = !shouldExpand;
+                        });
+                        button.setAttribute('aria-expanded', String(shouldExpand));
+                        button.querySelector('.schedule-group-indicator').textContent = shouldExpand ? '▾' : '▸';
+                        button.querySelector('.visually-hidden').textContent = shouldExpand ? 'Collapse group' : 'Expand group';
+                    });
+                });
 
                 function showSaveStatus(message, kind) {
                     status.className = `small mb-2 text-${kind}`;
@@ -265,6 +291,9 @@
 .schedule-employee { min-width: 190px; }
 .schedule-location { min-width: 210px; }
 .schedule-day { min-width: 66px; padding: 0 !important; }
+.schedule-group-toggle { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 38px; padding: .25rem .5rem; border: 0; background: transparent; color: var(--bs-body-color); font-weight: 600; text-align: left; }
+.schedule-group-toggle:hover { background: var(--bs-tertiary-bg); }
+.schedule-group-indicator { width: 1rem; color: var(--bs-secondary-color); }
 .schedule-cell-button { display: block; width: 100%; min-height: 48px; padding: .25rem; border: 0; border-radius: 0; background: transparent; color: var(--bs-secondary-color); font-weight: 600; }
 .schedule-cell-button.is-empty { font-size: 1.5rem; font-weight: 400; }
 .schedule-cell-button.is-assigned { background: color-mix(in srgb, var(--schedule-color, #64748B) 18%, white); box-shadow: inset 0 -4px 0 var(--schedule-color, #64748B); color: var(--bs-body-color); }

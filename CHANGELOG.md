@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.47 – 3. oktoober 2026
+
+- Lisatud töötajate kinnistu/osakonna gruppidele avamis-sulgemisnupud, et peita või kuvada grupi read eraldi. Peitmine ei eemalda välju automaatsalvestuse vormist.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/034_schedule_collapsible_groups.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.47 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja live-brauseris sõltumatu grupi sulgemine/avamine; graafikukirjeid ei muudetud.
+- Järgmiseks versiooniks pärast 1.47 on `1.48`.
+
 ## Versioon 1.46 – 3. oktoober 2026
 
 - Vahetusevaliku modaal kuvab ainult aktiivseid vahetuse- ja erandimalle. Inaktiivsed mallid jäävad olemasolevate graafikukirjete kuvamiseks alles, kuid neid ei saa uue valikuna määrata.
@@ -408,6 +416,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.47 - October 3, 2026
+
+- Added independent collapse/expand buttons to employee property/department groups. Collapsed rows remain in the autosave form.
+- Affected files: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/034_schedule_collapsible_groups.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.47 in `system_version_logs`.
+- Verified: PHP syntax and independent group collapse/expand in the live browser; no schedule entries were changed.
+- The next version after 1.47 is `1.48`.
 
 ## Version 1.46 - October 3, 2026
 
