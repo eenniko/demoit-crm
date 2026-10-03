@@ -8,6 +8,18 @@ require_once __DIR__ . '/PropertyService.php';
 
 class ScheduleService
 {
+    public const TEMPLATE_COLORS = [
+        '#FF0000' => 'Red',
+        '#FFA500' => 'Orange',
+        '#FFFF00' => 'Yellow',
+        '#008000' => 'Green',
+        '#0000FF' => 'Blue',
+        '#4B0082' => 'Indigo',
+        '#EE82EE' => 'Violet',
+        '#000000' => 'Black',
+        '#FFFFFF' => 'White',
+    ];
+
     public static function monthInfo(string $month): ?array
     {
         if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
@@ -60,12 +72,12 @@ class ScheduleService
         $name = trim(is_string($data['name'] ?? null) ? $data['name'] : '');
         $startTime = is_string($data['start_time'] ?? null) ? $data['start_time'] : '';
         $duration = is_string($data['duration_hours'] ?? null) ? $data['duration_hours'] : '';
-        $color = is_string($data['color_hex'] ?? null) ? strtoupper($data['color_hex']) : '#64748B';
+        $color = is_string($data['color_hex'] ?? null) ? strtoupper(trim($data['color_hex'])) : '#0000FF';
         if (!in_array($type, ['shift', 'exception'], true)
             || !preg_match('/^[\p{L}\p{N}_-]{1,20}$/u', $code)
             || ($name !== '' && (preg_match('//u', $name) !== 1 || preg_match_all('/./us', $name) > 100))
             || !preg_match('/^(?:0?\.\d{1,2}|\d{1,2}(?:\.\d{1,2})?|24(?:\.0{1,2})?)$/', $duration)
-            || !preg_match('/^#[0-9A-F]{6}$/', $color)
+            || !isset(self::TEMPLATE_COLORS[$color])
             || !preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $startTime)) {
             return [false, 'Enter a valid type, code, color, start time and duration.'];
         }
@@ -406,9 +418,8 @@ class ScheduleService
 
     public static function safeTemplateColor(mixed $color): string
     {
-        return is_string($color) && preg_match('/^#[0-9A-Fa-f]{6}$/', $color) === 1
-            ? strtoupper($color)
-            : '#64748B';
+        $color = is_string($color) ? strtoupper($color) : '';
+        return isset(self::TEMPLATE_COLORS[$color]) ? $color : '#0000FF';
     }
 
     private static function isDateInMonth(string $date, string $month): bool

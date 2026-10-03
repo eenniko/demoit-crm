@@ -29,9 +29,13 @@
         <label class="form-label" for="duration_hours">Duration (hours)</label>
         <input class="form-control" type="number" id="duration_hours" name="duration_hours" min="0.25" max="24" step="0.25" value="8" required>
     </div>
-    <div class="col-md-1">
+    <div class="col-md-2">
         <label class="form-label" for="color_hex">Color</label>
-        <input class="form-control form-control-color" type="color" id="color_hex" name="color_hex" value="#2563EB" title="Choose template color" required>
+        <select class="form-select" id="color_hex" name="color_hex" required>
+            <?php foreach (ScheduleService::TEMPLATE_COLORS as $color => $colorName): ?>
+                <option value="<?= e($color) ?>" <?= $color === '#0000FF' ? 'selected' : '' ?>><?= e($colorName) ?></option>
+            <?php endforeach; ?>
+        </select>
     </div>
     <div class="col-auto"><button class="btn btn-primary" type="submit">Add template</button></div>
 </form>
@@ -52,10 +56,16 @@
                                 <input type="hidden" name="id" value="<?= (int) $template['id'] ?>">
                                 <input type="hidden" name="template_type" value="<?= e($template['template_type']) ?>">
                                 <div class="col-3"><input class="form-control form-control-sm" name="code" maxlength="20" required value="<?= e($template['code']) ?>" aria-label="Code"></div>
-                                <div class="col-4"><input class="form-control form-control-sm" name="name" maxlength="100" value="<?= e($template['name']) ?>" aria-label="Name"></div>
+                                <div class="col-3"><input class="form-control form-control-sm" name="name" maxlength="100" value="<?= e($template['name']) ?>" aria-label="Name"></div>
                                 <div class="col-2"><input class="form-control form-control-sm" type="time" name="start_time" required value="<?= e(substr($template['start_time'], 0, 5)) ?>" aria-label="Start time"></div>
                                 <div class="col-2"><input class="form-control form-control-sm" type="number" name="duration_hours" min="0.25" max="24" step="0.25" required value="<?= e(number_format((int) $template['duration_minutes'] / 60, 2, '.', '')) ?>" aria-label="Duration in hours"></div>
-                                <div class="col-1"><input class="form-control form-control-color form-control-sm" type="color" name="color_hex" required value="<?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>" aria-label="Template color"></div>
+                                <div class="col-2">
+                                    <select class="form-select form-select-sm" name="color_hex" required aria-label="Template color">
+                                        <?php foreach (ScheduleService::TEMPLATE_COLORS as $color => $colorName): ?>
+                                            <option value="<?= e($color) ?>" <?= ScheduleService::safeTemplateColor($template['color_hex'] ?? null) === $color ? 'selected' : '' ?>><?= e($colorName) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
                             </form>
                         </td>
                         <td><?= e(ucfirst($template['status'])) ?></td>
