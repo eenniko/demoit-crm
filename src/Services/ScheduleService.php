@@ -372,6 +372,7 @@ class ScheduleService
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
+            error_log('Schedule save failed (' . get_class($exception) . ', ' . $exception->getCode() . '): ' . $exception->getMessage());
             return [false, 'Could not save the monthly schedule. Check the values and try again.'];
         }
 
