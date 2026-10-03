@@ -294,6 +294,10 @@ class ScheduleService
             foreach ($templates->fetchAll() as $template) {
                 $templateStatus[(int) $template['id']] = $template['status'];
             }
+            $delete = $pdo->prepare(
+                'DELETE FROM employee_schedule_entries
+                 WHERE client_id = :client_id AND contract_id = :contract_id AND schedule_date = :schedule_date'
+            );
 
             foreach ($assignments as $contractKey => $days) {
                 $contractKey = is_string($contractKey) || is_int($contractKey) ? (string) $contractKey : '';
@@ -324,12 +328,10 @@ class ScheduleService
                     }
 
                     if ($templateValue === '' || $templateValue === '0') {
-                        $delete = $pdo->prepare(
-                            'DELETE FROM employee_schedule_entries
-                             WHERE client_id = :client_id AND contract_id = :contract_id AND schedule_date = :schedule_date'
-                        );
-                        $delete->execute(['client_id' => $clientId, 'contract_id' => (int) $contract['contract_id'], 'schedule_date' => $date]);
-                        unset($existingByDay[$dayKey]);
+                        if ($existing !== false) {
+                            $delete->execute(['client_id' => $clientId, 'contract_id' => (int) $contract['contract_id'], 'schedule_date' => $date]);
+                            unset($existingByDay[$dayKey]);
+                        }
                         continue;
                     }
                     $templateId = filter_var($templateValue, FILTER_VALIDATE_INT);

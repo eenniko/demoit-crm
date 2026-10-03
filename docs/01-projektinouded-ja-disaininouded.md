@@ -1,7 +1,7 @@
 # DemoIT CRM – projekti- ja disaininõuded
 
 **Dokumendi versioon:** 1.2  
-**Süsteemi arendusversioon:** 1.36
+**Süsteemi arendusversioon:** 1.37
 **Põhikeel:** English  
 **Tehniline alus:** raamistikust sõltumatu veebilahendus, SQL/MySQL ja serveri-/rakenduskihi kokkulepitav teostus
 

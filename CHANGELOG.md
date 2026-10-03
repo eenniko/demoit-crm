@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.37 – 3. oktoober 2026
+
+- Parandatud kuugraafiku salvestuse tõhusust: tühjade `Off` lahtrite jaoks ei käivitata enam kustutuspäringuid, kui vastava päeva kirjet pole.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/024_schedule_save_optimization.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.37 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja muudatuse loogika staatiliselt. Live-salvestust ei korratud, et vältida päris töötajate graafikukirjete muutmist.
+- Järgmiseks versiooniks pärast 1.37 on `1.38`.
+
 ## Versioon 1.36 – 3. oktoober 2026
 
 - Lisatud eraldi aktiveeritav `schedule` moodul kuupõhise töötajate graafiku ja vahetusemallide jaoks. Graafik kuvab töötaja põhilepingu järgi hoone/korpuse/korruse ja osakonna kaupa; manager näeb ainult töötajaid, kelle kehtival põhilepingul on tema määratud juhiks. Kliendiadministraator näeb kõiki.
@@ -327,6 +335,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.37 - October 3, 2026
+
+- Improved monthly schedule saves: empty `Off` cells no longer issue DELETE queries when no entry exists for that day.
+- Affected files: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/024_schedule_save_optimization.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; the migration records version 1.37 in `system_version_logs`.
+- Verified: PHP syntax and static control-flow review. Live save was not retried to avoid changing real employee schedules.
+- The next version after 1.37 is `1.38`.
 
 ## Version 1.36 - October 3, 2026
 

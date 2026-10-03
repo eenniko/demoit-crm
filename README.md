@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.37 | 03.10.2026 | Välditud tarbetud kustutuspäringud tühjade graafikulahtrite salvestamisel. |
 | 1.36 | 03.10.2026 | Eraldi kuugraafiku moodul manageri vahetuste ja erandite haldamiseks. |
 | 1.35 | 03.10.2026 | Töötajate loendis näidatakse tänase seisuga aktiivset põhilepingut või ajutist töökohta. |
 | 1.34 | 03.10.2026 | Kinnistu struktuuri korpusi, korruseid ja ruume saab käsitsi järjestada. |
@@ -58,6 +59,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.37 | 03.10.2026 | Avoided unnecessary deletes for empty schedule cells when saving a roster. |
 | 1.36 | 03.10.2026 | Separate monthly schedule module for manager-managed shifts and exceptions. |
 | 1.35 | 03.10.2026 | Employee list shows currently valid primary and temporary contracts. |
 | 1.34 | 03.10.2026 | Manually reorder property wings, floors and rooms within their parent. |
