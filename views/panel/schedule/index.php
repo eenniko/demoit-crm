@@ -178,6 +178,7 @@
                 const status = document.getElementById('scheduleSaveStatus');
                 let activeCellButton = null;
                 let saveAfterClose = false;
+                let pendingAssignment = null;
                 let isSaving = false;
 
                 form.querySelectorAll('.schedule-group-toggle').forEach((button) => {
@@ -227,7 +228,7 @@
                     balance.classList.add(value > 0 ? 'text-danger' : (value < 0 ? 'text-primary' : 'text-muted'));
                 }
 
-                async function saveSchedule() {
+                async function saveSchedule(assignmentToSave) {
                     if (isSaving) {
                         return;
                     }
@@ -239,9 +240,16 @@
                     showSaveStatus('Saving schedule...', 'muted');
 
                     try {
+                        const formData = new FormData(form);
+                        for (const name of Array.from(formData.keys())) {
+                            if (name.startsWith('assignments[')) {
+                                formData.delete(name);
+                            }
+                        }
+                        formData.set(assignmentToSave.name, assignmentToSave.value);
                         const response = await fetch(form.action, {
                             method: 'POST',
-                            body: new FormData(form),
+                            body: formData,
                             credentials: 'same-origin',
                             headers: {
                                 Accept: 'application/json',
@@ -310,6 +318,7 @@
 
                     const assignment = activeCellButton.parentElement.querySelector('.schedule-assignment');
                     assignment.value = choice.dataset.scheduleValue;
+                    pendingAssignment = { name: assignment.name, value: assignment.value };
                     const isOff = assignment.value === '0';
                     activeCellButton.textContent = isOff ? '−' : choice.dataset.scheduleCode;
                     activeCellButton.classList.toggle('is-empty', isOff);
@@ -331,7 +340,11 @@
                     activeCellButton = null;
                     if (saveAfterClose) {
                         saveAfterClose = false;
-                        saveSchedule();
+                        const assignmentToSave = pendingAssignment;
+                        pendingAssignment = null;
+                        if (assignmentToSave !== null) {
+                            saveSchedule(assignmentToSave);
+                        }
                     }
                 });
             })();

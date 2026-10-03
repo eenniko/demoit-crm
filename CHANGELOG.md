@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.58 – 3. oktoober 2026
+
+- Muudatuse järel saadab automaatsalvestus ainult valitud lepingu ja päeva. Vanast brauseritabulist ei saadeta enam kogu kuu aegunud väärtusi, mis võisid teised vahetused üle kirjutada.
+- Weekday-Exceptionid on nüüd ka kattuvuskontrollis tööajavahemikud; nädalavahetuse exceptionid jäävad nii Planned- kui kattuvusarvestusest välja.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/045_schedule_single_cell_autosave.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.58 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks, ühe assignment-väljaga AJAX-payload ning exceptionide kattuvuse piiritestid.
+- Järgmiseks versiooniks pärast 1.58 on `1.59`.
+
 ## Versioon 1.57 – 3. oktoober 2026
 
 - Planned arvestab Exception-malli tunde esmaspäevast reedeni, nädalavahetuse exception-tunde ei liideta. Reegel rakendub kuu- ja neljakuulisele Tri-OT saldole.
@@ -498,6 +507,15 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.58 - October 3, 2026
+
+- Autosave now submits only the selected contract/day assignment. Stale browser tabs no longer resend the whole month's old values and overwrite other shifts.
+- Weekday exceptions are now included in interval-overlap validation because they count as Planned hours; weekend exceptions remain excluded from both.
+- Affected files: `views/panel/schedule/index.php`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/045_schedule_single_cell_autosave.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.58 in `system_version_logs`.
+- Verified: PHP syntax, a single-assignment AJAX payload and exception-overlap boundary cases.
+- The next version after 1.58 is `1.59`.
 
 ## Version 1.57 - October 3, 2026
 

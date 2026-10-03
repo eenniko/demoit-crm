@@ -621,13 +621,13 @@ class ScheduleService
             $params[$key] = $employeeId;
         }
         $stmt = $pdo->prepare(
-            'SELECT e.employee_id, e.schedule_date, template.start_time, template.duration_minutes
+            'SELECT e.employee_id, e.schedule_date, template.template_type, template.start_time, template.duration_minutes
              FROM employee_schedule_entries e
              INNER JOIN employee_schedule_templates template
                 ON template.client_id = e.client_id AND template.id = e.template_id
              WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :range_end
                AND e.employee_id IN (' . implode(', ', $placeholders) . ')
-               AND template.template_type = \'shift\'
+               AND template.template_type IN (\'shift\', \'exception\')
              ORDER BY e.employee_id, e.schedule_date, template.start_time
              FOR UPDATE'
         );
@@ -645,6 +645,7 @@ class ScheduleService
             $shifts[] = [
                 'employee_id' => (int) $entry['employee_id'],
                 'date' => $entry['schedule_date'],
+                'template_type' => $entry['template_type'],
                 'start' => $start,
                 'end' => $start->modify('+' . (int) $entry['duration_minutes'] . ' minutes'),
             ];
@@ -655,6 +656,9 @@ class ScheduleService
         $lastEndByEmployee = [];
         foreach ($shifts as $shift) {
             $employeeId = $shift['employee_id'];
+            if (!self::templateCountsAsPlanned($shift['template_type'], $shift['date'])) {
+                continue;
+            }
             if (isset($lastEndByEmployee[$employeeId]) && $shift['start'] < $lastEndByEmployee[$employeeId]) {
                 return $shift['date'];
             }
