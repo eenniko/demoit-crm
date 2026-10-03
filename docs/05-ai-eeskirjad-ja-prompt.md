@@ -1,6 +1,6 @@
 # DemoIT CRM – AI tööjuhend ja põhiprompt
 
-**Praegune süsteemi arendusversioon:** 1.38
+**Praegune süsteemi arendusversioon:** 1.39
 
 ## AI roll
 
@@ -60,7 +60,7 @@ Valmista eraldi SQL-juhend ja vajadusel phpMyAdminis otse käivitatav SQL-skript
 
 ## Versioonireegel
 
-Praegune arendusversioon on `1.38`. Iga järgmine täiendav uuendus on `1.39`, `1.40`, `1.41` jne. Iga muudatus peab sisaldama:
+Praegune arendusversioon on `1.39`. Iga järgmine täiendav uuendus on `1.40`, `1.41`, `1.42` jne. Iga muudatus peab sisaldama:
 
 - uut versiooninumbrit;
 - kuupäeva;

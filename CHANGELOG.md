@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.39 – 3. oktoober 2026
+
+- Kuugraafiku salvestuse ebaõnnestumisel näeb kliendiadministraator üldise teate kõrval SQLSTATE'i ja andmebaasi veanumbrit; tundlikku SQL-i veateksti ei kuvata.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/026_schedule_error_code_feedback.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.39 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja diagnostika piiramine kliendiadministraatorile. Live-salvestust ei korratud.
+- Järgmiseks versiooniks pärast 1.39 on `1.40`.
+
 ## Versioon 1.38 – 3. oktoober 2026
 
 - Kuugraafiku salvestuse ebaõnnestumisel logitakse serveri PHP-logisse erandi tüüp, veakood ja põhjus; kasutajale kuvatakse endiselt üldine veateade.
@@ -343,6 +351,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.39 - October 3, 2026
+
+- Client administrators now see the SQLSTATE and database error number alongside the generic monthly schedule save error; sensitive SQL error text is not exposed.
+- Affected files: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/026_schedule_error_code_feedback.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; the migration records version 1.39 in `system_version_logs`.
+- Verified: PHP syntax and that diagnostic codes are restricted to client administrators. Live save was not retried.
+- The next version after 1.39 is `1.40`.
 
 ## Version 1.38 - October 3, 2026
 

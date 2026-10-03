@@ -373,7 +373,15 @@ class ScheduleService
                 $pdo->rollBack();
             }
             error_log('Schedule save failed (' . get_class($exception) . ', ' . $exception->getCode() . '): ' . $exception->getMessage());
-            return [false, 'Could not save the monthly schedule. Check the values and try again.'];
+            $message = 'Could not save the monthly schedule. Check the values and try again.';
+            if ($isClientAdmin && $exception instanceof PDOException) {
+                $sqlState = (string) ($exception->errorInfo[0] ?? $exception->getCode());
+                if (preg_match('/^[A-Z0-9]{5}$/', $sqlState) === 1) {
+                    $databaseCode = (int) ($exception->errorInfo[1] ?? 0);
+                    $message .= ' (SQLSTATE ' . $sqlState . ', database code ' . $databaseCode . ')';
+                }
+            }
+            return [false, $message];
         }
 
         AuditLogService::log($actorUserId, $clientId, 'schedule.month_saved', 'employee_schedule_entries', $managerMonth);

@@ -41,6 +41,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/023_employee_scheduling.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.36' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries') AND EXISTS (SELECT 1 FROM system_modules WHERE module_key = 'schedule') LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/024_schedule_save_optimization.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.37' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/025_schedule_save_error_logging.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.38' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/026_schedule_error_code_feedback.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.39' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
