@@ -64,6 +64,41 @@ $contractValue = static fn (string $key): mixed => $old[$key] ?? ($contract[$key
         </select>
     </div>
     <div class="col-md-6">
+        <label class="form-label" for="workload_id">Workload</label>
+        <select class="form-select" id="workload_id" name="workload_id" required>
+            <option value="">Select workload</option>
+            <?php foreach ($options['workloads'] as $workload): ?>
+                <?php
+                $savedWorkloadId = (int) ($contract['workload_id'] ?? 0);
+                $savedWorkloadPercent = $contract['workload_percent'] ?? null;
+                $usesSavedPercent = $savedWorkloadPercent !== null
+                    && $savedWorkloadId === (int) $workload['id']
+                    && (string) ($old['workload_id'] ?? $savedWorkloadId) === (string) $savedWorkloadId;
+                $displayPercent = $usesSavedPercent ? $savedWorkloadPercent : $workload['workload_percent'];
+                ?>
+                <option value="<?= (int) $workload['id'] ?>" data-percent="<?= e($displayPercent) ?>" <?= $selected('workload_id', $workload['id']) ?>><?= e($workload['name']) ?> (<?= e($displayPercent) ?>%)</option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="col-12">
+        <fieldset class="border rounded p-3">
+            <legend class="float-none w-auto px-2 h6">Monthly required hours</legend>
+            <div class="row g-3 align-items-end">
+                <div class="col-sm-4">
+                    <label class="form-label" for="monthly_working_days">Working days this month</label>
+                    <input class="form-control" type="number" id="monthly_working_days" min="0" max="31" step="1" value="20">
+                </div>
+                <div class="col-sm-4">
+                    <label class="form-label" for="hours_per_workday">Required hours per workday</label>
+                    <input class="form-control" type="number" id="hours_per_workday" min="0" max="24" step="0.25" value="8">
+                </div>
+                <div class="col-sm-4">
+                    <output id="monthly_hours_result" class="form-control-plaintext fw-semibold" aria-live="polite">Select a workload</output>
+                </div>
+            </div>
+        </fieldset>
+    </div>
+    <div class="col-md-6">
         <label class="form-label" for="department_id">Department</label>
         <select class="form-select" id="department_id" name="department_id">
             <option value="">No department</option>
@@ -92,3 +127,33 @@ $contractValue = static fn (string $key): mixed => $old[$key] ?? ($contract[$key
     </div>
     <div class="col-12"><button class="btn btn-primary" type="submit">Save contract</button></div>
 </form>
+
+<script>
+(() => {
+    const workload = document.getElementById('workload_id');
+    const workdays = document.getElementById('monthly_working_days');
+    const hoursPerDay = document.getElementById('hours_per_workday');
+    const result = document.getElementById('monthly_hours_result');
+
+    const updateMonthlyHours = () => {
+        const option = workload.options[workload.selectedIndex];
+        const percent = Number(option.dataset.percent);
+        const days = Number(workdays.value);
+        const hours = Number(hoursPerDay.value);
+        if (!option.dataset.percent) {
+            result.textContent = 'Select a workload';
+            return;
+        }
+        if (!Number.isInteger(days) || days < 0 || days > 31 || !Number.isFinite(hours) || hours <= 0 || hours > 24) {
+            result.textContent = 'Enter 0–31 working days and up to 24 hours per day';
+            return;
+        }
+        result.textContent = `${(days * hours * percent / 100).toFixed(2)} h at ${percent}%`;
+    };
+
+    workload.addEventListener('change', updateMonthlyHours);
+    workdays.addEventListener('input', updateMonthlyHours);
+    hoursPerDay.addEventListener('input', updateMonthlyHours);
+    updateMonthlyHours();
+})();
+</script>

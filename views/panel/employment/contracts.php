@@ -22,6 +22,7 @@
                     <th>Contract</th>
                     <th>Location</th>
                     <th>Job title / department</th>
+                    <th>Workload</th>
                     <th>Manager</th>
                     <th>Period</th>
                     <th>Status</th>
@@ -35,6 +36,7 @@
                         <td><?= e($typeLabels[$contract['contract_type']]) ?></td>
                         <td><?= e($contract['property_name']) ?></td>
                         <td><?= e($contract['job_title']) ?><br><small class="text-muted"><?= e($contract['department_name'] ?: 'No department') ?></small></td>
+                        <td><?= e($contract['workload_name']) ?><br><small class="text-muted"><?= e(number_format((float) $contract['workload_percent'], 2)) ?>%</small></td>
                         <td><?= e($contract['manager_name'] ?: $contract['manager_username'] ?: '—') ?></td>
                         <td><?= e($contract['start_date']) ?> – <?= e($contract['end_date'] ?: 'Open-ended') ?></td>
                         <td><?= e(ucfirst($contract['period_status'])) ?></td>

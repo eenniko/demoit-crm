@@ -1,5 +1,15 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.31 – 3. oktoober 2026
+
+- Lisatud töölepingute moodulisse eraldi **Workloads** kataloog, kus kliendiadministraator saab koormuse nime ja protsenti (0,01–100,00%) lisada, muuta, peita ja taasaktiveerida.
+- Leping seob koormuse valiku ning salvestab lepingu hetke protsendiväärtuse eraldi koopiana, et kataloogimuudatus ei muudaks olemasolevat lepingut tagasiulatuvalt. Varasemad lepingud saavad migratsiooniga 100% koormuse.
+- Lepingu vorm lisab kuupõhise normtundide kalkulaatori: tööpäevade arv × päevatunnid × koormuse protsent. Näide: 20 × 8 × 50% = 80 tundi. Tööpäevade arvu saab iga kuu jaoks muuta.
+- Mõjutatud failid: `sql/018_employment_workloads.sql`, `src/Services/EmploymentCatalogService.php`, `src/Services/EmploymentContractService.php`, `src/Services/SchemaInstaller.php`, `src/Services/ModuleProvisioningService.php`, `public/index.php`, `views/panel/employment/`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `docs/09-toolepingute-moodul.md`.
+- Andmebaasimuudatus: lisatud `employment_workloads` tabel ning lepingutele `workload_id` ja `workload_percent`; olemasolevad lepingud tagasitäidetakse 100%-ga enne kliendipõhise võõrvõtme kehtestamist. Migratsioon registreerib versiooni 1.31.
+- Kontrollitud: PHP süntaks, 0,01–100,00% sisendipiirangud ja kuu normtundide valem; live-kalkulaator arvutas 20 × 8 × 50% = 80 tundi ning Workloads kataloog ja migratsioon laadisid. Olemasoleva lepingu vormi valikut testiti salvestamata; lepingut ega koormuse kataloogikirjet ei muudetud.
+- Järgmiseks versiooniks pärast 1.31 on `1.32`.
+
 ## Versioon 1.30 – 1. oktoober 2026
 
 - Lisatud eraldi aktiveeritav `employment` moodul ametinimetuste, osakondade ning töötajate põhilepingute ja ajutiste töökohtade haldamiseks.
@@ -270,6 +280,16 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.31 - October 3, 2026
+
+- Added a separate **Workloads** catalog to the Employment module. Client administrators can add, rename, hide and reactivate workload choices from 0.01% to 100.00%.
+- Contracts link to a workload choice and store a snapshot of its percentage, so later catalog edits do not retroactively change existing contracts. Existing contracts are backfilled to 100% by the migration.
+- Added a monthly required-hours calculator to the contract form: working days × hours per workday × workload percentage. Example: 20 × 8 × 50% = 80 hours. Working days can be adjusted for each month.
+- Affected files: `sql/018_employment_workloads.sql`, `src/Services/EmploymentCatalogService.php`, `src/Services/EmploymentContractService.php`, `src/Services/SchemaInstaller.php`, `src/Services/ModuleProvisioningService.php`, `public/index.php`, `views/panel/employment/`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, and `docs/09-toolepingute-moodul.md`.
+- Database: added `employment_workloads` and contract columns `workload_id` and `workload_percent`; existing contracts are backfilled to 100% before adding the tenant-scoped foreign key. The migration records version 1.31.
+- Verified: PHP syntax, the 0.01–100.00% input range and monthly-hours formula; the live calculator returned 80 hours for 20 × 8 × 50%, and the Workloads catalog and migration loaded. The existing contract form was tested without submission; no contract or workload catalog entry was changed.
+- The next version after 1.31 is `1.32`.
 
 ## Version 1.30 - October 1, 2026
 

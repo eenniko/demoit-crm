@@ -11,7 +11,8 @@ class EmploymentContractService
     public static function listForClient(int $clientId): array
     {
         $stmt = db()->prepare(
-            "SELECT c.id, c.employee_id, c.contract_type, c.start_date, c.end_date,
+                "SELECT c.id, c.employee_id, c.contract_type, c.start_date, c.end_date, c.workload_percent,
+                    workload.name AS workload_name,
                     employee.username, employee.full_name,
                     property.name AS property_name, property.node_type AS property_type,
                     title.name AS job_title, department.name AS department_name,
@@ -25,6 +26,7 @@ class EmploymentContractService
              INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
              INNER JOIN property_nodes property ON property.id = c.property_node_id AND property.client_id = c.client_id
              INNER JOIN employment_job_titles title ON title.id = c.job_title_id AND title.client_id = c.client_id
+             INNER JOIN employment_workloads workload ON workload.id = c.workload_id AND workload.client_id = c.client_id
              LEFT JOIN employment_departments department ON department.id = c.department_id AND department.client_id = c.client_id
              LEFT JOIN system_users manager ON manager.id = c.manager_user_id AND manager.client_id = c.client_id
              WHERE c.client_id = :client_id
@@ -38,8 +40,9 @@ class EmploymentContractService
     public static function findForClient(int $clientId, int $contractId): ?array
     {
         $stmt = db()->prepare(
-            'SELECT c.id, c.employee_id, c.property_node_id, c.job_title_id, c.department_id, c.manager_user_id,
-                c.contract_type, c.start_date, c.end_date, employee.username, employee.full_name
+                'SELECT c.id, c.employee_id, c.property_node_id, c.job_title_id, c.workload_id, c.workload_percent,
+                    c.department_id, c.manager_user_id, c.contract_type, c.start_date, c.end_date,
+                    employee.username, employee.full_name
              FROM employment_contracts c
              INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
              WHERE c.client_id = :client_id AND c.id = :id'
@@ -91,6 +94,18 @@ class EmploymentContractService
                 $departmentRows[] = $existingDepartment;
             }
         }
+        $workloads = db()->prepare("SELECT id, name, workload_percent, status FROM employment_workloads WHERE client_id = :client_id AND status = 'active' ORDER BY name");
+        $workloads->execute(['client_id' => $clientId]);
+        $workloadRows = $workloads->fetchAll();
+        $currentWorkloadId = (int) ($contract['workload_id'] ?? 0);
+        if ($currentWorkloadId > 0 && !in_array($currentWorkloadId, array_column($workloadRows, 'id'))) {
+            $currentWorkload = db()->prepare('SELECT id, name, workload_percent, status FROM employment_workloads WHERE client_id = :client_id AND id = :id');
+            $currentWorkload->execute(['client_id' => $clientId, 'id' => $currentWorkloadId]);
+            $existingWorkload = $currentWorkload->fetch();
+            if ($existingWorkload !== false) {
+                $workloadRows[] = $existingWorkload;
+            }
+        }
 
         return [
             'employees' => $userRows,
@@ -98,6 +113,7 @@ class EmploymentContractService
             'properties' => PropertyService::listTreeForClient($clientId),
             'jobTitles' => $jobTitles,
             'departments' => $departmentRows,
+            'workloads' => $workloadRows,
         ];
     }
 
@@ -113,6 +129,15 @@ class EmploymentContractService
             && ($outerEnd === null || ($innerEnd !== null && $innerEnd <= $outerEnd));
     }
 
+    public static function monthlyRequiredHours(float $workloadPercent, int $workingDays, float $hoursPerDay = 8.0): float
+    {
+        if ($workloadPercent <= 0 || $workloadPercent > 100 || $workingDays < 0 || $workingDays > 31 || $hoursPerDay <= 0 || $hoursPerDay > 24) {
+            throw new InvalidArgumentException('Invalid monthly workload inputs.');
+        }
+
+        return round($workingDays * $hoursPerDay * ($workloadPercent / 100), 2);
+    }
+
     /** @return array{0: bool, 1: string} */
     public static function save(int $clientId, ?int $contractId, array $data, int $actorUserId): array
     {
@@ -126,6 +151,7 @@ class EmploymentContractService
             : self::parseId($data['employee_id'] ?? null, true);
         $propertyId = self::parseId($data['property_node_id'] ?? null, true);
         $jobTitleId = self::parseId($data['job_title_id'] ?? null, true);
+        $workloadId = self::parseId($data['workload_id'] ?? null, true);
         $departmentId = self::parseId($data['department_id'] ?? null, false);
         $managerId = self::parseId($data['manager_user_id'] ?? null, false);
         $type = $existing !== null
@@ -134,8 +160,8 @@ class EmploymentContractService
         $startDate = self::parseDate($data['start_date'] ?? null);
         $endDate = self::parseOptionalDate($data['end_date'] ?? null);
 
-        if ($employeeId === 0 || $propertyId === 0 || $jobTitleId === 0 || $departmentId === 0 || $managerId === 0) {
-            return [false, 'Choose valid employee, location, job title, department and manager values.'];
+        if ($employeeId === 0 || $propertyId === 0 || $jobTitleId === 0 || $workloadId === 0 || $departmentId === 0 || $managerId === 0) {
+            return [false, 'Choose valid employee, location, job title, workload, department and manager values.'];
         }
         if (!in_array($type, ['primary', 'temporary'], true)) {
             return [false, 'Choose a valid contract type.'];
@@ -170,6 +196,16 @@ class EmploymentContractService
                 $pdo->rollBack();
                 return [false, 'Choose an active job title.'];
             }
+            if (!self::referenceExists($pdo, 'employment_workloads', $clientId, $workloadId, $existing['workload_id'] ?? null)) {
+                $pdo->rollBack();
+                return [false, 'Choose an active workload.'];
+            }
+            $workloadStatement = $pdo->prepare('SELECT workload_percent FROM employment_workloads WHERE client_id = :client_id AND id = :id');
+            $workloadStatement->execute(['client_id' => $clientId, 'id' => $workloadId]);
+            $workloadPercent = (float) $workloadStatement->fetchColumn();
+            if ($existing !== null && (int) $existing['workload_id'] === $workloadId) {
+                $workloadPercent = (float) $existing['workload_percent'];
+            }
             if ($departmentId !== null && !self::referenceExists($pdo, 'employment_departments', $clientId, $departmentId, $existing['department_id'] ?? null)) {
                 $pdo->rollBack();
                 return [false, 'Choose an active department.'];
@@ -198,6 +234,8 @@ class EmploymentContractService
                 'employee_id' => $employeeId,
                 'property_node_id' => $propertyId,
                 'job_title_id' => $jobTitleId,
+                'workload_id' => $workloadId,
+                'workload_percent' => $workloadPercent,
                 'department_id' => $departmentId,
                 'manager_user_id' => $managerId,
                 'contract_type' => $type,
@@ -207,10 +245,10 @@ class EmploymentContractService
             if ($existing === null) {
                 $stmt = $pdo->prepare(
                     'INSERT INTO employment_contracts
-                        (client_id, employee_id, property_node_id, job_title_id, department_id, manager_user_id,
+                        (client_id, employee_id, property_node_id, job_title_id, workload_id, workload_percent, department_id, manager_user_id,
                          contract_type, start_date, end_date, created_by)
                      VALUES
-                        (:client_id, :employee_id, :property_node_id, :job_title_id, :department_id, :manager_user_id,
+                        (:client_id, :employee_id, :property_node_id, :job_title_id, :workload_id, :workload_percent, :department_id, :manager_user_id,
                          :contract_type, :start_date, :end_date, :created_by)'
                 );
                 $stmt->execute($values + ['created_by' => $actorUserId]);
@@ -221,6 +259,7 @@ class EmploymentContractService
                 $stmt = $pdo->prepare(
                     'UPDATE employment_contracts
                      SET property_node_id = :property_node_id, job_title_id = :job_title_id,
+                         workload_id = :workload_id, workload_percent = :workload_percent,
                          department_id = :department_id, manager_user_id = :manager_user_id,
                          contract_type = :contract_type, start_date = :start_date, end_date = :end_date
                      WHERE client_id = :client_id AND id = :id'
@@ -303,7 +342,7 @@ class EmploymentContractService
 
     private static function referenceExists(PDO $pdo, string $table, int $clientId, int $id, mixed $existingId): bool
     {
-        $allowedTables = ['property_nodes', 'employment_job_titles', 'employment_departments', 'system_users'];
+        $allowedTables = ['property_nodes', 'employment_job_titles', 'employment_workloads', 'employment_departments', 'system_users'];
         if (!in_array($table, $allowedTables, true)) {
             return false;
         }

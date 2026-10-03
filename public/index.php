@@ -304,6 +304,10 @@ switch (true) {
         handle_panel_employment_catalog($method, 'departments');
         break;
 
+    case $path === '/panel/employment/workloads':
+        handle_panel_employment_catalog($method, 'workloads');
+        break;
+
     case $path === '/':
         render_page('DemoIT CRM', 'home.php');
         break;
@@ -1590,7 +1594,7 @@ function handle_panel_employment_contract_form(string $method, ?int $contractId)
         if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
             $error = 'Invalid session token, please try again.';
         } else {
-            foreach (['employee_id', 'property_node_id', 'job_title_id', 'department_id', 'manager_user_id', 'contract_type', 'start_date', 'end_date'] as $field) {
+            foreach (['employee_id', 'property_node_id', 'job_title_id', 'workload_id', 'department_id', 'manager_user_id', 'contract_type', 'start_date', 'end_date'] as $field) {
                 $old[$field] = is_string($_POST[$field] ?? null) ? $_POST[$field] : '';
             }
             [$success, $message] = EmploymentContractService::save($clientId, $contractId, $_POST, ClientContext::userId());
@@ -1636,14 +1640,19 @@ function handle_panel_employment_catalog(string $method, string $catalog): void
             $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
             $id = $id !== false && $id > 0 ? $id : 0;
             $name = is_string($_POST['name'] ?? null) ? $_POST['name'] : '';
-            [$success, $result] = EmploymentCatalogService::save($clientId, $catalog, $id > 0 ? $id : null, $name, ClientContext::userId());
+            $workloadPercent = is_string($_POST['workload_percent'] ?? null) ? $_POST['workload_percent'] : null;
+            [$success, $result] = EmploymentCatalogService::save($clientId, $catalog, $id > 0 ? $id : null, $name, ClientContext::userId(), $workloadPercent);
             $success ? $message = $result : $error = $result;
         }
     }
 
     render_panel_page($catalog === 'titles' ? 'Job titles' : 'Departments', 'employment/catalog.php', [
         'catalog' => $catalog,
-        'catalogLabel' => $catalog === 'titles' ? 'Job title' : 'Department',
+        'catalogLabel' => match ($catalog) {
+            'titles' => 'Job title',
+            'departments' => 'Department',
+            'workloads' => 'Workload',
+        },
         'entries' => EmploymentCatalogService::listForClient($clientId, $catalog),
         'canManage' => $canManage,
         'message' => $message,

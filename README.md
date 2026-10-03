@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.31 | 03.10.2026 | Lepingute muudetavad koormuse valikud ja kuupõhine normtundide arvutus. |
 | 1.30 | 01.10.2026 | Ametite, osakondade ja tähtajatu/tähtajalise põhi- ning ajutise töökohaga lepingute moodul. |
 | 1.29 | 01.10.2026 | Kliendipaneeli moodulilingid koondatud ühe „Modules” pealkirja alla. |
 | 1.28 | 01.10.2026 | Eraldi kinnistustruktuuri moodul: hooned, korpused, korrused, ruumid ja nende nimede muutmine. |
@@ -52,6 +53,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.31 | 03.10.2026 | Editable contract workload options and monthly required-hours calculation. |
 | 1.30 | 01.10.2026 | Employment module for job titles, departments, and open-ended primary and temporary workplace contracts. |
 | 1.29 | 01.10.2026 | Grouped client panel module links under a single “Modules” heading. |
 | 1.28 | 01.10.2026 | Independent property structure module for buildings, wings, floors, rooms and renaming. |

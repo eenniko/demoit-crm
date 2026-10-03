@@ -33,6 +33,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/015_property_structure.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.28' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'property_nodes') AND EXISTS (SELECT 1 FROM system_modules WHERE module_key = 'property') LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/016_group_panel_modules.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.29' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/017_employment_module.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.30' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contracts') AND EXISTS (SELECT 1 FROM system_modules WHERE module_key = 'employment') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/018_employment_workloads.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.31' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_workloads') AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contracts' AND COLUMN_NAME = 'workload_id') LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
