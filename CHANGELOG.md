@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.40 – 3. oktoober 2026
+
+- Parandatud olemasoleva ajakava tabeli migreerimine: puuduvaid `created_by` ja `updated_by` veerge ning nende võõrvõtmeid lisatakse nüüd idempotentselt. See väldib `SQLSTATE 42S22` viga vanadel või osaliselt uuendatud paigaldustel.
+- Tugevdatud versiooni 1.36 rakendamise kontrolli, et ajakavamigratsiooni loetaks täielikuks ainult auditveergude olemasolul.
+- Mõjutatud failid: `sql/027_schedule_audit_columns.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: olemasolevale `employee_schedule_entries` tabelile lisatakse vajadusel kaks nullitavat auditveergu ja nende kasutajavõõrvõtmed; versioon 1.40 registreeritakse `system_version_logs` tabelis.
+- Kontrollitud: migratsiooni 21 SQL-lause ja korduvkäivitatavus struktuuri põhjal; live-andmebaasi ühendus puudub.
+- Järgmiseks versiooniks pärast 1.40 on `1.41`.
+
 ## Versioon 1.39 – 3. oktoober 2026
 
 - Kuugraafiku salvestuse ebaõnnestumisel näeb kliendiadministraator üldise teate kõrval SQLSTATE'i ja andmebaasi veanumbrit; tundlikku SQL-i veateksti ei kuvata.
@@ -351,6 +360,15 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.40 - October 3, 2026
+
+- Fixed upgrades of existing schedule tables: missing `created_by` and `updated_by` columns and their foreign keys are now added idempotently, preventing `SQLSTATE 42S22` on stale or partially upgraded installs.
+- Strengthened the v1.36 migration check so scheduling is considered installed only when both audit columns exist.
+- Affected files: `sql/027_schedule_audit_columns.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: conditionally adds two nullable audit columns and their user foreign keys to `employee_schedule_entries`; records version 1.40 in `system_version_logs`.
+- Verified: 21 migration statements and structural idempotency review; live database connection unavailable.
+- The next version after 1.40 is `1.41`.
 
 ## Version 1.39 - October 3, 2026
 

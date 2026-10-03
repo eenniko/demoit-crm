@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.40 | 03.10.2026 | Parandatud vanade ajakavatabelite puuduvaid auditveerge lisav migratsioon. |
 | 1.39 | 03.10.2026 | Kliendiadministraator näeb salvestusvea SQLSTATE'i ja andmebaasi veanumbrit. |
 | 1.38 | 03.10.2026 | Kuugraafiku salvestuse vea täpsem serveripoolne logimine. |
 | 1.37 | 03.10.2026 | Välditud tarbetud kustutuspäringud tühjade graafikulahtrite salvestamisel. |
@@ -61,6 +62,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.40 | 03.10.2026 | Repair migration adds missing audit columns to existing schedule tables. |
 | 1.39 | 03.10.2026 | Client administrators see safe SQLSTATE and database error diagnostics. |
 | 1.38 | 03.10.2026 | Server-side diagnostics for monthly schedule save failures. |
 | 1.37 | 03.10.2026 | Avoided unnecessary deletes for empty schedule cells when saving a roster. |
