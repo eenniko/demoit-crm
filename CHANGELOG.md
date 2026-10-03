@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.55 – 3. oktoober 2026
+
+- Graafikusse kaasatakse töötaja ajutised lepingud nende asukoha/osakonna all. Ajutise rea Planned näitab selle asukoha tunde; selle workload’i põhjal ei arvutata Required, OT ega Tri-OT. Põhirea Planned koondab põhi- ja ajutised tunnid ning näitab ajutise osa sulgudes.
+- Lubatud on mitu lepingukirjet töötaja ja kuupäeva kohta ainult siis, kui vahetuste ajavahemikud ei kattu; täpselt kõrvuti lõppev/alustav vahetus on lubatud. Kontroll hõlmab üle südaöö vahetusi.
+- Mõjutatud failid: `sql/023_employee_scheduling.sql`, `sql/042_schedule_contract_day_index.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `views/panel/schedule/index.php`, `public/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: päevakirjete unikaalsus liigub töötaja/kuupäeva pealt lepingu/kuupäeva peale; FK-d toetav töötajaindeks lisatakse enne vana unikaalindeksi eemaldamist.
+- Kontrollitud: PHP süntaks ning kattuvuse 5 piirjuhtu, sh üle südaöö ja täpselt kõrvuti vahetused.
+- Järgmiseks versiooniks pärast 1.55 on `1.56`.
+
 ## Versioon 1.54 – 3. oktoober 2026
 
 - Jaotatakse öövahetuse tunnid alguskuu ja järgmise kuu vahel tegelike kuupiiride järgi; aprilli, augusti ja detsembri lõpus jääb kogu üle piiri ulatuv vahetus perioodi viimasesse kuusse.
@@ -472,6 +481,15 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.55 - October 3, 2026
+
+- Temporary contracts now appear under their own location/department. Their Planned hours show only that location's shifts; no workload-based Required, OT or Tri-OT is calculated for the temporary row. The primary row shows combined primary-plus-temporary Planned hours with the temporary portion in parentheses.
+- Multiple contract entries for one employee/day are allowed only when shift intervals do not overlap; shifts that meet exactly at an endpoint are allowed. The check includes overnight shifts.
+- Affected files: `sql/023_employee_scheduling.sql`, `sql/042_schedule_contract_day_index.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `views/panel/schedule/index.php`, `public/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: daily-entry uniqueness changes from employee/date to contract/date; the supporting employee foreign-key index is preserved before replacing the old unique index.
+- Verified: PHP syntax and five overlap boundary cases, including overnight and touching shifts.
+- The next version after 1.55 is `1.56`.
 
 ## Version 1.54 - October 3, 2026
 

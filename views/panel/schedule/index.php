@@ -67,7 +67,7 @@
                     <tr data-contract-id="<?= $contractId ?>" data-schedule-group="<?= e($groupId) ?>">
                         <th scope="row" class="schedule-employee">
                             <?= e($contract['full_name'] ?: $contract['username']) ?>
-                            <small class="d-block text-muted"><?= e(number_format((float) $contract['workload_percent'], 2)) ?>%</small>
+                            <small class="d-block text-muted"><?= $contract['contract_type'] === 'temporary' ? 'Temporary assignment' : e(number_format((float) $contract['workload_percent'], 2) . '%') ?></small>
                         </th>
                         <td class="schedule-location">
                             <?= e($contract['property_path']) ?>
@@ -103,15 +103,20 @@
                             </td>
                         <?php endfor; ?>
                         <?php
-                        $monthBalance = round((float) $contract['planned_hours'] - (float) $contract['required_hours'], 2);
-                        $trimesterBalance = (float) $contract['trimester_balance_hours'];
-                        $monthBalanceClass = $monthBalance > 0 ? 'text-danger' : ($monthBalance < 0 ? 'text-primary' : 'text-muted');
-                        $trimesterBalanceClass = $trimesterBalance > 0 ? 'text-danger' : ($trimesterBalance < 0 ? 'text-primary' : 'text-muted');
+                        $monthBalance = $contract['monthly_balance_hours'];
+                        $trimesterBalance = $contract['trimester_balance_hours'];
+                        $monthBalanceClass = $monthBalance === null ? 'text-muted' : ($monthBalance > 0 ? 'text-danger' : ($monthBalance < 0 ? 'text-primary' : 'text-muted'));
+                        $trimesterBalanceClass = $trimesterBalance === null ? 'text-muted' : ($trimesterBalance > 0 ? 'text-danger' : ($trimesterBalance < 0 ? 'text-primary' : 'text-muted'));
                         ?>
-                        <td class="schedule-total-column"><span class="schedule-planned-hours"><?= e(ScheduleService::formatHours((float) $contract['planned_hours'])) ?></span></td>
-                        <td class="schedule-total-column"><span class="schedule-required-hours"><?= e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></span></td>
-                        <td class="schedule-total-column"><strong class="schedule-month-ot <?= e($monthBalanceClass) ?>"><?= e(ScheduleService::formatBalance($monthBalance)) ?></strong></td>
-                        <td class="schedule-total-column"><strong class="schedule-tri-ot <?= e($trimesterBalanceClass) ?>"><?= e(ScheduleService::formatBalance($trimesterBalance)) ?></strong></td>
+                        <td class="schedule-total-column">
+                            <span class="schedule-planned-hours"><?= e(ScheduleService::formatHours((float) $contract['planned_hours'])) ?></span>
+                            <?php if ($contract['contract_type'] === 'primary'): ?>
+                                <small class="schedule-temp-breakdown d-block <?= (float) $contract['temporary_planned_hours'] > 0 ? '' : 'd-none' ?>"><?= (float) $contract['temporary_planned_hours'] > 0 ? e('(+ ' . ScheduleService::formatHours((float) $contract['temporary_planned_hours']) . ')') : '' ?></small>
+                            <?php endif; ?>
+                        </td>
+                        <td class="schedule-total-column"><span class="schedule-required-hours"><?= $contract['required_hours'] === null ? '—' : e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></span></td>
+                        <td class="schedule-total-column"><strong class="schedule-month-ot <?= e($monthBalanceClass) ?>"><?= $monthBalance === null ? '—' : e(ScheduleService::formatBalance((float) $monthBalance)) ?></strong></td>
+                        <td class="schedule-total-column"><strong class="schedule-tri-ot <?= e($trimesterBalanceClass) ?>"><?= $trimesterBalance === null ? '—' : e(ScheduleService::formatBalance((float) $trimesterBalance)) ?></strong></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -210,6 +215,13 @@
                         return;
                     }
 
+                    if (value === null) {
+                        balance.textContent = '—';
+                        balance.classList.remove('text-danger', 'text-primary');
+                        balance.classList.add('text-muted');
+                        return;
+                    }
+
                     balance.textContent = formatBalance(value);
                     balance.classList.remove('text-danger', 'text-primary', 'text-muted');
                     balance.classList.add(value > 0 ? 'text-danger' : (value < 0 ? 'text-primary' : 'text-muted'));
@@ -253,7 +265,16 @@
                             }
 
                             row.querySelector('.schedule-planned-hours').textContent = formatHours(summary.plannedHours);
-                            row.querySelector('.schedule-required-hours').textContent = formatHours(summary.requiredHours);
+                            const requiredHours = row.querySelector('.schedule-required-hours');
+                            if (requiredHours) {
+                                requiredHours.textContent = summary.requiredHours === null ? '—' : formatHours(summary.requiredHours);
+                            }
+                            const temporaryBreakdown = row.querySelector('.schedule-temp-breakdown');
+                            if (temporaryBreakdown) {
+                                const temporaryHours = Number(summary.temporaryPlannedHours || 0);
+                                temporaryBreakdown.textContent = temporaryHours > 0 ? `(+${formatHours(temporaryHours)} temp)` : '';
+                                temporaryBreakdown.classList.toggle('d-none', temporaryHours <= 0);
+                            }
                             updateBalance(row, '.schedule-month-ot', summary.monthlyBalance);
                             updateBalance(row, '.schedule-tri-ot', summary.trimesterBalance);
                         });

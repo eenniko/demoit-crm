@@ -1778,9 +1778,10 @@ function handle_panel_schedule(string $method): void
             $requiredHours = (float) $contract['required_hours'];
             $hourSummary[(string) $contract['contract_id']] = [
                 'plannedHours' => $plannedHours,
-                'requiredHours' => $requiredHours,
-                'monthlyBalance' => round($plannedHours - $requiredHours, 2),
-                'trimesterBalance' => (float) $contract['trimester_balance_hours'],
+                'temporaryPlannedHours' => (float) $contract['temporary_planned_hours'],
+                'requiredHours' => $contract['required_hours'] === null ? null : $requiredHours,
+                'monthlyBalance' => $contract['monthly_balance_hours'],
+                'trimesterBalance' => $contract['trimester_balance_hours'],
             ];
         }
         header('Content-Type: application/json; charset=utf-8');

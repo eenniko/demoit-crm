@@ -157,19 +157,41 @@ class ScheduleService
 
     public static function monthData(int $clientId, int $managerId, bool $isClientAdmin, array $month): array
     {
-        $contracts = self::listPrimaryContracts($clientId, $managerId, $isClientAdmin, $month);
+        $contracts = self::listScheduleContracts($clientId, $managerId, $isClientAdmin, $month);
         $templates = self::listTemplates($clientId);
         $entries = self::getMonthEntries($clientId, $contracts, $month);
-        $plannedMinutesByEmployee = self::plannedShiftMinutesByEmployee($clientId, $managerId, $isClientAdmin, $contracts, $month);
+        $plannedMinutes = self::plannedShiftMinutes($clientId, $managerId, $isClientAdmin, $contracts, $month);
+        $temporaryMinutesByEmployee = [];
+        foreach ($contracts as $contract) {
+            if ($contract['contract_type'] === 'temporary') {
+                $employeeId = (int) $contract['employee_id'];
+                $temporaryMinutesByEmployee[$employeeId] = ($temporaryMinutesByEmployee[$employeeId] ?? 0)
+                    + ($plannedMinutes['byContract'][(int) $contract['contract_id']] ?? 0);
+            }
+        }
         foreach ($contracts as &$contract) {
-            $plannedMinutes = $plannedMinutesByEmployee[(int) $contract['employee_id']] ?? 0;
-            $contract['planned_hours'] = round($plannedMinutes / 60, 2);
+            $employeeId = (int) $contract['employee_id'];
+            $contractMinutes = $plannedMinutes['byContract'][(int) $contract['contract_id']] ?? 0;
+            if ($contract['contract_type'] === 'temporary') {
+                $contract['planned_hours'] = round($contractMinutes / 60, 2);
+                $contract['temporary_planned_hours'] = $contract['planned_hours'];
+                $contract['required_hours'] = null;
+                $contract['monthly_balance_hours'] = null;
+                $contract['trimester_balance_hours'] = null;
+                continue;
+            }
+
+            $contract['planned_hours'] = round(($plannedMinutes['byEmployee'][$employeeId] ?? 0) / 60, 2);
+            $contract['temporary_planned_hours'] = round(($temporaryMinutesByEmployee[$employeeId] ?? 0) / 60, 2);
             $contract['required_hours'] = round((float) $contract['workload_percent'] * (int) $contract['active_workdays'] * 8 / 100, 2);
+            $contract['monthly_balance_hours'] = round($contract['planned_hours'] - $contract['required_hours'], 2);
         }
         unset($contract);
         $trimesterBalances = self::trimesterBalances($clientId, $managerId, $isClientAdmin, $contracts, $month);
         foreach ($contracts as &$contract) {
-            $contract['trimester_balance_hours'] = $trimesterBalances[(int) $contract['employee_id']] ?? 0.0;
+            if ($contract['contract_type'] === 'primary') {
+                $contract['trimester_balance_hours'] = $trimesterBalances[(int) $contract['employee_id']] ?? 0.0;
+            }
         }
         unset($contract);
 
@@ -217,7 +239,7 @@ class ScheduleService
             $periodContracts = $stmt->fetchAll();
 
             if ($periodContracts !== []) {
-                $plannedMinutesByEmployee = self::plannedShiftMinutesByEmployee($clientId, $managerId, $isClientAdmin, $periodContracts, $period);
+                $plannedMinutesByEmployee = self::plannedShiftMinutes($clientId, $managerId, $isClientAdmin, $periodContracts, $period)['byEmployee'];
                 $requiredHoursByEmployee = [];
                 foreach ($periodContracts as $contract) {
                     $contractStart = max($period['start'], $contract['start_date']);
@@ -239,14 +261,14 @@ class ScheduleService
         return $balances;
     }
 
-    private static function plannedShiftMinutesByEmployee(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
+    private static function plannedShiftMinutes(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
     {
         $employeeIds = array_values(array_unique(array_map(
             static fn (array $contract): int => (int) $contract['employee_id'],
             $contracts
         )));
         if ($employeeIds === []) {
-            return [];
+            return ['byEmployee' => [], 'byContract' => []];
         }
 
         $utc = new DateTimeZone('UTC');
@@ -268,10 +290,10 @@ class ScheduleService
         }
 
         $sql =
-            'SELECT e.employee_id, e.schedule_date, template.start_time, template.duration_minutes
+            'SELECT e.employee_id, e.contract_id, e.schedule_date, template.start_time, template.duration_minutes
              FROM employee_schedule_entries e
              INNER JOIN employment_contracts contract
-                ON contract.client_id = e.client_id AND contract.id = e.contract_id AND contract.contract_type = \'primary\'
+                ON contract.client_id = e.client_id AND contract.id = e.contract_id
              INNER JOIN employee_schedule_templates template
                 ON template.client_id = e.client_id AND template.id = e.template_id
              WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :month_end
@@ -284,6 +306,7 @@ class ScheduleService
         $stmt = db()->prepare($sql);
         $stmt->execute($params);
         $minutesByEmployee = [];
+        $minutesByContract = [];
 
         foreach ($stmt->fetchAll() as $entry) {
             $durationMinutes = (int) $entry['duration_minutes'];
@@ -292,10 +315,12 @@ class ScheduleService
             if ($minutesInMonth > 0) {
                 $employeeId = (int) $entry['employee_id'];
                 $minutesByEmployee[$employeeId] = ($minutesByEmployee[$employeeId] ?? 0) + $minutesInMonth;
+                $contractId = (int) $entry['contract_id'];
+                $minutesByContract[$contractId] = ($minutesByContract[$contractId] ?? 0) + $minutesInMonth;
             }
         }
 
-        return $minutesByEmployee;
+        return ['byEmployee' => $minutesByEmployee, 'byContract' => $minutesByContract];
     }
 
     public static function shiftMinutesInMonth(string $scheduleDate, string $startTime, int $durationMinutes, array $month): int
@@ -336,10 +361,10 @@ class ScheduleService
         return $template['code'] . ' · ' . substr($template['start_time'], 0, 5) . ' · ' . $duration . 'h';
     }
 
-    public static function listPrimaryContracts(int $clientId, int $managerId, bool $isClientAdmin, array $month, bool $forUpdate = false): array
+    public static function listScheduleContracts(int $clientId, int $managerId, bool $isClientAdmin, array $month, bool $forUpdate = false): array
     {
         $sql =
-            "SELECT c.id AS contract_id, c.employee_id, c.property_node_id, c.department_id,
+            "SELECT c.id AS contract_id, c.employee_id, c.property_node_id, c.department_id, c.contract_type,
                     c.start_date, c.end_date, c.workload_percent,
                     employee.username, employee.full_name, department.name AS department_name,
                     property.name AS property_name
@@ -347,7 +372,7 @@ class ScheduleService
              INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
              INNER JOIN property_nodes property ON property.id = c.property_node_id AND property.client_id = c.client_id
              LEFT JOIN employment_departments department ON department.id = c.department_id AND department.client_id = c.client_id
-             WHERE c.client_id = :client_id AND c.contract_type = 'primary'
+             WHERE c.client_id = :client_id AND c.contract_type IN ('primary', 'temporary')
                AND employee.status = 'active'
                AND c.start_date <= :month_end
                AND (c.end_date IS NULL OR c.end_date >= :month_start)";
@@ -432,7 +457,7 @@ class ScheduleService
         $pdo = db();
         try {
             $pdo->beginTransaction();
-            $contracts = self::listPrimaryContracts($clientId, $actorUserId, $isClientAdmin, $month, true);
+            $contracts = self::listScheduleContracts($clientId, $actorUserId, $isClientAdmin, $month, true);
             $contractById = [];
             foreach ($contracts as $contract) {
                 $contractById[(string) $contract['contract_id']] = $contract;
@@ -456,7 +481,7 @@ class ScheduleService
                 );
                 $existingEntries->execute($entryParams);
                 foreach ($existingEntries->fetchAll() as $entry) {
-                    $existingByDay[(int) $entry['employee_id'] . '|' . $entry['schedule_date']] = $entry;
+                    $existingByDay[(int) $entry['contract_id'] . '|' . $entry['schedule_date']] = $entry;
                 }
             }
             $templateStatus = [];
@@ -491,12 +516,8 @@ class ScheduleService
                         return [false, 'Schedule contains an invalid shift value.'];
                     }
 
-                    $dayKey = (int) $contract['employee_id'] . '|' . $date;
+                    $dayKey = (int) $contract['contract_id'] . '|' . $date;
                     $existing = $existingByDay[$dayKey] ?? false;
-                    if ($existing !== false && (int) $existing['contract_id'] !== (int) $contract['contract_id']) {
-                        $pdo->rollBack();
-                        return [false, 'This employee already has a schedule entry for this day under another contract.'];
-                    }
 
                     if ($templateValue === '' || $templateValue === '0') {
                         if ($existing !== false) {
@@ -538,6 +559,11 @@ class ScheduleService
                     ];
                 }
             }
+            $overlapDate = self::findOverlappingShiftDate($pdo, $clientId, $employeeIds, $month);
+            if ($overlapDate !== null) {
+                $pdo->rollBack();
+                return [false, 'This employee already has another shift during that time on ' . $overlapDate . '.'];
+            }
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -558,6 +584,71 @@ class ScheduleService
         AuditLogService::log($actorUserId, $clientId, 'schedule.month_saved', 'employee_schedule_entries', $managerMonth);
 
         return [true, 'Schedule saved.'];
+    }
+
+    private static function findOverlappingShiftDate(PDO $pdo, int $clientId, array $employeeIds, array $month): ?string
+    {
+        if ($employeeIds === []) {
+            return null;
+        }
+
+        $monthStart = new DateTimeImmutable($month['start']);
+        $monthEnd = new DateTimeImmutable($month['end']);
+        $params = [
+            'client_id' => $clientId,
+            'range_start' => $monthStart->modify('-1 day')->format('Y-m-d'),
+            'range_end' => $monthEnd->modify('+1 day')->format('Y-m-d'),
+        ];
+        $placeholders = [];
+        foreach ($employeeIds as $index => $employeeId) {
+            $key = 'employee_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $employeeId;
+        }
+        $stmt = $pdo->prepare(
+            'SELECT e.employee_id, e.schedule_date, template.start_time, template.duration_minutes
+             FROM employee_schedule_entries e
+             INNER JOIN employee_schedule_templates template
+                ON template.client_id = e.client_id AND template.id = e.template_id
+             WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :range_end
+               AND e.employee_id IN (' . implode(', ', $placeholders) . ')
+               AND template.template_type = \'shift\'
+             ORDER BY e.employee_id, e.schedule_date, template.start_time
+             FOR UPDATE'
+        );
+        $stmt->execute($params);
+
+        return self::findFirstShiftOverlap($stmt->fetchAll());
+    }
+
+    public static function findFirstShiftOverlap(array $entries): ?string
+    {
+        $timezone = new DateTimeZone('UTC');
+        $shifts = [];
+        foreach ($entries as $entry) {
+            $start = new DateTimeImmutable($entry['schedule_date'] . ' ' . $entry['start_time'], $timezone);
+            $shifts[] = [
+                'employee_id' => (int) $entry['employee_id'],
+                'date' => $entry['schedule_date'],
+                'start' => $start,
+                'end' => $start->modify('+' . (int) $entry['duration_minutes'] . ' minutes'),
+            ];
+        }
+        usort($shifts, static fn (array $first, array $second): int =>
+            ($first['employee_id'] <=> $second['employee_id']) ?: ($first['start'] <=> $second['start'])
+        );
+        $lastEndByEmployee = [];
+        foreach ($shifts as $shift) {
+            $employeeId = $shift['employee_id'];
+            if (isset($lastEndByEmployee[$employeeId]) && $shift['start'] < $lastEndByEmployee[$employeeId]) {
+                return $shift['date'];
+            }
+            if (!isset($lastEndByEmployee[$employeeId]) || $shift['end'] > $lastEndByEmployee[$employeeId]) {
+                $lastEndByEmployee[$employeeId] = $shift['end'];
+            }
+        }
+
+        return null;
     }
 
     public static function formatTemplate(array $template): string

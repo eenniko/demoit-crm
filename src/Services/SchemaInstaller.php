@@ -57,6 +57,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/039_schedule_four_month_balance.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.52' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/040_schedule_cross_month_hours.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.53' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/041_schedule_month_boundary_balances.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.54' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/042_schedule_contract_day_index.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.55' AND EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND INDEX_NAME = 'uq_employee_schedule_contract_day' AND NON_UNIQUE = 0) AND EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND INDEX_NAME = 'idx_employee_schedule_employee_day') LIMIT 1", 'handler' => 'scheduleContractDayIndex'],
     ];
 
     public static function ensureInstalled(): void
@@ -71,6 +72,8 @@ class SchemaInstaller
                     self::ensureScheduleAuditColumns();
                 } elseif (($migration['handler'] ?? null) === 'scheduleTemplateColor') {
                     self::ensureScheduleTemplateColor();
+                } elseif (($migration['handler'] ?? null) === 'scheduleContractDayIndex') {
+                    self::ensureScheduleContractDayIndex();
                 }
                 self::runSqlFile($migration['file']);
             }
@@ -108,6 +111,28 @@ class SchemaInstaller
         $stmt->execute();
         if ($stmt->fetchColumn() === false) {
             db()->exec("ALTER TABLE employee_schedule_templates ADD COLUMN color_hex CHAR(7) NOT NULL DEFAULT '#64748B'");
+        }
+    }
+
+    private static function ensureScheduleContractDayIndex(): void
+    {
+        $stmt = db()->prepare(
+            "SELECT INDEX_NAME
+             FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries'
+               AND INDEX_NAME IN ('uq_employee_schedule_day', 'uq_employee_schedule_contract_day', 'idx_employee_schedule_employee_day')"
+        );
+        $stmt->execute();
+        $indexes = array_flip($stmt->fetchAll(PDO::FETCH_COLUMN));
+
+        if (!isset($indexes['idx_employee_schedule_employee_day'])) {
+            db()->exec('ALTER TABLE employee_schedule_entries ADD KEY idx_employee_schedule_employee_day (client_id, employee_id, schedule_date)');
+        }
+        if (isset($indexes['uq_employee_schedule_day'])) {
+            db()->exec('ALTER TABLE employee_schedule_entries DROP INDEX uq_employee_schedule_day');
+        }
+        if (!isset($indexes['uq_employee_schedule_contract_day'])) {
+            db()->exec('ALTER TABLE employee_schedule_entries ADD UNIQUE KEY uq_employee_schedule_contract_day (client_id, contract_id, schedule_date)');
         }
     }
 

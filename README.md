@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.55 | 03.10.2026 | Ajutised asukoharead, koondtunnid põhilepingul ja kattumatuse kontroll. |
 | 1.54 | 03.10.2026 | Üle kuu piiri minevad vahetunnid jaotatakse kuude vahel; perioodi lõpus ei kandu üle. |
 | 1.53 | 03.10.2026 | Kuu piiri ületavad vahetunnid jaotatakse kuude vahel, trimestri viimasel kuul jäävad samasse perioodi. |
 | 1.52 | 03.10.2026 | Tri-OT koondub neljakuuliste perioodidena jaanuarist, maist ja septembrist. |
@@ -76,6 +77,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.55 | 03.10.2026 | Temporary location rows, combined primary hours and shift-overlap checks. |
 | 1.54 | 03.10.2026 | Month-crossing shift minutes split across months except at period end. |
 | 1.53 | 03.10.2026 | Month-crossing shift hours split across months except at the four-month period end. |
 | 1.52 | 03.10.2026 | Tri-OT accumulates in four-month periods starting in January, May and September. |
