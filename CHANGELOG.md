@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.35 – 3. oktoober 2026
+
+- Töötajate nimekirja lisatud **Active contract** veerg, mis näitab töötaja tänase kuupäeva järgi kehtivaid põhilepinguid ja/või ajutisi töökohti. Tähtajatu leping jääb kehtivaks kuni lõppkuupäev lisatakse.
+- Päring on piiratud sama kliendi ID-ga ja koondab lepingutüübid ühe töötaja reale, vältides nimekirja korduvaid töötajakirjeid.
+- Mõjutatud failid: `src/Services/UserService.php`, `views/panel/users/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `sql/022_employee_active_contract_column.sql`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.35 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja kuupäevapiirangutega kliendipõhine alampäring; live-töötajate loendis kuvati kehtiva lepingu korral `Primary` ning muul juhul `No active contract`.
+- Järgmiseks versiooniks pärast 1.35 on `1.36`.
+
 ## Versioon 1.34 – 3. oktoober 2026
 
 - Kinnistu struktuuris saab sama vanema all sama tüüpi üksusi üles/alla liigutada: hoone korpusi, korpuse korruseid või korruse ruume.
@@ -307,6 +316,15 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.35 - October 3, 2026
+
+- Added an **Active contract** column to the employee list, showing primary and/or temporary contracts valid today. An open-ended contract remains valid until an end date is added.
+- The query is scoped to the same client and aggregates contract types per employee, avoiding duplicate employee rows.
+- Affected files: `src/Services/UserService.php`, `views/panel/users/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, and `sql/022_employee_active_contract_column.sql`.
+- Database: no schema changes; a migration records version 1.35 in `system_version_logs`.
+- Verified: PHP syntax and the client-scoped date-validity subquery; the live employee list showed `Primary` for employees with a currently valid contract and `No active contract` otherwise.
+- The next version after 1.35 is `1.36`.
 
 ## Version 1.34 - October 3, 2026
 

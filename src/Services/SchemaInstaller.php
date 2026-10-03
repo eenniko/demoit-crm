@@ -37,6 +37,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/019_contract_workload_schedule_scope.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.32' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/020_contract_property_path.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.33' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/021_property_sibling_order.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.34' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'property_nodes' AND COLUMN_NAME = 'sort_order') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/022_employee_active_contract_column.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.35' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

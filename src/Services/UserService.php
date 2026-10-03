@@ -13,8 +13,15 @@ class UserService
     {
         $stmt = db()->prepare(
                 'SELECT u.id, u.username, u.full_name, u.email, u.phone, u.status, u.must_change_password,
-                    GROUP_CONCAT(r.role_key SEPARATOR \',\') AS role_keys,
-                    GROUP_CONCAT(r.name SEPARATOR \', \') AS roles
+                                        GROUP_CONCAT(r.role_key SEPARATOR \',\') AS role_keys,
+                                        GROUP_CONCAT(r.name SEPARATOR \', \') AS roles,
+                                        (SELECT GROUP_CONCAT(DISTINCT
+                                                                CASE c.contract_type WHEN \'primary\' THEN \'Primary\' ELSE \'Temporary\' END
+                                                                ORDER BY c.contract_type SEPARATOR \', \')
+                                         FROM employment_contracts c
+                                         WHERE c.client_id = u.client_id AND c.employee_id = u.id
+                                             AND c.start_date <= CURRENT_DATE
+                                             AND (c.end_date IS NULL OR c.end_date >= CURRENT_DATE)) AS active_contract_types
              FROM system_users u
              LEFT JOIN system_user_roles ur ON ur.user_id = u.id AND ur.client_id = u.client_id AND ur.status = \'active\'
              LEFT JOIN system_roles r ON r.id = ur.role_id

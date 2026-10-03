@@ -24,6 +24,7 @@
                 <th>Name</th>
                 <th>Contact</th>
                 <th>Access level</th>
+                <th>Active contract</th>
                 <th>Status</th>
                 <th></th>
             </tr>
@@ -38,6 +39,13 @@
                         <small class="text-body-secondary"><?= e($user['phone']) ?></small>
                     </td>
                     <td><?= e($user['roles']) ?></td>
+                    <td>
+                        <?php if (!empty($user['active_contract_types'])): ?>
+                            <span class="badge text-bg-success"><?= e($user['active_contract_types']) ?></span>
+                        <?php else: ?>
+                            <span class="text-body-secondary">No active contract</span>
+                        <?php endif; ?>
+                    </td>
                     <td>
                         <span class="badge <?= $user['status'] === 'active' ? 'text-bg-success' : 'text-bg-secondary' ?>">
                             <?= e($user['status']) ?>
