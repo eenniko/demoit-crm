@@ -20,7 +20,8 @@
 <?php if (empty($contracts)): ?>
     <p class="text-muted">No primary contracts managed by you overlap this month.</p>
 <?php else: ?>
-    <form method="post" action="/panel/schedule" class="table-responsive">
+    <?php if ($canManage): ?><div class="small mb-2 d-none" id="scheduleSaveStatus" role="status" aria-live="polite"></div><?php endif; ?>
+    <form method="post" action="/panel/schedule" class="table-responsive schedule-form">
         <?= Csrf::field() ?>
         <input type="hidden" name="month" value="<?= e($month['month']) ?>">
         <table class="table table-sm table-bordered align-middle schedule-grid">
@@ -49,7 +50,7 @@
                     ?>
                         <tr class="table-light"><th colspan="<?= 4 + (int) $month['days'] ?>"><?= e($groupLabel) ?></th></tr>
                     <?php endif; ?>
-                    <tr>
+                    <tr data-contract-id="<?= $contractId ?>">
                         <th scope="row" class="schedule-employee">
                             <?= e($contract['full_name'] ?: $contract['username']) ?>
                             <small class="d-block text-muted"><?= e($contract['username']) ?></small>
@@ -61,7 +62,7 @@
                         <td><?= e(number_format((float) $contract['workload_percent'], 2)) ?>%</td>
                         <td class="text-nowrap">
                             <strong><?= e(number_format((float) $contract['required_hours'], 2)) ?>h</strong>
-                            <small class="d-block text-muted"><?= e(number_format((float) $contract['planned_hours'], 2)) ?>h planned</small>
+                            <small class="d-block text-muted schedule-planned-hours"><?= e(number_format((float) $contract['planned_hours'], 2)) ?>h planned</small>
                         </td>
                         <?php for ($day = 1; $day <= $month['days']; $day++): ?>
                             <?php
@@ -94,9 +95,6 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <?php if ($canManage): ?>
-            <button class="btn btn-primary" type="submit">Save schedule</button>
-        <?php endif; ?>
     </form>
     <?php if ($canManage): ?>
         <div class="modal fade" id="schedulePickerModal" tabindex="-1" aria-labelledby="schedulePickerTitle" aria-hidden="true">
@@ -149,7 +147,65 @@
             (() => {
                 const modal = document.getElementById('schedulePickerModal');
                 const context = document.getElementById('schedulePickerContext');
+                const form = document.querySelector('.schedule-form');
+                const status = document.getElementById('scheduleSaveStatus');
                 let activeCellButton = null;
+                let saveAfterClose = false;
+                let isSaving = false;
+
+                function showSaveStatus(message, kind) {
+                    status.className = `small mb-2 text-${kind}`;
+                    status.textContent = message;
+                }
+
+                async function saveSchedule() {
+                    if (isSaving) {
+                        return;
+                    }
+
+                    isSaving = true;
+                    form.querySelectorAll('.schedule-cell-button').forEach((button) => {
+                        button.disabled = true;
+                    });
+                    showSaveStatus('Saving schedule...', 'muted');
+
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: new FormData(form),
+                            credentials: 'same-origin',
+                            headers: {
+                                Accept: 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+                        const contentType = response.headers.get('content-type') || '';
+                        if (!contentType.includes('application/json')) {
+                            throw new Error('The server returned an unexpected response.');
+                        }
+
+                        const result = await response.json();
+                        if (!response.ok || !result.success) {
+                            throw new Error(result.message || 'Could not save the monthly schedule.');
+                        }
+
+                        Object.entries(result.plannedHours || {}).forEach(([contractId, hours]) => {
+                            const row = form.querySelector(`[data-contract-id="${contractId}"]`);
+                            const plannedHours = row?.querySelector('.schedule-planned-hours');
+                            if (plannedHours) {
+                                plannedHours.textContent = `${Number(hours).toFixed(2)}h planned`;
+                            }
+                        });
+                        showSaveStatus(result.message, 'success');
+                    } catch (error) {
+                        showSaveStatus(error.message || 'Could not save the monthly schedule.', 'danger');
+                    } finally {
+                        form.querySelectorAll('.schedule-cell-button').forEach((button) => {
+                            button.disabled = false;
+                        });
+                        isSaving = false;
+                    }
+                }
 
                 modal.addEventListener('show.bs.modal', (event) => {
                     activeCellButton = event.relatedTarget;
@@ -181,11 +237,16 @@
                         'aria-label',
                         `${activeCellButton.dataset.employee} ${activeCellButton.dataset.date} ${isOff ? 'Off' : choice.dataset.scheduleCode}`
                     );
+                    saveAfterClose = true;
                     bootstrap.Modal.getOrCreateInstance(modal).hide();
                 });
 
                 modal.addEventListener('hidden.bs.modal', () => {
                     activeCellButton = null;
+                    if (saveAfterClose) {
+                        saveAfterClose = false;
+                        saveSchedule();
+                    }
                 });
             })();
         </script>

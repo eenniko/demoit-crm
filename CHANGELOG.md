@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.43 – 3. oktoober 2026
+
+- Vahetuse või erandi valimine salvestab kuugraafiku automaatselt pärast modaali sulgumist; käsitsi salvestamise nupp eemaldatud. Planeeritud tundide kokkuvõte uueneb vastuse põhjal ilma lehte laadimata.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `public/index.php`, `src/Services/SchemaInstaller.php`, `sql/030_schedule_autosave.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.43 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks, diagnostika ja CSRF-vormi AJAX-teekond staatiliselt. Automaatset salvestust live-andmetel ei testitud.
+- Järgmiseks versiooniks pärast 1.43 on `1.44`.
+
 ## Versioon 1.42 – 3. oktoober 2026
 
 - Asendatud kuugraafiku rippmenüüd täisruuduliste nuppudega, mis avavad ühise vahetuse- ja erandimodaali. Vaba päeva nupp kuvab pika kriipsu; valitud lahter kuvab ainult koodi.
@@ -376,6 +384,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.43 - October 3, 2026
+
+- Choosing a shift or exception now autosaves the monthly schedule when the modal closes; the manual save button is removed. Planned-hours totals update from the response without reloading the page.
+- Affected files: `views/panel/schedule/index.php`, `public/index.php`, `src/Services/SchemaInstaller.php`, `sql/030_schedule_autosave.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; the migration records version 1.43 in `system_version_logs`.
+- Verified: PHP syntax, diagnostics and static review of the CSRF-protected AJAX route. Live autosave was not tested with production data.
+- The next version after 1.43 is `1.44`.
 
 ## Version 1.42 - October 3, 2026
 

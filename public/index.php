@@ -1718,12 +1718,20 @@ function handle_panel_schedule(string $method): void
         return;
     }
 
+    $isAjaxRequest = $method === 'POST'
+        && strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
     $clientId = ClientContext::clientId();
     $userId = ClientContext::userId();
     $isClientAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
     $monthValue = $method === 'POST' ? ($_POST['month'] ?? '') : ($_GET['month'] ?? date('Y-m'));
     $month = ScheduleService::monthInfo(is_string($monthValue) ? $monthValue : '');
     if ($month === null) {
+        if ($isAjaxRequest) {
+            http_response_code(400);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => 'Choose a valid month.']);
+            return;
+        }
         http_response_code(400);
         render_page('Invalid month', 'errors/404.php');
         return;
@@ -1744,14 +1752,39 @@ function handle_panel_schedule(string $method): void
                 $_POST['assignments'] ?? []
             );
             if ($success) {
-                header('Location: /panel/schedule?month=' . rawurlencode($month['month']) . '&message=' . rawurlencode($result));
-                exit;
+                $message = $result;
+                if (!$isAjaxRequest) {
+                    header('Location: /panel/schedule?month=' . rawurlencode($month['month']) . '&message=' . rawurlencode($result));
+                    exit;
+                }
+            } else {
+                $error = $result;
             }
-            $error = $result;
         }
     }
 
     $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month);
+    if ($isAjaxRequest) {
+        if ($error !== null) {
+            http_response_code(422);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => $error], JSON_INVALID_UTF8_SUBSTITUTE);
+            return;
+        }
+
+        $plannedHours = [];
+        foreach ($data['contracts'] as $contract) {
+            $plannedHours[(string) $contract['contract_id']] = (float) $contract['planned_hours'];
+        }
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => true,
+            'message' => $message ?? 'Schedule saved.',
+            'plannedHours' => $plannedHours,
+        ], JSON_INVALID_UTF8_SUBSTITUTE);
+        return;
+    }
+
     render_panel_page('Work schedule', 'schedule/index.php', [
         'month' => $month,
         'contracts' => $data['contracts'],
