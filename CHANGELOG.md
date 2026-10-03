@@ -1,12 +1,20 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.41 – 3. oktoober 2026
+
+- Teisaldatud olemasoleva graafikutabeli auditveergude kontroll ja lisamine PHP-põhiseks, et vältida hosti MySQL-i dünaamilise DDL-i ühilduvusest tingitud rakenduse 500 viga.
+- Mõjutatud failid: `src/Services/SchemaInstaller.php`, `sql/027_schedule_audit_columns.sql`, `sql/028_schedule_repair_compatibility.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: enne v1.40 registreerimist lisatakse vajadusel `created_by` ja `updated_by` nullitavad veerud; skeemimuudatust ei tehta, kui need juba olemas on.
+- Kontrollitud: PHP süntaks ja live-graafiku GET pärast parandust; olemasolevaid graafikukirjeid ei muudetud.
+- Järgmiseks versiooniks pärast 1.41 on `1.42`.
+
 ## Versioon 1.40 – 3. oktoober 2026
 
-- Parandatud olemasoleva ajakava tabeli migreerimine: puuduvaid `created_by` ja `updated_by` veerge ning nende võõrvõtmeid lisatakse nüüd idempotentselt. See väldib `SQLSTATE 42S22` viga vanadel või osaliselt uuendatud paigaldustel.
+- Parandatud olemasoleva ajakava tabeli migreerimine: puuduvaid `created_by` ja `updated_by` veerge lisatakse idempotentselt. See väldib `SQLSTATE 42S22` viga vanadel või osaliselt uuendatud paigaldustel.
 - Tugevdatud versiooni 1.36 rakendamise kontrolli, et ajakavamigratsiooni loetaks täielikuks ainult auditveergude olemasolul.
 - Mõjutatud failid: `sql/027_schedule_audit_columns.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
-- Andmebaasimuudatus: olemasolevale `employee_schedule_entries` tabelile lisatakse vajadusel kaks nullitavat auditveergu ja nende kasutajavõõrvõtmed; versioon 1.40 registreeritakse `system_version_logs` tabelis.
-- Kontrollitud: migratsiooni 21 SQL-lause ja korduvkäivitatavus struktuuri põhjal; live-andmebaasi ühendus puudub.
+- Andmebaasimuudatus: olemasolevale `employee_schedule_entries` tabelile lisatakse vajadusel kaks nullitavat auditveergu; versioon 1.40 registreeritakse `system_version_logs` tabelis.
+- Kontrollitud: staatiline migreerimisloogika; dünaamiline DDL põhjustas hostis rakenduse käivitamisel 500 vea ning asendati versioonis 1.41 PHP-põhise kontrolliga.
 - Järgmiseks versiooniks pärast 1.40 on `1.41`.
 
 ## Versioon 1.39 – 3. oktoober 2026
@@ -361,13 +369,21 @@ Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab v
 
 # DemoIT CRM - Changelog (English)
 
+## Version 1.41 - October 3, 2026
+
+- Moved conditional repair of schedule audit columns to PHP so it does not rely on the hosting MySQL server's dynamic-DDL support, which caused application startup to return HTTP 500.
+- Affected files: `src/Services/SchemaInstaller.php`, `sql/027_schedule_audit_columns.sql`, `sql/028_schedule_repair_compatibility.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: adds nullable `created_by` and `updated_by` columns before registering v1.40 only when they are missing; no schema change when already present.
+- Verified: PHP syntax and live schedule GET after the repair; no schedule entries were modified.
+- The next version after 1.41 is `1.42`.
+
 ## Version 1.40 - October 3, 2026
 
-- Fixed upgrades of existing schedule tables: missing `created_by` and `updated_by` columns and their foreign keys are now added idempotently, preventing `SQLSTATE 42S22` on stale or partially upgraded installs.
+- Fixed upgrades of existing schedule tables: missing `created_by` and `updated_by` columns are added idempotently, preventing `SQLSTATE 42S22` on stale or partially upgraded installs.
 - Strengthened the v1.36 migration check so scheduling is considered installed only when both audit columns exist.
 - Affected files: `sql/027_schedule_audit_columns.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
-- Database: conditionally adds two nullable audit columns and their user foreign keys to `employee_schedule_entries`; records version 1.40 in `system_version_logs`.
-- Verified: 21 migration statements and structural idempotency review; live database connection unavailable.
+- Database: conditionally adds two nullable audit columns to `employee_schedule_entries`; records version 1.40 in `system_version_logs`.
+- Verified: static migration review; the dynamic-DDL approach caused an HTTP 500 on the host and was replaced in v1.41.
 - The next version after 1.40 is `1.41`.
 
 ## Version 1.39 - October 3, 2026

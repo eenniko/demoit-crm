@@ -42,7 +42,8 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/024_schedule_save_optimization.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.37' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/025_schedule_save_error_logging.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.38' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/026_schedule_error_code_feedback.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.39' LIMIT 1"],
-        ['file' => __DIR__ . '/../../sql/027_schedule_audit_columns.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.40' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND COLUMN_NAME = 'created_by') AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND COLUMN_NAME = 'updated_by') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/027_schedule_audit_columns.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.40' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND COLUMN_NAME = 'created_by') AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND COLUMN_NAME = 'updated_by') LIMIT 1", 'handler' => 'scheduleAuditColumns'],
+        ['file' => __DIR__ . '/../../sql/028_schedule_repair_compatibility.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.41' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
@@ -53,7 +54,29 @@ class SchemaInstaller
                 : self::rowExists($migration['rowCheck']);
 
             if (!$applied && is_file($migration['file'])) {
+                if (($migration['handler'] ?? null) === 'scheduleAuditColumns') {
+                    self::ensureScheduleAuditColumns();
+                }
                 self::runSqlFile($migration['file']);
+            }
+        }
+    }
+
+    private static function ensureScheduleAuditColumns(): void
+    {
+        $pdo = db();
+        $stmt = $pdo->prepare(
+            "SELECT COLUMN_NAME
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries'
+               AND COLUMN_NAME IN ('created_by', 'updated_by')"
+        );
+        $stmt->execute();
+        $columns = array_flip($stmt->fetchAll(PDO::FETCH_COLUMN));
+
+        foreach (['created_by', 'updated_by'] as $column) {
+            if (!isset($columns[$column])) {
+                $pdo->exec('ALTER TABLE employee_schedule_entries ADD COLUMN ' . $column . ' INT UNSIGNED NULL');
             }
         }
     }
