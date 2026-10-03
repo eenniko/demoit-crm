@@ -171,8 +171,89 @@ class ScheduleService
             $contract['required_hours'] = round((float) $contract['workload_percent'] * (int) $contract['active_workdays'] * 8 / 100, 2);
         }
         unset($contract);
+        $trimesterBalances = self::trimesterBalances($clientId, $managerId, $isClientAdmin, $contracts, $month);
+        foreach ($contracts as &$contract) {
+            $contract['trimester_balance_hours'] = $trimesterBalances[(int) $contract['employee_id']] ?? 0.0;
+        }
+        unset($contract);
 
         return ['contracts' => $contracts, 'templates' => $templates, 'entries' => $entries];
+    }
+
+    private static function trimesterBalances(int $clientId, int $managerId, bool $isClientAdmin, array $visibleContracts, array $selectedMonth): array
+    {
+        $employeeIds = array_values(array_unique(array_map(
+            static fn (array $contract): int => (int) $contract['employee_id'],
+            $visibleContracts
+        )));
+        if ($employeeIds === []) {
+            return [];
+        }
+
+        $selectedMonthNumber = (int) substr($selectedMonth['month'], 5, 2);
+        $trimesterStartMonth = intdiv($selectedMonthNumber - 1, 3) * 3 + 1;
+        $periodStart = new DateTimeImmutable(substr($selectedMonth['month'], 0, 4) . '-' . sprintf('%02d', $trimesterStartMonth) . '-01');
+        $selectedMonthStart = new DateTimeImmutable($selectedMonth['month'] . '-01');
+        $balances = [];
+
+        while ($periodStart <= $selectedMonthStart) {
+            $period = self::monthInfo($periodStart->format('Y-m'));
+            $placeholders = [];
+            $params = ['client_id' => $clientId, 'month_start' => $period['start'], 'month_end' => $period['end']];
+            foreach ($employeeIds as $index => $employeeId) {
+                $key = 'employee_' . $index;
+                $placeholders[] = ':' . $key;
+                $params[$key] = $employeeId;
+            }
+            $sql =
+                "SELECT id AS contract_id, employee_id, start_date, end_date, workload_percent
+                 FROM employment_contracts
+                 WHERE client_id = :client_id AND contract_type = 'primary'
+                   AND employee_id IN (" . implode(', ', $placeholders) . ")
+                   AND start_date <= :month_end
+                   AND (end_date IS NULL OR end_date >= :month_start)";
+            if (!$isClientAdmin) {
+                $sql .= ' AND manager_user_id = :manager_id';
+                $params['manager_id'] = $managerId;
+            }
+            $stmt = db()->prepare($sql);
+            $stmt->execute($params);
+            $periodContracts = $stmt->fetchAll();
+
+            if ($periodContracts !== []) {
+                $entries = self::getMonthEntries($clientId, $periodContracts, $period);
+                foreach ($periodContracts as $contract) {
+                    $plannedMinutes = 0;
+                    foreach ($entries[(int) $contract['contract_id']] ?? [] as $entry) {
+                        if ($entry['template_type'] === 'shift') {
+                            $plannedMinutes += (int) $entry['duration_minutes'];
+                        }
+                    }
+                    $contractStart = max($period['start'], $contract['start_date']);
+                    $contractEnd = $contract['end_date'] === null ? $period['end'] : min($period['end'], $contract['end_date']);
+                    $activeWorkdays = self::countWeekdays(new DateTimeImmutable($contractStart), new DateTimeImmutable($contractEnd));
+                    $requiredHours = (float) $contract['workload_percent'] * $activeWorkdays * 8 / 100;
+                    $employeeId = (int) $contract['employee_id'];
+                    $balances[$employeeId] = round(($balances[$employeeId] ?? 0.0) + $plannedMinutes / 60 - $requiredHours, 2);
+                }
+            }
+
+            $periodStart = $periodStart->modify('first day of next month');
+        }
+
+        return $balances;
+    }
+
+    public static function formatHours(float $hours): string
+    {
+        $rounded = round($hours, 2);
+        return number_format($rounded, abs($rounded - round($rounded)) < 0.00001 ? 0 : 2, '.', '') . 'h';
+    }
+
+    public static function formatBalance(float $hours): string
+    {
+        $rounded = round($hours, 2);
+        return ($rounded > 0 ? '+' : '') . self::formatHours($rounded);
     }
 
     public static function templateLabel(array $template): string

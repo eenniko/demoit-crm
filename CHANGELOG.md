@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.50 – 3. oktoober 2026
+
+- Teisaldatud töötundide kokkuvõte päevaveergude järele ja jaotatud neljaks: planeeritud tunnid, nõutud tunnid, kuu OT (+ üle-, − alatunnid) ning trimestri algusest kumulatiivne Tri-OT.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/037_schedule_hour_balances.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.50 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks, kvartalipõhise saldo live-arvutus ja tabeli laius (`clientWidth` = `scrollWidth` = 1415px).
+- Järgmiseks versiooniks pärast 1.50 on `1.51`.
+
 ## Versioon 1.49 – 3. oktoober 2026
 
 - Eemaldatud eraldi **Workload** veerg ja töötaja kasutajatunnuse rida; koormuse protsent kuvatakse töötaja nime all.
@@ -432,6 +440,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.50 - October 3, 2026
+
+- Moved hour summaries after the day columns and split them into planned hours, required hours, monthly OT (+ overtime, − undertime), and trimester-to-date cumulative Tri-OT.
+- Affected files: `src/Services/ScheduleService.php`, `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/037_schedule_hour_balances.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.50 in `system_version_logs`.
+- Verified: PHP syntax, live quarter-to-date balance calculation and table width (`clientWidth` = `scrollWidth` = 1415px).
+- The next version after 1.50 is `1.51`.
 
 ## Version 1.49 - October 3, 2026
 

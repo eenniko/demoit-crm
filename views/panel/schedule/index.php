@@ -29,13 +29,16 @@
                 <tr>
                     <th class="schedule-employee">Employee</th>
                     <th class="schedule-location">Floor / department</th>
-                    <th>Required / planned</th>
                     <?php for ($day = 1; $day <= $month['days']; $day++): ?>
                         <?php $date = sprintf('%s-%02d', $month['month'], $day); ?>
                         <th class="text-center schedule-day <?= (int) date('N', strtotime($date)) >= 6 ? 'table-light' : '' ?>">
                             <?= $day ?><br><small><?= e(date('D', strtotime($date))) ?></small>
                         </th>
                     <?php endfor; ?>
+                    <th class="schedule-total-column">Planned h</th>
+                    <th class="schedule-total-column">Required h</th>
+                    <th class="schedule-total-column">OT</th>
+                    <th class="schedule-total-column">Tri-OT</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,7 +55,7 @@
                         $groupId = 'schedule-group-' . $groupIndex;
                     ?>
                         <tr class="table-light">
-                            <th colspan="<?= 3 + (int) $month['days'] ?>">
+                            <th colspan="<?= 6 + (int) $month['days'] ?>">
                                 <button class="schedule-group-toggle" type="button" data-schedule-group="<?= e($groupId) ?>" aria-expanded="true">
                                     <span class="schedule-group-indicator" aria-hidden="true">▾</span>
                                     <span><?= e($groupLabel) ?></span>
@@ -69,10 +72,6 @@
                         <td class="schedule-location">
                             <?= e($contract['property_path']) ?>
                             <?php if (!empty($contract['department_name'])): ?><small class="d-block text-muted"><?= e($contract['department_name']) ?></small><?php endif; ?>
-                        </td>
-                        <td class="text-nowrap">
-                            <strong><?= e(number_format((float) $contract['required_hours'], 2)) ?>h</strong>
-                            <small class="d-block text-muted schedule-planned-hours"><?= e(number_format((float) $contract['planned_hours'], 2)) ?>h planned</small>
                         </td>
                         <?php for ($day = 1; $day <= $month['days']; $day++): ?>
                             <?php
@@ -103,6 +102,16 @@
                                 <?php endif; ?>
                             </td>
                         <?php endfor; ?>
+                        <?php
+                        $monthBalance = round((float) $contract['planned_hours'] - (float) $contract['required_hours'], 2);
+                        $trimesterBalance = (float) $contract['trimester_balance_hours'];
+                        $monthBalanceClass = $monthBalance > 0 ? 'text-danger' : ($monthBalance < 0 ? 'text-primary' : 'text-muted');
+                        $trimesterBalanceClass = $trimesterBalance > 0 ? 'text-danger' : ($trimesterBalance < 0 ? 'text-primary' : 'text-muted');
+                        ?>
+                        <td class="schedule-total-column"><span class="schedule-planned-hours"><?= e(ScheduleService::formatHours((float) $contract['planned_hours'])) ?></span></td>
+                        <td class="schedule-total-column"><?= e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></td>
+                        <td class="schedule-total-column"><strong class="<?= e($monthBalanceClass) ?>"><?= e(ScheduleService::formatBalance($monthBalance)) ?></strong></td>
+                        <td class="schedule-total-column"><strong class="<?= e($trimesterBalanceClass) ?>"><?= e(ScheduleService::formatBalance($trimesterBalance)) ?></strong></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -288,8 +297,10 @@
 .schedule-grid { width: 100%; min-width: 0; table-layout: fixed; }
 .schedule-employee { width: 145px; min-width: 0; overflow-wrap: anywhere; }
 .schedule-location { width: 155px; min-width: 0; overflow-wrap: anywhere; }
-.schedule-grid thead th:nth-child(3) { width: 100px; }
 .schedule-day { min-width: 0; padding: 0 !important; text-align: center; }
+.schedule-total-column { width: 72px; padding: .25rem .15rem !important; text-align: right; white-space: nowrap; }
+.schedule-total-column:nth-last-child(2) { width: 56px; }
+.schedule-total-column:last-child { width: 68px; }
 .schedule-day small { font-size: .65rem; line-height: 1; }
 .schedule-group-toggle { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 38px; padding: .25rem .5rem; border: 0; background: transparent; color: var(--bs-body-color); font-weight: 600; text-align: left; }
 .schedule-group-toggle:hover { background: var(--bs-tertiary-bg); }
@@ -306,7 +317,9 @@
 @media (max-width: 1200px) {
     .schedule-employee { width: 115px; font-size: .78rem; }
     .schedule-location { width: 125px; font-size: .75rem; }
-    .schedule-grid thead th:nth-child(3) { width: 88px; }
+    .schedule-total-column { width: 64px; font-size: .72rem; }
+    .schedule-total-column:nth-last-child(2) { width: 48px; }
+    .schedule-total-column:last-child { width: 60px; }
     .schedule-cell-button { font-size: .64rem; }
 }
 </style>
