@@ -112,10 +112,10 @@
                     <div class="modal-body">
                         <div class="mb-4">
                             <h3 class="h6">Day off</h3>
-                            <button class="btn btn-outline-secondary schedule-choice" type="button" data-schedule-value="0" data-schedule-code="−" data-schedule-active="active" aria-pressed="false">Off</button>
+                            <button class="btn btn-outline-secondary schedule-choice" type="button" data-schedule-value="0" data-schedule-code="−" aria-pressed="false">Off</button>
                         </div>
                         <?php foreach (['shift' => 'Shifts', 'exception' => 'Exceptions'] as $type => $label): ?>
-                            <?php $typeTemplates = array_values(array_filter($templates, static fn (array $template): bool => $template['template_type'] === $type)); ?>
+                            <?php $typeTemplates = array_values(array_filter($templates, static fn (array $template): bool => $template['template_type'] === $type && $template['status'] === 'active')); ?>
                             <?php if ($typeTemplates !== []): ?>
                                 <div class="mb-4">
                                     <h3 class="h6"><?= e($label) ?></h3>
@@ -128,10 +128,9 @@
                                                     data-schedule-value="<?= (int) $template['id'] ?>"
                                                     data-schedule-code="<?= e($template['code']) ?>"
                                                     data-schedule-color="<?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>"
-                                                    data-schedule-active="<?= e($template['status']) ?>"
                                                     style="--schedule-color: <?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>"
                                                     aria-pressed="false">
-                                                    <span class="d-block fw-semibold"><?= e($template['code']) ?><?= $template['status'] === 'inactive' ? ' · inactive' : '' ?></span>
+                                                    <span class="d-block fw-semibold"><?= e($template['code']) ?></span>
                                                     <small><?= e(substr(ScheduleService::formatTemplate($template), strlen($template['code']) + 3)) ?></small>
                                                 </button>
                                             </div>
@@ -219,7 +218,6 @@
 
                     modal.querySelectorAll('.schedule-choice').forEach((choice) => {
                         const isCurrent = choice.dataset.scheduleValue === currentValue;
-                        choice.disabled = choice.dataset.scheduleActive !== 'active' && !isCurrent;
                         choice.classList.toggle('active', isCurrent);
                         choice.setAttribute('aria-pressed', String(isCurrent));
                     });

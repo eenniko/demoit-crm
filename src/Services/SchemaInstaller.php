@@ -48,6 +48,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/030_schedule_autosave.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.43' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/031_schedule_template_colors.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.44' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_templates' AND COLUMN_NAME = 'color_hex') LIMIT 1", 'handler' => 'scheduleTemplateColor'],
         ['file' => __DIR__ . '/../../sql/032_schedule_color_allowlist.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.45' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/033_schedule_modal_active_templates.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.46' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

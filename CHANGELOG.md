@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.46 – 3. oktoober 2026
+
+- Vahetusevaliku modaal kuvab ainult aktiivseid vahetuse- ja erandimalle. Inaktiivsed mallid jäävad olemasolevate graafikukirjete kuvamiseks alles, kuid neid ei saa uue valikuna määrata.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/033_schedule_modal_active_templates.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.46 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja live-modali valikud; inaktiivseid malle loendis ei kuvata.
+- Järgmiseks versiooniks pärast 1.46 on `1.47`.
+
 ## Versioon 1.45 – 3. oktoober 2026
 
 - Asendatud vaba värvivalik üheksa nimelise värvi rippmenüüga: vikerkaare värvid, must ja valge. Malli värvivalik valideeritakse samas loendis; varasemad muud toonid teisendatakse lubatud põhivärvideks.
@@ -400,6 +408,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.46 - October 3, 2026
+
+- The shift-picker modal now lists only active shift and exception templates. Inactive templates remain visible on existing schedule entries but cannot be selected for new assignments.
+- Affected files: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/033_schedule_modal_active_templates.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.46 in `system_version_logs`.
+- Verified: PHP syntax and live modal choices; inactive templates are absent from the list.
+- The next version after 1.46 is `1.47`.
 
 ## Version 1.45 - October 3, 2026
 
