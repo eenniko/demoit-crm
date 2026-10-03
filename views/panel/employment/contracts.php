@@ -34,7 +34,7 @@
                     <tr>
                         <td><?= e($contract['full_name'] ?: $contract['username']) ?><br><small class="text-muted"><?= e($contract['username']) ?></small></td>
                         <td><?= e($typeLabels[$contract['contract_type']]) ?></td>
-                        <td><?= e($contract['property_name']) ?></td>
+                        <td><?= e($contract['property_path']) ?></td>
                         <td><?= e($contract['job_title']) ?><br><small class="text-muted"><?= e($contract['department_name'] ?: 'No department') ?></small></td>
                         <td><?= e($contract['workload_name']) ?><br><small class="text-muted"><?= e(number_format((float) $contract['workload_percent'], 2)) ?>%</small></td>
                         <td><?= e($contract['manager_name'] ?: $contract['manager_username'] ?: '—') ?></td>

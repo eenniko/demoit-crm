@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.33 – 3. oktoober 2026
+
+- Töölepingute loendi **Location** veerg kuvab nüüd kinnistu täieliku nimeahela hoonest valitud tasandini, näiteks `Peamaja - B korpus - 2. korrus - 205`, mitte ainult ruumi/korruse nime.
+- Mõjutatud failid: `src/Services/EmploymentContractService.php`, `views/panel/employment/contracts.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `sql/020_contract_property_path.sql`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.33 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ning kliendipõhise kinnistupuu põhjal nimeahela koostamine `Peamaja - B korpus - 2. korrus - 205`.
+- Järgmiseks versiooniks pärast 1.33 on `1.34`.
+
 ## Versioon 1.32 – 3. oktoober 2026
 
 - Eemaldatud kuupõhine normtundide kalkulaator lepingu lisamise ja muutmise vormist. Koormuse valik ja lepingule salvestatud protsendikoopia jäävad alles.
@@ -290,6 +298,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.33 - October 3, 2026
+
+- The employment contracts **Location** column now shows the complete property path from building to selected level, for example `Main building - Wing B - Floor 2 - Room 205`, instead of only the room/floor name.
+- Affected files: `src/Services/EmploymentContractService.php`, `views/panel/employment/contracts.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, and `sql/020_contract_property_path.sql`.
+- Database: no schema changes; a migration records version 1.33 in `system_version_logs`.
+- Verified: PHP syntax and full path formatting from the client-scoped property tree: `Peamaja - B korpus - 2. korrus - 205`.
+- The next version after 1.33 is `1.34`.
 
 ## Version 1.32 - October 3, 2026
 

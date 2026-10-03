@@ -11,7 +11,7 @@ class EmploymentContractService
     public static function listForClient(int $clientId): array
     {
         $stmt = db()->prepare(
-                "SELECT c.id, c.employee_id, c.contract_type, c.start_date, c.end_date, c.workload_percent,
+                "SELECT c.id, c.employee_id, c.property_node_id, c.contract_type, c.start_date, c.end_date, c.workload_percent,
                     workload.name AS workload_name,
                     employee.username, employee.full_name,
                     property.name AS property_name, property.node_type AS property_type,
@@ -34,7 +34,22 @@ class EmploymentContractService
         );
         $stmt->execute(['client_id' => $clientId]);
 
-        return $stmt->fetchAll();
+        return self::addPropertyPaths($stmt->fetchAll(), PropertyService::listTreeForClient($clientId));
+    }
+
+    public static function addPropertyPaths(array $contracts, array $propertyNodes): array
+    {
+        $paths = [];
+        foreach ($propertyNodes as $node) {
+            $paths[(int) $node['id']] = implode(' - ', $node['path']);
+        }
+
+        foreach ($contracts as &$contract) {
+            $contract['property_path'] = $paths[(int) $contract['property_node_id']] ?? $contract['property_name'];
+        }
+        unset($contract);
+
+        return $contracts;
     }
 
     public static function findForClient(int $clientId, int $contractId): ?array
