@@ -1,6 +1,6 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.36
+**Süsteemi arendusversioon:** 1.57
 
 ## Eesti keeles
 
@@ -12,15 +12,15 @@ Kliendiadministraator näeb kõiki kliendi aktiivsete põhilepingutega töötaja
 
 ### Kuugraafik
 
-Vali kuu; iga aktiivne põhilepinguga töötaja kuvatakse reana ja kuu päevad eraldi veergudena. Kui töötaja leping kehtib ainult osa kuust, on valitavad ainult lepinguperioodi päevad. Ühe töötaja ja päeva kohta saab salvestada ühe kirje. Tühi **Off** valik tähendab vaba päeva.
+Vali kuu; iga kehtiv põhi- või ajutine leping kuvatakse oma asukoha/osakonna all eraldi real ja kuu päevad eraldi veergudena. Kui leping kehtib ainult osa kuust, on valitavad ainult lepinguperioodi päevad. Ühel töötajal võib samal päeval olla mitu lepingurida ainult siis, kui vahetuste ajavahemikud ei kattu. Tühi **Off** valik tähendab vaba päeva.
 
-Päevaseks valikuks saab määrata vahetuse või erandi. Malli algusaeg ja kestus määravad tööaja; vahetus võib kesta kuni 24 tundi ja jätkuda järgmise päeva hommikusse. Näiteks `12Ö` algab 20:00 ja kestab 12 tundi; `24H` algab 08:00 ja kestab 24 tundi. Erandid kuvatakse eraldi ning nende kestust ei liideta planeeritud töötundide hulka.
+Päevaseks valikuks saab määrata vahetuse või erandi. Malli algusaeg ja kestus määravad tööaja; vahetus võib kesta kuni 24 tundi ja jätkuda järgmise päeva hommikusse. Näiteks `12Ö` algab 20:00 ja kestab 12 tundi; `24H` algab 08:00 ja kestab 24 tundi. Shift-tunnid lähevad Planned-summasse kõigil päevadel; Exception-tunnid lähevad sinna ainult esmaspäevast reedeni.
 
 ### Vahetuste seaded ja tundide kokkuvõte
 
 Kliendiadministraator haldab vahelehel **Shift settings** vahetuste ja erandite koode, algusaegu ning kestusi. Vaikimisi vahetused on `12Ö` (20:00, 12h), `12P` (08:00, 12h), `24H` (08:00, 24h) ja `8P` (08:00, 8h). Vaikimisi erandid on `HP`, `K`, `LHP`, `LIP`, `P`, `TV` ja `X` (08:00, 8h). Kasutuses olevat malli ei kustutata: selle saab peita; olemasolevad graafikukirjed säilivad.
 
-Graafik näitab töötaja lepingu koormust, kuu normtunde ja planeeritud vahetusetunde. Esimese versiooni norm on lepingu koormus × kuu esmaspäevast reedeni tööpäevade arv × 8 tundi. Näiteks 50% × 20 tööpäeva × 8 tundi = 80 normtundi. Riigipühade automaatset mahaarvamist selles versioonis ei ole. Osalise lepinguperioodi norm arvutatakse ainult selle perioodi tööpäevadest.
+Graafiku lõpus kuvatakse Planned, Required, OT ja neljakuuline Tri-OT. Ajutise lepingu real on ainult selle asukoha Planned-tunnid; põhilepingu real liidetakse põhi- ja ajutise koha tunnid, kuid Required arvutatakse ainult põhilepingu workload’i põhjal. Kuu OT = Planned − Required. Tri-OT kumuleerub perioodidel jaanuar–aprill, mai–august ja september–detsember. Kuu piiri ületava vahetuse tunnid jagatakse kuude vahel; neljakuulise perioodi viimases kuus jääb vahetus tervikuna perioodi viimasesse kuusse. Required norm on põhilepingu koormus × kuu tööpäevad (E–R) × 8 tundi; riigipühi maha ei arvata.
 
 Andmed on kliendipõhistes tabelites `employee_schedule_templates` ja `employee_schedule_entries`. Leping, töötaja, vahetuse mall ja muutja valideeritakse sama kliendi piires ning muutmistehing nõuab CSRF-kaitset. Iga salvestus läheb auditlogisse. Skeem ja vaikimisi mallid paigaldab `sql/023_employee_scheduling.sql`.
 
@@ -34,14 +34,14 @@ A client administrator can see and manage all employees with active primary cont
 
 ### Monthly roster
 
-Choose a month; each employee with an active primary contract appears as a row, with each date in its own column. If the contract is valid for only part of the month, only dates inside that contract period are editable. One entry can be saved per employee per day. An empty **Off** choice means a day off.
+Choose a month; each valid primary or temporary contract appears under its own location/department row, with each date in its own column. If the contract is valid for only part of the month, only dates inside that contract period are editable. An employee may have multiple contract rows on one date only when shift intervals do not overlap. An empty **Off** choice means a day off.
 
-Each day can have a shift or an exception. A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Exceptions are listed separately and are not counted as planned working hours.
+Each day can have a shift or an exception. A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Shift hours count as Planned on every day; exception hours count only Monday-Friday.
 
 ### Shift settings and hour summary
 
 A client administrator manages shift and exception codes, start times and durations on **Shift settings**. Default shifts are `12Ö` (20:00, 12h), `12P` (08:00, 12h), `24H` (08:00, 24h) and `8P` (08:00, 8h). Default exceptions are `HP`, `K`, `LHP`, `LIP`, `P`, `TV` and `X` (08:00, 8h). Referenced templates are retained and can be hidden; existing schedule entries remain intact.
 
-The roster shows contract workload, required monthly hours and planned shift hours. The initial norm is contract workload × Monday-to-Friday workdays in the month × 8 hours. For example, 50% × 20 workdays × 8 hours = 80 required hours. Public holidays are not automatically deducted in this version. For contracts covering only part of a month, the norm uses only weekdays within that contract period.
+The roster ends with Planned, Required, OT and four-month Tri-OT totals. A temporary row shows only its location's Planned hours; the primary row combines primary and temporary planned hours, while Required uses only primary-contract workload. Monthly OT = Planned − Required. Tri-OT accumulates over January-April, May-August and September-December. Shift minutes crossing a month boundary are split between months, except in the final month of a four-month period, where the full shift stays in that period. Required hours use primary-contract workload × Monday-Friday workdays × 8 hours; public holidays are not deducted.
 
 Data is stored in the client-scoped `employee_schedule_templates` and `employee_schedule_entries` tables. Contract, employee, shift template and editor are validated within the same client; writes require CSRF protection and are audited. `sql/023_employee_scheduling.sql` installs the schema and default templates.

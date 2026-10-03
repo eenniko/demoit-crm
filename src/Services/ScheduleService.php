@@ -160,7 +160,7 @@ class ScheduleService
         $contracts = self::listScheduleContracts($clientId, $managerId, $isClientAdmin, $month);
         $templates = self::listTemplates($clientId);
         $entries = self::getMonthEntries($clientId, $contracts, $month);
-        $plannedMinutes = self::plannedShiftMinutes($clientId, $managerId, $isClientAdmin, $contracts, $month);
+        $plannedMinutes = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $contracts, $month);
         $temporaryMinutesByEmployee = [];
         foreach ($contracts as $contract) {
             if ($contract['contract_type'] === 'temporary') {
@@ -239,7 +239,7 @@ class ScheduleService
             $periodContracts = $stmt->fetchAll();
 
             if ($periodContracts !== []) {
-                $plannedMinutesByEmployee = self::plannedShiftMinutes($clientId, $managerId, $isClientAdmin, $periodContracts, $period)['byEmployee'];
+                $plannedMinutesByEmployee = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $periodContracts, $period)['byEmployee'];
                 $requiredHoursByEmployee = [];
                 foreach ($periodContracts as $contract) {
                     $contractStart = max($period['start'], $contract['start_date']);
@@ -261,7 +261,7 @@ class ScheduleService
         return $balances;
     }
 
-    private static function plannedShiftMinutes(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
+    private static function plannedWorkMinutes(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
     {
         $employeeIds = array_values(array_unique(array_map(
             static fn (array $contract): int => (int) $contract['employee_id'],
@@ -290,7 +290,7 @@ class ScheduleService
         }
 
         $sql =
-            'SELECT e.employee_id, e.contract_id, e.schedule_date, template.start_time, template.duration_minutes
+            'SELECT e.employee_id, e.contract_id, e.schedule_date, template.template_type, template.start_time, template.duration_minutes
              FROM employee_schedule_entries e
              INNER JOIN employment_contracts contract
                 ON contract.client_id = e.client_id AND contract.id = e.contract_id
@@ -298,7 +298,7 @@ class ScheduleService
                 ON template.client_id = e.client_id AND template.id = e.template_id
              WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :month_end
                AND e.employee_id IN (' . implode(', ', $placeholders) . ')
-               AND template.template_type = \'shift\'';
+               AND template.template_type IN (\'shift\', \'exception\')';
         if (!$isClientAdmin) {
             $sql .= ' AND contract.manager_user_id = :manager_id';
             $params['manager_id'] = $managerId;
@@ -309,6 +309,9 @@ class ScheduleService
         $minutesByContract = [];
 
         foreach ($stmt->fetchAll() as $entry) {
+            if (!self::templateCountsAsPlanned($entry['template_type'], $entry['schedule_date'])) {
+                continue;
+            }
             $durationMinutes = (int) $entry['duration_minutes'];
             $minutesInMonth = self::shiftMinutesInMonth($entry['schedule_date'], $entry['start_time'], $durationMinutes, $month);
 
@@ -321,6 +324,18 @@ class ScheduleService
         }
 
         return ['byEmployee' => $minutesByEmployee, 'byContract' => $minutesByContract];
+    }
+
+    public static function templateCountsAsPlanned(string $templateType, string $scheduleDate): bool
+    {
+        if ($templateType === 'shift') {
+            return true;
+        }
+        if ($templateType !== 'exception') {
+            return false;
+        }
+
+        return (int) (new DateTimeImmutable($scheduleDate))->format('N') <= 5;
     }
 
     public static function shiftMinutesInMonth(string $scheduleDate, string $startTime, int $durationMinutes, array $month): int

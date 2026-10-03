@@ -59,6 +59,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/041_schedule_month_boundary_balances.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.54' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/042_schedule_contract_day_index.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.55' AND EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND INDEX_NAME = 'uq_employee_schedule_contract_day' AND NON_UNIQUE = 0) AND EXISTS (SELECT 1 FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_entries' AND INDEX_NAME = 'idx_employee_schedule_employee_day') LIMIT 1", 'handler' => 'scheduleContractDayIndex'],
         ['file' => __DIR__ . '/../../sql/043_schedule_temp_label.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.56' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/044_schedule_weekday_exception_hours.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.57' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

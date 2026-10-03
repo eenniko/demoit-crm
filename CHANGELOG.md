@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.57 – 3. oktoober 2026
+
+- Planned arvestab Exception-malli tunde esmaspäevast reedeni, nädalavahetuse exception-tunde ei liideta. Reegel rakendub kuu- ja neljakuulisele Tri-OT saldole.
+- Uuendatud graafikumooduli kasutusjuhend, et kirjeldada ajutisi lepinguid, kattuvust ja tunniarvestust.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `docs/10-graafiku-moodul.md`, `src/Services/SchemaInstaller.php`, `sql/044_schedule_weekday_exception_hours.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.57 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja viis exception-/nädalapäevade arvestusjuhtu.
+- Järgmiseks versiooniks pärast 1.57 on `1.58`.
+
 ## Versioon 1.56 – 3. oktoober 2026
 
 - Eemaldatud ajutiste tundide sulgudes kuvatavalt jaotuselt sõna `temp`; näiteks `(+24h)`.
@@ -489,6 +498,15 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.57 - October 3, 2026
+
+- Planned hours now include exception-template duration Monday-Friday only; weekend exception hours are excluded. The rule applies to monthly OT and four-month Tri-OT balances.
+- Updated the schedule module guide for temporary contracts, shift overlap and hour accounting.
+- Affected files: `src/Services/ScheduleService.php`, `docs/10-graafiku-moodul.md`, `src/Services/SchemaInstaller.php`, `sql/044_schedule_weekday_exception_hours.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.57 in `system_version_logs`.
+- Verified: PHP syntax and five exception/weekday accounting cases.
+- The next version after 1.57 is `1.58`.
 
 ## Version 1.56 - October 3, 2026
 

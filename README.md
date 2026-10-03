@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.57 | 03.10.2026 | Exception-tunnid lähevad Planned-arvestusse ainult tööpäevadel. |
 | 1.56 | 03.10.2026 | Ajutiste tundide sulgudes jaotus kuvab ainult tunnid. |
 | 1.55 | 03.10.2026 | Ajutised asukoharead, koondtunnid põhilepingul ja kattumatuse kontroll. |
 | 1.54 | 03.10.2026 | Üle kuu piiri minevad vahetunnid jaotatakse kuude vahel; perioodi lõpus ei kandu üle. |
@@ -78,6 +79,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.57 | 03.10.2026 | Exception hours count as Planned on weekdays only. |
 | 1.56 | 03.10.2026 | Temporary-hour breakdown shows the hours only. |
 | 1.55 | 03.10.2026 | Temporary location rows, combined primary hours and shift-overlap checks. |
 | 1.54 | 03.10.2026 | Month-crossing shift minutes split across months except at period end. |
