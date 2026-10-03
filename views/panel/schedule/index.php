@@ -68,6 +68,7 @@
                             <?php
                             $date = sprintf('%s-%02d', $month['month'], $day);
                             $entry = $entries[$contractId][$date] ?? null;
+                            $entryColor = $entry === null ? null : ScheduleService::safeTemplateColor($entry['color_hex'] ?? null);
                             $withinContract = $date >= $contract['start_date'] && ($contract['end_date'] === null || $date <= $contract['end_date']);
                             $weekend = (int) date('N', strtotime($date)) >= 6;
                             ?>
@@ -81,6 +82,7 @@
                                         data-bs-target="#schedulePickerModal"
                                         data-employee="<?= e($contract['full_name'] ?: $contract['username']) ?>"
                                         data-date="<?= e($date) ?>"
+                                        style="<?= $entryColor === null ? '' : ' --schedule-color: ' . e($entryColor) . ';' ?>"
                                         aria-label="<?= e(($contract['full_name'] ?: $contract['username']) . ' ' . $date . ' ' . ($entry['code'] ?? 'Off')) ?>">
                                         <?php if ($entry === null): ?><span aria-hidden="true">−</span><?php else: ?><?= e($entry['code']) ?><?php endif; ?>
                                     </button>
@@ -125,7 +127,9 @@
                                                     type="button"
                                                     data-schedule-value="<?= (int) $template['id'] ?>"
                                                     data-schedule-code="<?= e($template['code']) ?>"
+                                                    data-schedule-color="<?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>"
                                                     data-schedule-active="<?= e($template['status']) ?>"
+                                                    style="--schedule-color: <?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>"
                                                     aria-pressed="false">
                                                     <span class="d-block fw-semibold"><?= e($template['code']) ?><?= $template['status'] === 'inactive' ? ' · inactive' : '' ?></span>
                                                     <small><?= e(substr(ScheduleService::formatTemplate($template), strlen($template['code']) + 3)) ?></small>
@@ -233,6 +237,11 @@
                     activeCellButton.textContent = isOff ? '−' : choice.dataset.scheduleCode;
                     activeCellButton.classList.toggle('is-empty', isOff);
                     activeCellButton.classList.toggle('is-assigned', !isOff);
+                    if (isOff) {
+                        activeCellButton.style.removeProperty('--schedule-color');
+                    } else {
+                        activeCellButton.style.setProperty('--schedule-color', choice.dataset.scheduleColor);
+                    }
                     activeCellButton.setAttribute(
                         'aria-label',
                         `${activeCellButton.dataset.employee} ${activeCellButton.dataset.date} ${isOff ? 'Off' : choice.dataset.scheduleCode}`
@@ -260,7 +269,11 @@
 .schedule-day { min-width: 66px; padding: 0 !important; }
 .schedule-cell-button { display: block; width: 100%; min-height: 48px; padding: .25rem; border: 0; border-radius: 0; background: transparent; color: var(--bs-secondary-color); font-weight: 600; }
 .schedule-cell-button.is-empty { font-size: 1.5rem; font-weight: 400; }
-.schedule-cell-button.is-assigned { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
+.schedule-cell-button.is-assigned { background: color-mix(in srgb, var(--schedule-color, #64748B) 18%, white); box-shadow: inset 0 -4px 0 var(--schedule-color, #64748B); color: var(--bs-body-color); }
 .schedule-cell-button:hover { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
+.schedule-cell-button.is-assigned:hover { background: color-mix(in srgb, var(--schedule-color, #64748B) 28%, white); color: var(--bs-body-color); }
 .schedule-cell-button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--bs-primary); outline-offset: -2px; }
+.schedule-choice[data-schedule-value]:not([data-schedule-value="0"]) { border-color: var(--schedule-color, #64748B); border-left-width: .35rem; }
+.schedule-choice[data-schedule-value]:not([data-schedule-value="0"]):hover,
+.schedule-choice[data-schedule-value]:not([data-schedule-value="0"]).active { background: color-mix(in srgb, var(--schedule-color, #64748B) 16%, white); color: var(--bs-body-color); }
 </style>

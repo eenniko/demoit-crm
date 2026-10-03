@@ -43,7 +43,7 @@ class ScheduleService
     public static function listTemplates(int $clientId): array
     {
         $stmt = db()->prepare(
-            'SELECT id, template_type, code, name, start_time, duration_minutes, status
+            'SELECT id, template_type, code, name, start_time, duration_minutes, color_hex, status
              FROM employee_schedule_templates
              WHERE client_id = :client_id
              ORDER BY FIELD(template_type, \'shift\', \'exception\'), status, code'
@@ -60,12 +60,14 @@ class ScheduleService
         $name = trim(is_string($data['name'] ?? null) ? $data['name'] : '');
         $startTime = is_string($data['start_time'] ?? null) ? $data['start_time'] : '';
         $duration = is_string($data['duration_hours'] ?? null) ? $data['duration_hours'] : '';
+        $color = is_string($data['color_hex'] ?? null) ? strtoupper($data['color_hex']) : '#64748B';
         if (!in_array($type, ['shift', 'exception'], true)
             || !preg_match('/^[\p{L}\p{N}_-]{1,20}$/u', $code)
             || ($name !== '' && (preg_match('//u', $name) !== 1 || preg_match_all('/./us', $name) > 100))
             || !preg_match('/^(?:0?\.\d{1,2}|\d{1,2}(?:\.\d{1,2})?|24(?:\.0{1,2})?)$/', $duration)
+            || !preg_match('/^#[0-9A-F]{6}$/', $color)
             || !preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $startTime)) {
-            return [false, 'Enter a valid type, code, start time and duration.'];
+            return [false, 'Enter a valid type, code, color, start time and duration.'];
         }
         $durationMinutes = (int) round((float) $duration * 60);
         if ($durationMinutes < 15 || $durationMinutes > 1440) {
@@ -77,8 +79,8 @@ class ScheduleService
             if ($templateId === null) {
                 $stmt = db()->prepare(
                     'INSERT INTO employee_schedule_templates
-                        (client_id, template_type, code, name, start_time, duration_minutes)
-                     VALUES (:client_id, :template_type, :code, :name, :start_time, :duration_minutes)'
+                                (client_id, template_type, code, name, start_time, duration_minutes, color_hex)
+                            VALUES (:client_id, :template_type, :code, :name, :start_time, :duration_minutes, :color_hex)'
                 );
                 $stmt->execute([
                     'client_id' => $clientId,
@@ -87,6 +89,7 @@ class ScheduleService
                     'name' => $name,
                     'start_time' => $startTime . ':00',
                     'duration_minutes' => $durationMinutes,
+                    'color_hex' => $color,
                 ]);
                 $templateId = (int) db()->lastInsertId();
                 $action = 'created';
@@ -94,7 +97,7 @@ class ScheduleService
                 $stmt = db()->prepare(
                     'UPDATE employee_schedule_templates
                      SET template_type = :template_type, code = :code, name = :name,
-                         start_time = :start_time, duration_minutes = :duration_minutes
+                         start_time = :start_time, duration_minutes = :duration_minutes, color_hex = :color_hex
                      WHERE client_id = :client_id AND id = :id'
                 );
                 $stmt->execute([
@@ -105,6 +108,7 @@ class ScheduleService
                     'name' => $name,
                     'start_time' => $startTime . ':00',
                     'duration_minutes' => $durationMinutes,
+                    'color_hex' => $color,
                 ]);
                 if ($stmt->rowCount() === 0 && !self::templateExists($clientId, $templateId)) {
                     return [false, 'Schedule template not found for this client.'];
@@ -234,7 +238,8 @@ class ScheduleService
         $stmt = db()->prepare(
             'SELECT e.contract_id, e.employee_id, e.schedule_date, e.template_id,
                     template.template_type, template.code, template.name AS template_name,
-                    template.start_time, template.duration_minutes, template.status AS template_status
+                    template.start_time, template.duration_minutes, template.color_hex,
+                    template.status AS template_status
              FROM employee_schedule_entries e
              INNER JOIN employee_schedule_templates template
                 ON template.client_id = e.client_id AND template.id = e.template_id
@@ -397,6 +402,13 @@ class ScheduleService
             : number_format($minutes / 60, 2, '.', '');
 
         return $template['code'] . ' · ' . substr($template['start_time'], 0, 5) . ' · ' . $duration . 'h';
+    }
+
+    public static function safeTemplateColor(mixed $color): string
+    {
+        return is_string($color) && preg_match('/^#[0-9A-Fa-f]{6}$/', $color) === 1
+            ? strtoupper($color)
+            : '#64748B';
     }
 
     private static function isDateInMonth(string $date, string $month): bool

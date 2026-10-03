@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS employee_schedule_templates (
     name VARCHAR(100) NOT NULL,
     start_time TIME NOT NULL,
     duration_minutes SMALLINT UNSIGNED NOT NULL,
+    color_hex CHAR(7) NOT NULL DEFAULT '#64748B',
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -35,21 +36,21 @@ CREATE TABLE IF NOT EXISTS employee_schedule_entries (
     CONSTRAINT fk_employee_schedule_entries_updated_by FOREIGN KEY (updated_by) REFERENCES system_users (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-INSERT IGNORE INTO employee_schedule_templates (client_id, template_type, code, name, start_time, duration_minutes, status)
-SELECT c.id, defaults.template_type, defaults.code, defaults.name, defaults.start_time, defaults.duration_minutes, 'active'
+INSERT IGNORE INTO employee_schedule_templates (client_id, template_type, code, name, start_time, duration_minutes, color_hex, status)
+SELECT c.id, defaults.template_type, defaults.code, defaults.name, defaults.start_time, defaults.duration_minutes, defaults.color_hex, 'active'
 FROM system_clients c
 CROSS JOIN (
-    SELECT 'shift' AS template_type, '12Ö' AS code, '12-hour night shift' AS name, '20:00:00' AS start_time, 720 AS duration_minutes
-    UNION ALL SELECT 'shift', '12P', '12-hour day shift', '08:00:00', 720
-    UNION ALL SELECT 'shift', '24H', '24-hour shift', '08:00:00', 1440
-    UNION ALL SELECT 'shift', '8P', '8-hour day shift', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'HP', 'HP', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'K', 'K', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'LHP', 'LHP', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'LIP', 'LIP', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'P', 'P', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'TV', 'TV', '08:00:00', 480
-    UNION ALL SELECT 'exception', 'X', 'X', '08:00:00', 480
+    SELECT 'shift' AS template_type, '12Ö' AS code, '12-hour night shift' AS name, '20:00:00' AS start_time, 720 AS duration_minutes, '#2563EB' AS color_hex
+    UNION ALL SELECT 'shift', '12P', '12-hour day shift', '08:00:00', 720, '#0F766E'
+    UNION ALL SELECT 'shift', '24H', '24-hour shift', '08:00:00', 1440, '#7C3AED'
+    UNION ALL SELECT 'shift', '8P', '8-hour day shift', '08:00:00', 480, '#D97706'
+    UNION ALL SELECT 'exception', 'HP', 'HP', '08:00:00', 480, '#475569'
+    UNION ALL SELECT 'exception', 'K', 'K', '08:00:00', 480, '#475569'
+    UNION ALL SELECT 'exception', 'LHP', 'LHP', '08:00:00', 480, '#475569'
+    UNION ALL SELECT 'exception', 'LIP', 'LIP', '08:00:00', 480, '#475569'
+    UNION ALL SELECT 'exception', 'P', 'P', '08:00:00', 480, '#475569'
+    UNION ALL SELECT 'exception', 'TV', 'TV', '08:00:00', 480, '#475569'
+    UNION ALL SELECT 'exception', 'X', 'X', '08:00:00', 480, '#475569'
 ) AS defaults;
 
 INSERT IGNORE INTO system_modules (module_key, name, description, status, is_demo_available)

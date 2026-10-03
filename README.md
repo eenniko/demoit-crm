@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.44 | 03.10.2026 | Vahetuse- ja erandimallidele saab määrata graafikus kuvatava värvi. |
 | 1.43 | 03.10.2026 | Vahetuse või erandi valik salvestub automaatselt. |
 | 1.42 | 03.10.2026 | Päevanupud avavad vahetuse või erandi valimiseks modaali. |
 | 1.41 | 03.10.2026 | Graafiku auditveergude parandav migratsioon töötab hosti MySQL-iga ühilduvalt. |
@@ -65,6 +66,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.44 | 03.10.2026 | Shift and exception templates have configurable schedule colors. |
 | 1.43 | 03.10.2026 | Shift and exception selections autosave automatically. |
 | 1.42 | 03.10.2026 | Day buttons open a modal for shift or exception selection. |
 | 1.41 | 03.10.2026 | Made the schedule audit-column repair compatible with the host MySQL server. |

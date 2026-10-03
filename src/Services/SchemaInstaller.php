@@ -46,6 +46,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/028_schedule_repair_compatibility.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.41' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/029_schedule_modal_picker.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.42' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/030_schedule_autosave.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.43' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/031_schedule_template_colors.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.44' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_templates' AND COLUMN_NAME = 'color_hex') LIMIT 1", 'handler' => 'scheduleTemplateColor'],
     ];
 
     public static function ensureInstalled(): void
@@ -58,6 +59,8 @@ class SchemaInstaller
             if (!$applied && is_file($migration['file'])) {
                 if (($migration['handler'] ?? null) === 'scheduleAuditColumns') {
                     self::ensureScheduleAuditColumns();
+                } elseif (($migration['handler'] ?? null) === 'scheduleTemplateColor') {
+                    self::ensureScheduleTemplateColor();
                 }
                 self::runSqlFile($migration['file']);
             }
@@ -80,6 +83,21 @@ class SchemaInstaller
             if (!isset($columns[$column])) {
                 $pdo->exec('ALTER TABLE employee_schedule_entries ADD COLUMN ' . $column . ' INT UNSIGNED NULL');
             }
+        }
+    }
+
+    private static function ensureScheduleTemplateColor(): void
+    {
+        $stmt = db()->prepare(
+            "SELECT 1
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_templates'
+               AND COLUMN_NAME = 'color_hex'
+             LIMIT 1"
+        );
+        $stmt->execute();
+        if ($stmt->fetchColumn() === false) {
+            db()->exec("ALTER TABLE employee_schedule_templates ADD COLUMN color_hex CHAR(7) NOT NULL DEFAULT '#64748B'");
         }
     }
 

@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.44 – 3. oktoober 2026
+
+- Lisatud vahetuse- ja erandimallide värvivalik. Valitud värv kuvatakse modaali valikul ning plaanitud päeva lahtri taustas; olemasolevad graafikukirjed kasutavad malli värvi.
+- Mõjutatud failid: `sql/023_employee_scheduling.sql`, `sql/031_schedule_template_colors.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `views/panel/schedule/`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: lisatud mallipõhine `color_hex`; olemasolevatele tabelitele lisatakse veerg idempotentselt.
+- Kontrollitud: PHP süntaks, hex-värvi valideerimine ja migratsiooni staatiline kontroll. Värvi live-salvestust ei tehtud.
+- Järgmiseks versiooniks pärast 1.44 on `1.45`.
+
 ## Versioon 1.43 – 3. oktoober 2026
 
 - Vahetuse või erandi valimine salvestab kuugraafiku automaatselt pärast modaali sulgumist; käsitsi salvestamise nupp eemaldatud. Planeeritud tundide kokkuvõte uueneb vastuse põhjal ilma lehte laadimata.
@@ -384,6 +392,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.44 - October 3, 2026
+
+- Added color selection to shift and exception templates. The chosen color appears in modal choices and as the background of scheduled day cells; existing schedule entries inherit the template color.
+- Affected files: `sql/023_employee_scheduling.sql`, `sql/031_schedule_template_colors.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `views/panel/schedule/`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: added template-scoped `color_hex`; existing template tables receive the column idempotently.
+- Verified: PHP syntax, hex-color validation and static migration review. Live color changes were not saved.
+- The next version after 1.44 is `1.45`.
 
 ## Version 1.43 - October 3, 2026
 
