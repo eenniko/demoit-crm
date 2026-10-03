@@ -1772,15 +1772,22 @@ function handle_panel_schedule(string $method): void
             return;
         }
 
-        $plannedHours = [];
+        $hourSummary = [];
         foreach ($data['contracts'] as $contract) {
-            $plannedHours[(string) $contract['contract_id']] = (float) $contract['planned_hours'];
+            $plannedHours = (float) $contract['planned_hours'];
+            $requiredHours = (float) $contract['required_hours'];
+            $hourSummary[(string) $contract['contract_id']] = [
+                'plannedHours' => $plannedHours,
+                'requiredHours' => $requiredHours,
+                'monthlyBalance' => round($plannedHours - $requiredHours, 2),
+                'trimesterBalance' => (float) $contract['trimester_balance_hours'],
+            ];
         }
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode([
             'success' => true,
             'message' => $message ?? 'Schedule saved.',
-            'plannedHours' => $plannedHours,
+            'hourSummary' => $hourSummary,
         ], JSON_INVALID_UTF8_SUBSTITUTE);
         return;
     }

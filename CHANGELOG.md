@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.51 – 3. oktoober 2026
+
+- Täiendatud automaatsalvestuse vastust nii, et pärast vahetuse lisamist või eemaldamist uuenevad kohe Planned, Required, OT ja Tri-OT veerud koos saldode värviga.
+- Mõjutatud failid: `public/index.php`, `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/038_schedule_balance_autosave.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.51 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja kõigi nelja kokkuvõttevälja AJAX-teekond staatiliselt.
+- Järgmiseks versiooniks pärast 1.51 on `1.52`.
+
 ## Versioon 1.50 – 3. oktoober 2026
 
 - Teisaldatud töötundide kokkuvõte päevaveergude järele ja jaotatud neljaks: planeeritud tunnid, nõutud tunnid, kuu OT (+ üle-, − alatunnid) ning trimestri algusest kumulatiivne Tri-OT.
@@ -440,6 +448,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.51 - October 3, 2026
+
+- Extended autosave responses so Planned, Required, OT and Tri-OT values and balance colors update immediately after a shift is added or removed.
+- Affected files: `public/index.php`, `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/038_schedule_balance_autosave.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.51 in `system_version_logs`.
+- Verified: PHP syntax and static review of all four AJAX summary fields.
+- The next version after 1.51 is `1.52`.
 
 ## Version 1.50 - October 3, 2026
 

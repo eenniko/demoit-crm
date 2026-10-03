@@ -109,9 +109,9 @@
                         $trimesterBalanceClass = $trimesterBalance > 0 ? 'text-danger' : ($trimesterBalance < 0 ? 'text-primary' : 'text-muted');
                         ?>
                         <td class="schedule-total-column"><span class="schedule-planned-hours"><?= e(ScheduleService::formatHours((float) $contract['planned_hours'])) ?></span></td>
-                        <td class="schedule-total-column"><?= e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></td>
-                        <td class="schedule-total-column"><strong class="<?= e($monthBalanceClass) ?>"><?= e(ScheduleService::formatBalance($monthBalance)) ?></strong></td>
-                        <td class="schedule-total-column"><strong class="<?= e($trimesterBalanceClass) ?>"><?= e(ScheduleService::formatBalance($trimesterBalance)) ?></strong></td>
+                        <td class="schedule-total-column"><span class="schedule-required-hours"><?= e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></span></td>
+                        <td class="schedule-total-column"><strong class="schedule-month-ot <?= e($monthBalanceClass) ?>"><?= e(ScheduleService::formatBalance($monthBalance)) ?></strong></td>
+                        <td class="schedule-total-column"><strong class="schedule-tri-ot <?= e($trimesterBalanceClass) ?>"><?= e(ScheduleService::formatBalance($trimesterBalance)) ?></strong></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -194,6 +194,27 @@
                     status.textContent = message;
                 }
 
+                function formatHours(value) {
+                    const rounded = Math.round(Number(value) * 100) / 100;
+                    return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(2)}h`;
+                }
+
+                function formatBalance(value) {
+                    const rounded = Math.round(Number(value) * 100) / 100;
+                    return `${rounded > 0 ? '+' : ''}${formatHours(rounded)}`;
+                }
+
+                function updateBalance(row, selector, value) {
+                    const balance = row.querySelector(selector);
+                    if (!balance) {
+                        return;
+                    }
+
+                    balance.textContent = formatBalance(value);
+                    balance.classList.remove('text-danger', 'text-primary', 'text-muted');
+                    balance.classList.add(value > 0 ? 'text-danger' : (value < 0 ? 'text-primary' : 'text-muted'));
+                }
+
                 async function saveSchedule() {
                     if (isSaving) {
                         return;
@@ -225,12 +246,16 @@
                             throw new Error(result.message || 'Could not save the monthly schedule.');
                         }
 
-                        Object.entries(result.plannedHours || {}).forEach(([contractId, hours]) => {
+                        Object.entries(result.hourSummary || {}).forEach(([contractId, summary]) => {
                             const row = form.querySelector(`[data-contract-id="${contractId}"]`);
-                            const plannedHours = row?.querySelector('.schedule-planned-hours');
-                            if (plannedHours) {
-                                plannedHours.textContent = `${Number(hours).toFixed(2)}h planned`;
+                            if (!row) {
+                                return;
                             }
+
+                            row.querySelector('.schedule-planned-hours').textContent = formatHours(summary.plannedHours);
+                            row.querySelector('.schedule-required-hours').textContent = formatHours(summary.requiredHours);
+                            updateBalance(row, '.schedule-month-ot', summary.monthlyBalance);
+                            updateBalance(row, '.schedule-tri-ot', summary.trimesterBalance);
                         });
                         showSaveStatus(result.message, 'success');
                     } catch (error) {
