@@ -15,6 +15,8 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.54 | 03.10.2026 | Üle kuu piiri minevad vahetunnid jaotatakse kuude vahel; perioodi lõpus ei kandu üle. |
+| 1.53 | 03.10.2026 | Kuu piiri ületavad vahetunnid jaotatakse kuude vahel, trimestri viimasel kuul jäävad samasse perioodi. |
 | 1.52 | 03.10.2026 | Tri-OT koondub neljakuuliste perioodidena jaanuarist, maist ja septembrist. |
 | 1.51 | 03.10.2026 | Automaatsalvestus uuendab kohe OT ja Tri-OT arvutusi. |
 | 1.50 | 03.10.2026 | Planeeritud, nõutud, kuu OT ja trimestri kumulatiivne Tri-OT kuvatakse graafiku lõpus. |
@@ -74,6 +76,8 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.54 | 03.10.2026 | Month-crossing shift minutes split across months except at period end. |
+| 1.53 | 03.10.2026 | Month-crossing shift hours split across months except at the four-month period end. |
 | 1.52 | 03.10.2026 | Tri-OT accumulates in four-month periods starting in January, May and September. |
 | 1.51 | 03.10.2026 | Autosave immediately refreshes OT and Tri-OT calculations. |
 | 1.50 | 03.10.2026 | Planned, required, monthly OT and cumulative trimester Tri-OT follow the schedule days. |

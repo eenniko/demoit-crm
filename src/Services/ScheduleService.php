@@ -160,13 +160,9 @@ class ScheduleService
         $contracts = self::listPrimaryContracts($clientId, $managerId, $isClientAdmin, $month);
         $templates = self::listTemplates($clientId);
         $entries = self::getMonthEntries($clientId, $contracts, $month);
+        $plannedMinutesByEmployee = self::plannedShiftMinutesByEmployee($clientId, $managerId, $isClientAdmin, $contracts, $month);
         foreach ($contracts as &$contract) {
-            $plannedMinutes = 0;
-            foreach ($entries[(int) $contract['contract_id']] ?? [] as $entry) {
-                if ($entry['template_type'] === 'shift') {
-                    $plannedMinutes += (int) $entry['duration_minutes'];
-                }
-            }
+            $plannedMinutes = $plannedMinutesByEmployee[(int) $contract['employee_id']] ?? 0;
             $contract['planned_hours'] = round($plannedMinutes / 60, 2);
             $contract['required_hours'] = round((float) $contract['workload_percent'] * (int) $contract['active_workdays'] * 8 / 100, 2);
         }
@@ -221,20 +217,19 @@ class ScheduleService
             $periodContracts = $stmt->fetchAll();
 
             if ($periodContracts !== []) {
-                $entries = self::getMonthEntries($clientId, $periodContracts, $period);
+                $plannedMinutesByEmployee = self::plannedShiftMinutesByEmployee($clientId, $managerId, $isClientAdmin, $periodContracts, $period);
+                $requiredHoursByEmployee = [];
                 foreach ($periodContracts as $contract) {
-                    $plannedMinutes = 0;
-                    foreach ($entries[(int) $contract['contract_id']] ?? [] as $entry) {
-                        if ($entry['template_type'] === 'shift') {
-                            $plannedMinutes += (int) $entry['duration_minutes'];
-                        }
-                    }
                     $contractStart = max($period['start'], $contract['start_date']);
                     $contractEnd = $contract['end_date'] === null ? $period['end'] : min($period['end'], $contract['end_date']);
                     $activeWorkdays = self::countWeekdays(new DateTimeImmutable($contractStart), new DateTimeImmutable($contractEnd));
-                    $requiredHours = (float) $contract['workload_percent'] * $activeWorkdays * 8 / 100;
                     $employeeId = (int) $contract['employee_id'];
-                    $balances[$employeeId] = round(($balances[$employeeId] ?? 0.0) + $plannedMinutes / 60 - $requiredHours, 2);
+                    $requiredHoursByEmployee[$employeeId] = ($requiredHoursByEmployee[$employeeId] ?? 0.0)
+                        + (float) $contract['workload_percent'] * $activeWorkdays * 8 / 100;
+                }
+                foreach ($requiredHoursByEmployee as $employeeId => $requiredHours) {
+                    $plannedHours = ($plannedMinutesByEmployee[$employeeId] ?? 0) / 60;
+                    $balances[$employeeId] = round(($balances[$employeeId] ?? 0.0) + $plannedHours - $requiredHours, 2);
                 }
             }
 
@@ -242,6 +237,84 @@ class ScheduleService
         }
 
         return $balances;
+    }
+
+    private static function plannedShiftMinutesByEmployee(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
+    {
+        $employeeIds = array_values(array_unique(array_map(
+            static fn (array $contract): int => (int) $contract['employee_id'],
+            $contracts
+        )));
+        if ($employeeIds === []) {
+            return [];
+        }
+
+        $utc = new DateTimeZone('UTC');
+        $monthStart = new DateTimeImmutable($month['start'] . ' 00:00:00', $utc);
+        $monthEndExclusive = $monthStart->modify('first day of next month');
+        $previousDay = $monthStart->modify('-1 day');
+        $previousMonthIsPeriodEnd = (int) $previousDay->format('n') % 4 === 0;
+        $queryStart = $previousMonthIsPeriodEnd ? $monthStart : $previousDay;
+        $placeholders = [];
+        $params = [
+            'client_id' => $clientId,
+            'range_start' => $queryStart->format('Y-m-d'),
+            'month_end' => $month['end'],
+        ];
+        foreach ($employeeIds as $index => $employeeId) {
+            $key = 'employee_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $employeeId;
+        }
+
+        $sql =
+            'SELECT e.employee_id, e.schedule_date, template.start_time, template.duration_minutes
+             FROM employee_schedule_entries e
+             INNER JOIN employment_contracts contract
+                ON contract.client_id = e.client_id AND contract.id = e.contract_id AND contract.contract_type = \'primary\'
+             INNER JOIN employee_schedule_templates template
+                ON template.client_id = e.client_id AND template.id = e.template_id
+             WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :month_end
+               AND e.employee_id IN (' . implode(', ', $placeholders) . ')
+               AND template.template_type = \'shift\'';
+        if (!$isClientAdmin) {
+            $sql .= ' AND contract.manager_user_id = :manager_id';
+            $params['manager_id'] = $managerId;
+        }
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+        $minutesByEmployee = [];
+
+        foreach ($stmt->fetchAll() as $entry) {
+            $durationMinutes = (int) $entry['duration_minutes'];
+            $minutesInMonth = self::shiftMinutesInMonth($entry['schedule_date'], $entry['start_time'], $durationMinutes, $month);
+
+            if ($minutesInMonth > 0) {
+                $employeeId = (int) $entry['employee_id'];
+                $minutesByEmployee[$employeeId] = ($minutesByEmployee[$employeeId] ?? 0) + $minutesInMonth;
+            }
+        }
+
+        return $minutesByEmployee;
+    }
+
+    public static function shiftMinutesInMonth(string $scheduleDate, string $startTime, int $durationMinutes, array $month): int
+    {
+        $utc = new DateTimeZone('UTC');
+        $monthStart = new DateTimeImmutable($month['start'] . ' 00:00:00', $utc);
+        $monthEndExclusive = $monthStart->modify('first day of next month');
+        $shiftStart = new DateTimeImmutable($scheduleDate . ' ' . $startTime, $utc);
+        $shiftEnd = $shiftStart->modify('+' . $durationMinutes . ' minutes');
+        $isPeriodEndMonth = (int) $monthStart->format('n') % 4 === 0;
+
+        if ($isPeriodEndMonth && $shiftStart >= $monthStart && $shiftStart < $monthEndExclusive && $shiftEnd > $monthEndExclusive) {
+            return $durationMinutes;
+        }
+
+        $overlapStart = max($shiftStart->getTimestamp(), $monthStart->getTimestamp());
+        $overlapEnd = min($shiftEnd->getTimestamp(), $monthEndExclusive->getTimestamp());
+
+        return max(0, intdiv($overlapEnd - $overlapStart, 60));
     }
 
     public static function formatHours(float $hours): string

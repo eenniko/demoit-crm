@@ -1,5 +1,21 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.54 – 3. oktoober 2026
+
+- Jaotatakse öövahetuse tunnid alguskuu ja järgmise kuu vahel tegelike kuupiiride järgi; aprilli, augusti ja detsembri lõpus jääb kogu üle piiri ulatuv vahetus perioodi viimasesse kuusse.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/040_schedule_cross_month_hours.sql`, `sql/041_schedule_month_boundary_balances.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.54 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks, kuus kuu piiri ja perioodilõpu vahetustest ning live-vaate saldomärgendid.
+- Järgmiseks versiooniks pärast 1.54 on `1.55`.
+
+## Versioon 1.53 – 3. oktoober 2026
+
+- Jaotatud kuu piiri ületava vahetuse tunnid kuude vahel. Tri-OT perioodi viimasel kuul (aprill, august, detsember) jääb üle piiri ulatuv vahetus tervikuna sellesse kuusse ning uude perioodi üle ei kandu.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/040_schedule_cross_month_hours.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.53 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja live-vaate saldode kuvamine; uusi graafikukirjeid ei loodud.
+- Järgmiseks versiooniks pärast 1.53 on `1.54`.
+
 ## Versioon 1.52 – 3. oktoober 2026
 
 - Muudetud `Tri-OT` saldo neljakuuliseks kumulatsiooniks: jaanuar–aprill, mai–august ja september–detsember. Iga perioodi alguses saldo nullitakse.
@@ -456,6 +472,22 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.54 - October 3, 2026
+
+- Overnight shift minutes are allocated across month boundaries; at the end of April, August and December, a crossing shift stays entirely in the final month of that four-month balance period.
+- Affected files: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/040_schedule_cross_month_hours.sql`, `sql/041_schedule_month_boundary_balances.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.54 in `system_version_logs`.
+- Verified: PHP syntax, six month-boundary/period-end cases and live summary labels.
+- The next version after 1.54 is `1.55`.
+
+## Version 1.53 - October 3, 2026
+
+- Split shifts that cross a month boundary between the two months. In the final month of a Tri-OT period (April, August, December), the full crossing shift stays in that month and is not carried into the next period.
+- Affected files: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/040_schedule_cross_month_hours.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.53 in `system_version_logs`.
+- Verified: PHP syntax and live balance rendering; no schedule entries were created.
+- The next version after 1.53 is `1.54`.
 
 ## Version 1.52 - October 3, 2026
 

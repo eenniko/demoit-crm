@@ -55,6 +55,8 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/037_schedule_hour_balances.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.50' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/038_schedule_balance_autosave.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.51' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/039_schedule_four_month_balance.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.52' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/040_schedule_cross_month_hours.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.53' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/041_schedule_month_boundary_balances.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.54' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
