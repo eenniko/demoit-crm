@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.56 – 3. oktoober 2026
+
+- Eemaldatud ajutiste tundide sulgudes kuvatavalt jaotuselt sõna `temp`; näiteks `(+24h)`.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/043_schedule_temp_label.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.56 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja kuvatava teksti muutus.
+- Järgmiseks versiooniks pärast 1.56 on `1.57`.
+
 ## Versioon 1.55 – 3. oktoober 2026
 
 - Graafikusse kaasatakse töötaja ajutised lepingud nende asukoha/osakonna all. Ajutise rea Planned näitab selle asukoha tunde; selle workload’i põhjal ei arvutata Required, OT ega Tri-OT. Põhirea Planned koondab põhi- ja ajutised tunnid ning näitab ajutise osa sulgudes.
@@ -481,6 +489,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.56 - October 3, 2026
+
+- Removed the word `temp` from the temporary-hours breakdown, e.g. `(+24h)`.
+- Affected files: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/043_schedule_temp_label.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.56 in `system_version_logs`.
+- Verified: PHP syntax and rendered-label change.
+- The next version after 1.56 is `1.57`.
 
 ## Version 1.55 - October 3, 2026
 

@@ -111,7 +111,7 @@
                         <td class="schedule-total-column">
                             <span class="schedule-planned-hours"><?= e(ScheduleService::formatHours((float) $contract['planned_hours'])) ?></span>
                             <?php if ($contract['contract_type'] === 'primary'): ?>
-                                <small class="schedule-temp-breakdown d-block <?= (float) $contract['temporary_planned_hours'] > 0 ? '' : 'd-none' ?>"><?= (float) $contract['temporary_planned_hours'] > 0 ? e('(+ ' . ScheduleService::formatHours((float) $contract['temporary_planned_hours']) . ')') : '' ?></small>
+                                    <small class="schedule-temp-breakdown d-block <?= (float) $contract['temporary_planned_hours'] > 0 ? '' : 'd-none' ?>"><?= (float) $contract['temporary_planned_hours'] > 0 ? e('(+' . ScheduleService::formatHours((float) $contract['temporary_planned_hours']) . ')') : '' ?></small>
                             <?php endif; ?>
                         </td>
                         <td class="schedule-total-column"><span class="schedule-required-hours"><?= $contract['required_hours'] === null ? '—' : e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></span></td>
