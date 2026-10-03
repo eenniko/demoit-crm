@@ -50,6 +50,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/032_schedule_color_allowlist.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.45' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/033_schedule_modal_active_templates.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.46' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/034_schedule_collapsible_groups.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.47' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/035_schedule_viewport_width.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.48' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

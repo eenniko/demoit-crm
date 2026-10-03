@@ -287,15 +287,18 @@
 <?php endif; ?>
 
 <style>
-.schedule-grid { min-width: 1900px; }
-.schedule-employee { min-width: 190px; }
-.schedule-location { min-width: 210px; }
-.schedule-day { min-width: 66px; padding: 0 !important; }
+.schedule-grid { width: 100%; min-width: 0; table-layout: fixed; }
+.schedule-employee { width: 145px; min-width: 0; overflow-wrap: anywhere; }
+.schedule-location { width: 155px; min-width: 0; overflow-wrap: anywhere; }
+.schedule-grid thead th:nth-child(3) { width: 80px; }
+.schedule-grid thead th:nth-child(4) { width: 100px; }
+.schedule-day { min-width: 0; padding: 0 !important; text-align: center; }
+.schedule-day small { font-size: .65rem; line-height: 1; }
 .schedule-group-toggle { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 38px; padding: .25rem .5rem; border: 0; background: transparent; color: var(--bs-body-color); font-weight: 600; text-align: left; }
 .schedule-group-toggle:hover { background: var(--bs-tertiary-bg); }
 .schedule-group-indicator { width: 1rem; color: var(--bs-secondary-color); }
-.schedule-cell-button { display: block; width: 100%; min-height: 48px; padding: .25rem; border: 0; border-radius: 0; background: transparent; color: var(--bs-secondary-color); font-weight: 600; }
-.schedule-cell-button.is-empty { font-size: 1.5rem; font-weight: 400; }
+.schedule-cell-button { display: block; width: 100%; min-width: 0; min-height: 40px; overflow: hidden; padding: .15rem 0; border: 0; border-radius: 0; background: transparent; color: var(--bs-secondary-color); font-size: .72rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.schedule-cell-button.is-empty { font-size: 1.25rem; font-weight: 400; }
 .schedule-cell-button.is-assigned { background: color-mix(in srgb, var(--schedule-color, #64748B) 18%, white); box-shadow: inset 0 -4px 0 var(--schedule-color, #64748B); color: var(--bs-body-color); }
 .schedule-cell-button:hover { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
 .schedule-cell-button.is-assigned:hover { background: color-mix(in srgb, var(--schedule-color, #64748B) 28%, white); color: var(--bs-body-color); }
@@ -303,4 +306,11 @@
 .schedule-choice[data-schedule-value]:not([data-schedule-value="0"]) { border-color: var(--schedule-color, #64748B); border-left-width: .35rem; }
 .schedule-choice[data-schedule-value]:not([data-schedule-value="0"]):hover,
 .schedule-choice[data-schedule-value]:not([data-schedule-value="0"]).active { background: color-mix(in srgb, var(--schedule-color, #64748B) 16%, white); color: var(--bs-body-color); }
+@media (max-width: 1200px) {
+    .schedule-employee { width: 115px; font-size: .78rem; }
+    .schedule-location { width: 125px; font-size: .75rem; }
+    .schedule-grid thead th:nth-child(3) { width: 66px; }
+    .schedule-grid thead th:nth-child(4) { width: 88px; }
+    .schedule-cell-button { font-size: .64rem; }
+}
 </style>

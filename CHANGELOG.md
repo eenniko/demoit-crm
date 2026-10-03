@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.48 – 3. oktoober 2026
+
+- Eemaldatud graafikutabeli fikseeritud 1900px miinimumlaius. Päevaveerud jagavad saadaoleva ekraanilaiuse ning töötaja, asukoha ja tundide veerud kasutavad kompaktseid laiusi.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/035_schedule_viewport_width.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.48 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks, live-ekraanipilt ja tabeli mõõtmed (`clientWidth` = `scrollWidth` = 1415px).
+- Järgmiseks versiooniks pärast 1.48 on `1.49`.
+
 ## Versioon 1.47 – 3. oktoober 2026
 
 - Lisatud töötajate kinnistu/osakonna gruppidele avamis-sulgemisnupud, et peita või kuvada grupi read eraldi. Peitmine ei eemalda välju automaatsalvestuse vormist.
@@ -416,6 +424,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.48 - October 3, 2026
+
+- Removed the schedule table's fixed 1900px minimum width. Day columns now share the available viewport width while employee, location and hours columns use compact widths.
+- Affected files: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/035_schedule_viewport_width.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.48 in `system_version_logs`.
+- Verified: PHP syntax, live screenshot and table dimensions (`clientWidth` = `scrollWidth` = 1415px).
+- The next version after 1.48 is `1.49`.
 
 ## Version 1.47 - October 3, 2026
 
