@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.42 | 03.10.2026 | Päevanupud avavad vahetuse või erandi valimiseks modaali. |
 | 1.41 | 03.10.2026 | Graafiku auditveergude parandav migratsioon töötab hosti MySQL-iga ühilduvalt. |
 | 1.40 | 03.10.2026 | Parandatud vanade ajakavatabelite puuduvaid auditveerge lisav migratsioon. |
 | 1.39 | 03.10.2026 | Kliendiadministraator näeb salvestusvea SQLSTATE'i ja andmebaasi veanumbrit. |
@@ -63,6 +64,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.42 | 03.10.2026 | Day buttons open a modal for shift or exception selection. |
 | 1.41 | 03.10.2026 | Made the schedule audit-column repair compatible with the host MySQL server. |
 | 1.40 | 03.10.2026 | Repair migration adds missing audit columns to existing schedule tables. |
 | 1.39 | 03.10.2026 | Client administrators see safe SQLSTATE and database error diagnostics. |

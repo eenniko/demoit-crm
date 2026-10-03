@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.42 – 3. oktoober 2026
+
+- Asendatud kuugraafiku rippmenüüd täisruuduliste nuppudega, mis avavad ühise vahetuse- ja erandimodaali. Vaba päeva nupp kuvab pika kriipsu; valitud lahter kuvab ainult koodi.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.42 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks, live-graafiku GET ja modaalis vahetuste/erandite kuvamine. Graafikut ei salvestatud.
+- Järgmiseks versiooniks pärast 1.42 on `1.43`.
+
 ## Versioon 1.41 – 3. oktoober 2026
 
 - Teisaldatud olemasoleva graafikutabeli auditveergude kontroll ja lisamine PHP-põhiseks, et vältida hosti MySQL-i dünaamilise DDL-i ühilduvusest tingitud rakenduse 500 viga.
@@ -368,6 +376,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.42 - October 3, 2026
+
+- Replaced monthly schedule dropdowns with full-cell buttons opening a shared shift/exception modal. Off days show a long dash; selected cells show only the template code.
+- Affected files: `views/panel/schedule/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.42 in `system_version_logs`.
+- Verified: PHP syntax, live schedule GET and shift/exception choices in the modal. The schedule was not submitted.
+- The next version after 1.42 is `1.43`.
 
 ## Version 1.41 - October 3, 2026
 

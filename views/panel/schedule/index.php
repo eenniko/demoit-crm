@@ -72,21 +72,17 @@
                             ?>
                             <td class="schedule-day <?= $weekend ? 'table-light' : '' ?>">
                                 <?php if ($canManage && $withinContract): ?>
-                                    <select class="form-select form-select-sm schedule-cell" name="assignments[<?= $contractId ?>][<?= e($date) ?>]" aria-label="<?= e(($contract['full_name'] ?: $contract['username']) . ' ' . $date) ?>">
-                                        <option value="0" <?= $entry === null ? 'selected' : '' ?>>Off</option>
-                                        <?php foreach (['shift' => 'Shifts', 'exception' => 'Exceptions'] as $type => $label): ?>
-                                            <?php
-                                            $typeTemplates = array_values(array_filter($templates, static fn (array $template): bool => $template['template_type'] === $type && ($template['status'] === 'active' || ((int) ($entry['template_id'] ?? 0) === (int) $template['id']))));
-                                            if ($typeTemplates !== []):
-                                            ?>
-                                                <optgroup label="<?= e($label) ?>">
-                                                    <?php foreach ($typeTemplates as $template): ?>
-                                                        <option value="<?= (int) $template['id'] ?>" <?= (int) ($entry['template_id'] ?? 0) === (int) $template['id'] ? 'selected' : '' ?>><?= e(ScheduleService::formatTemplate($template) . ($template['status'] === 'inactive' ? ' (inactive)' : '')) ?></option>
-                                                    <?php endforeach; ?>
-                                                </optgroup>
-                                            <?php endif; ?>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <input class="schedule-assignment" type="hidden" name="assignments[<?= $contractId ?>][<?= e($date) ?>]" value="<?= (int) ($entry['template_id'] ?? 0) ?>">
+                                    <button
+                                        class="schedule-cell-button <?= $entry === null ? 'is-empty' : 'is-assigned' ?>"
+                                        type="button"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#schedulePickerModal"
+                                        data-employee="<?= e($contract['full_name'] ?: $contract['username']) ?>"
+                                        data-date="<?= e($date) ?>"
+                                        aria-label="<?= e(($contract['full_name'] ?: $contract['username']) . ' ' . $date . ' ' . ($entry['code'] ?? 'Off')) ?>">
+                                        <?php if ($entry === null): ?><span aria-hidden="true">−</span><?php else: ?><?= e($entry['code']) ?><?php endif; ?>
+                                    </button>
                                 <?php elseif ($entry !== null): ?>
                                     <span class="text-nowrap" title="<?= e($entry['template_name']) ?>"><?= e(ScheduleService::formatTemplate($entry)) ?></span>
                                 <?php else: ?>
@@ -102,12 +98,108 @@
             <button class="btn btn-primary" type="submit">Save schedule</button>
         <?php endif; ?>
     </form>
+    <?php if ($canManage): ?>
+        <div class="modal fade" id="schedulePickerModal" tabindex="-1" aria-labelledby="schedulePickerTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h2 class="modal-title h5 mb-1" id="schedulePickerTitle">Choose shift or exception</h2>
+                            <p class="small text-muted mb-0" id="schedulePickerContext">Select a schedule value.</p>
+                        </div>
+                        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <h3 class="h6">Day off</h3>
+                            <button class="btn btn-outline-secondary schedule-choice" type="button" data-schedule-value="0" data-schedule-code="−" data-schedule-active="active" aria-pressed="false">Off</button>
+                        </div>
+                        <?php foreach (['shift' => 'Shifts', 'exception' => 'Exceptions'] as $type => $label): ?>
+                            <?php $typeTemplates = array_values(array_filter($templates, static fn (array $template): bool => $template['template_type'] === $type)); ?>
+                            <?php if ($typeTemplates !== []): ?>
+                                <div class="mb-4">
+                                    <h3 class="h6"><?= e($label) ?></h3>
+                                    <div class="row row-cols-2 row-cols-sm-3 g-2">
+                                        <?php foreach ($typeTemplates as $template): ?>
+                                            <div class="col">
+                                                <button
+                                                    class="btn btn-outline-primary schedule-choice w-100 text-start"
+                                                    type="button"
+                                                    data-schedule-value="<?= (int) $template['id'] ?>"
+                                                    data-schedule-code="<?= e($template['code']) ?>"
+                                                    data-schedule-active="<?= e($template['status']) ?>"
+                                                    aria-pressed="false">
+                                                    <span class="d-block fw-semibold"><?= e($template['code']) ?><?= $template['status'] === 'inactive' ? ' · inactive' : '' ?></span>
+                                                    <small><?= e(substr(ScheduleService::formatTemplate($template), strlen($template['code']) + 3)) ?></small>
+                                                </button>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (() => {
+                const modal = document.getElementById('schedulePickerModal');
+                const context = document.getElementById('schedulePickerContext');
+                let activeCellButton = null;
+
+                modal.addEventListener('show.bs.modal', (event) => {
+                    activeCellButton = event.relatedTarget;
+                    const assignment = activeCellButton.parentElement.querySelector('.schedule-assignment');
+                    const currentValue = assignment.value;
+                    context.textContent = `${activeCellButton.dataset.employee} · ${activeCellButton.dataset.date}`;
+
+                    modal.querySelectorAll('.schedule-choice').forEach((choice) => {
+                        const isCurrent = choice.dataset.scheduleValue === currentValue;
+                        choice.disabled = choice.dataset.scheduleActive !== 'active' && !isCurrent;
+                        choice.classList.toggle('active', isCurrent);
+                        choice.setAttribute('aria-pressed', String(isCurrent));
+                    });
+                });
+
+                modal.addEventListener('click', (event) => {
+                    const choice = event.target.closest('.schedule-choice');
+                    if (!choice || !activeCellButton) {
+                        return;
+                    }
+
+                    const assignment = activeCellButton.parentElement.querySelector('.schedule-assignment');
+                    assignment.value = choice.dataset.scheduleValue;
+                    const isOff = assignment.value === '0';
+                    activeCellButton.textContent = isOff ? '−' : choice.dataset.scheduleCode;
+                    activeCellButton.classList.toggle('is-empty', isOff);
+                    activeCellButton.classList.toggle('is-assigned', !isOff);
+                    activeCellButton.setAttribute(
+                        'aria-label',
+                        `${activeCellButton.dataset.employee} ${activeCellButton.dataset.date} ${isOff ? 'Off' : choice.dataset.scheduleCode}`
+                    );
+                    bootstrap.Modal.getOrCreateInstance(modal).hide();
+                });
+
+                modal.addEventListener('hidden.bs.modal', () => {
+                    activeCellButton = null;
+                });
+            })();
+        </script>
+    <?php endif; ?>
 <?php endif; ?>
 
 <style>
 .schedule-grid { min-width: 1900px; }
 .schedule-employee { min-width: 190px; }
 .schedule-location { min-width: 210px; }
-.schedule-day { min-width: 66px; }
-.schedule-cell { min-width: 64px; padding: .25rem; }
+.schedule-day { min-width: 66px; padding: 0 !important; }
+.schedule-cell-button { display: block; width: 100%; min-height: 48px; padding: .25rem; border: 0; border-radius: 0; background: transparent; color: var(--bs-secondary-color); font-weight: 600; }
+.schedule-cell-button.is-empty { font-size: 1.5rem; font-weight: 400; }
+.schedule-cell-button.is-assigned { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
+.schedule-cell-button:hover { background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); }
+.schedule-cell-button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--bs-primary); outline-offset: -2px; }
 </style>
