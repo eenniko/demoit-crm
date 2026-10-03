@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.52 – 3. oktoober 2026
+
+- Muudetud `Tri-OT` saldo neljakuuliseks kumulatsiooniks: jaanuar–aprill, mai–august ja september–detsember. Iga perioodi alguses saldo nullitakse.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/039_schedule_four_month_balance.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.52 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja kõigi 12 kuu perioodi alguskuu arvutus.
+- Järgmiseks versiooniks pärast 1.52 on `1.53`.
+
 ## Versioon 1.51 – 3. oktoober 2026
 
 - Täiendatud automaatsalvestuse vastust nii, et pärast vahetuse lisamist või eemaldamist uuenevad kohe Planned, Required, OT ja Tri-OT veerud koos saldode värviga.
@@ -448,6 +456,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.52 - October 3, 2026
+
+- Changed `Tri-OT` to four-month cumulative periods: January-April, May-August and September-December. The balance resets at the start of each period.
+- Affected files: `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `sql/039_schedule_four_month_balance.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.52 in `system_version_logs`.
+- Verified: PHP syntax and period-start mapping for all 12 months.
+- The next version after 1.52 is `1.53`.
 
 ## Version 1.51 - October 3, 2026
 

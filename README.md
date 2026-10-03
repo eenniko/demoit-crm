@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.52 | 03.10.2026 | Tri-OT koondub neljakuuliste perioodidena jaanuarist, maist ja septembrist. |
 | 1.51 | 03.10.2026 | Automaatsalvestus uuendab kohe OT ja Tri-OT arvutusi. |
 | 1.50 | 03.10.2026 | Planeeritud, nõutud, kuu OT ja trimestri kumulatiivne Tri-OT kuvatakse graafiku lõpus. |
 | 1.49 | 03.10.2026 | Koormuse protsent kuvatakse töötaja nime all, Workload veerg eemaldati. |
@@ -73,6 +74,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.52 | 03.10.2026 | Tri-OT accumulates in four-month periods starting in January, May and September. |
 | 1.51 | 03.10.2026 | Autosave immediately refreshes OT and Tri-OT calculations. |
 | 1.50 | 03.10.2026 | Planned, required, monthly OT and cumulative trimester Tri-OT follow the schedule days. |
 | 1.49 | 03.10.2026 | Workload percentage moved beneath employee name; column removed. |

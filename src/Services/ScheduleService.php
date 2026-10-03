@@ -191,7 +191,7 @@ class ScheduleService
         }
 
         $selectedMonthNumber = (int) substr($selectedMonth['month'], 5, 2);
-        $trimesterStartMonth = intdiv($selectedMonthNumber - 1, 3) * 3 + 1;
+        $trimesterStartMonth = intdiv($selectedMonthNumber - 1, 4) * 4 + 1;
         $periodStart = new DateTimeImmutable(substr($selectedMonth['month'], 0, 4) . '-' . sprintf('%02d', $trimesterStartMonth) . '-01');
         $selectedMonthStart = new DateTimeImmutable($selectedMonth['month'] . '-01');
         $balances = [];
