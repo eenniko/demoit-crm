@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.49 – 3. oktoober 2026
+
+- Eemaldatud eraldi **Workload** veerg ja töötaja kasutajatunnuse rida; koormuse protsent kuvatakse töötaja nime all.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/036_schedule_workload_under_employee.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.49 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks ja live-vaate veerud; laiuse ülevoolu ei ole (`clientWidth` = `scrollWidth` = 1415px).
+- Järgmiseks versiooniks pärast 1.49 on `1.50`.
+
 ## Versioon 1.48 – 3. oktoober 2026
 
 - Eemaldatud graafikutabeli fikseeritud 1900px miinimumlaius. Päevaveerud jagavad saadaoleva ekraanilaiuse ning töötaja, asukoha ja tundide veerud kasutavad kompaktseid laiusi.
@@ -424,6 +432,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.49 - October 3, 2026
+
+- Removed the separate **Workload** column and employee username/ID line; workload percentage now appears beneath the employee name.
+- Affected files: `views/panel/schedule/index.php`, `src/Services/SchemaInstaller.php`, `sql/036_schedule_workload_under_employee.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: no schema changes; a migration records version 1.49 in `system_version_logs`.
+- Verified: PHP syntax and live view columns; no horizontal overflow (`clientWidth` = `scrollWidth` = 1415px).
+- The next version after 1.49 is `1.50`.
 
 ## Version 1.48 - October 3, 2026
 

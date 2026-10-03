@@ -29,7 +29,6 @@
                 <tr>
                     <th class="schedule-employee">Employee</th>
                     <th class="schedule-location">Floor / department</th>
-                    <th>Workload</th>
                     <th>Required / planned</th>
                     <?php for ($day = 1; $day <= $month['days']; $day++): ?>
                         <?php $date = sprintf('%s-%02d', $month['month'], $day); ?>
@@ -53,7 +52,7 @@
                         $groupId = 'schedule-group-' . $groupIndex;
                     ?>
                         <tr class="table-light">
-                            <th colspan="<?= 4 + (int) $month['days'] ?>">
+                            <th colspan="<?= 3 + (int) $month['days'] ?>">
                                 <button class="schedule-group-toggle" type="button" data-schedule-group="<?= e($groupId) ?>" aria-expanded="true">
                                     <span class="schedule-group-indicator" aria-hidden="true">▾</span>
                                     <span><?= e($groupLabel) ?></span>
@@ -65,13 +64,12 @@
                     <tr data-contract-id="<?= $contractId ?>" data-schedule-group="<?= e($groupId) ?>">
                         <th scope="row" class="schedule-employee">
                             <?= e($contract['full_name'] ?: $contract['username']) ?>
-                            <small class="d-block text-muted"><?= e($contract['username']) ?></small>
+                            <small class="d-block text-muted"><?= e(number_format((float) $contract['workload_percent'], 2)) ?>%</small>
                         </th>
                         <td class="schedule-location">
                             <?= e($contract['property_path']) ?>
                             <?php if (!empty($contract['department_name'])): ?><small class="d-block text-muted"><?= e($contract['department_name']) ?></small><?php endif; ?>
                         </td>
-                        <td><?= e(number_format((float) $contract['workload_percent'], 2)) ?>%</td>
                         <td class="text-nowrap">
                             <strong><?= e(number_format((float) $contract['required_hours'], 2)) ?>h</strong>
                             <small class="d-block text-muted schedule-planned-hours"><?= e(number_format((float) $contract['planned_hours'], 2)) ?>h planned</small>
@@ -290,8 +288,7 @@
 .schedule-grid { width: 100%; min-width: 0; table-layout: fixed; }
 .schedule-employee { width: 145px; min-width: 0; overflow-wrap: anywhere; }
 .schedule-location { width: 155px; min-width: 0; overflow-wrap: anywhere; }
-.schedule-grid thead th:nth-child(3) { width: 80px; }
-.schedule-grid thead th:nth-child(4) { width: 100px; }
+.schedule-grid thead th:nth-child(3) { width: 100px; }
 .schedule-day { min-width: 0; padding: 0 !important; text-align: center; }
 .schedule-day small { font-size: .65rem; line-height: 1; }
 .schedule-group-toggle { display: flex; align-items: center; gap: .5rem; width: 100%; min-height: 38px; padding: .25rem .5rem; border: 0; background: transparent; color: var(--bs-body-color); font-weight: 600; text-align: left; }
@@ -309,8 +306,7 @@
 @media (max-width: 1200px) {
     .schedule-employee { width: 115px; font-size: .78rem; }
     .schedule-location { width: 125px; font-size: .75rem; }
-    .schedule-grid thead th:nth-child(3) { width: 66px; }
-    .schedule-grid thead th:nth-child(4) { width: 88px; }
+    .schedule-grid thead th:nth-child(3) { width: 88px; }
     .schedule-cell-button { font-size: .64rem; }
 }
 </style>
