@@ -29,6 +29,12 @@
                         <td><?= e($typeLabels[$node['node_type']]) ?></td>
                         <?php if ($canManage): ?>
                             <td class="text-end text-nowrap">
+                                <form method="post" action="/panel/property/reorder" class="d-inline">
+                                    <?= Csrf::field() ?>
+                                    <input type="hidden" name="id" value="<?= (int) $node['id'] ?>">
+                                    <button class="btn btn-outline-secondary btn-sm" type="submit" name="direction" value="up" aria-label="Move <?= e(strtolower($typeLabels[$node['node_type']])) ?> up" <?= (int) $node['sibling_position'] === 0 ? 'disabled' : '' ?>>Up</button>
+                                    <button class="btn btn-outline-secondary btn-sm" type="submit" name="direction" value="down" aria-label="Move <?= e(strtolower($typeLabels[$node['node_type']])) ?> down" <?= (int) $node['sibling_position'] >= (int) $node['sibling_count'] - 1 ? 'disabled' : '' ?>>Down</button>
+                                </form>
                                 <a class="btn btn-outline-secondary btn-sm" href="/panel/property/edit?id=<?= (int) $node['id'] ?>">Edit name</a>
                                 <?php if (PropertyService::allowedChildTypes($node['node_type']) !== []): ?>
                                     <a class="btn btn-outline-secondary btn-sm" href="/panel/property/create?parent=<?= (int) $node['id'] ?>">Add inside</a>

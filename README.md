@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.34 | 03.10.2026 | Kinnistu struktuuri korpusi, korruseid ja ruume saab käsitsi järjestada. |
 | 1.33 | 03.10.2026 | Lepingute nimekirja kinnistu asukoht kuvab nüüd kogu hoone-korpuse-korruse-ruumi tee. |
 | 1.32 | 03.10.2026 | Koormus jääb lepingule, kalkulaator liigub graafikumoodulisse ja asukohavalik näitab tervet nimeahelat. |
 | 1.31 | 03.10.2026 | Lepingute muudetavad koormuse valikud ja kuupõhine normtundide arvutus. |
@@ -55,6 +56,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.34 | 03.10.2026 | Manually reorder property wings, floors and rooms within their parent. |
 | 1.33 | 03.10.2026 | Contract list locations now show the full building-wing-floor-room path. |
 | 1.32 | 03.10.2026 | Kept workload on contracts, deferred hours calculation to scheduling and clarified property paths. |
 | 1.31 | 03.10.2026 | Editable contract workload options and monthly required-hours calculation. |

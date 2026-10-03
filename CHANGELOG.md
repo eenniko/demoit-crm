@@ -1,5 +1,14 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.34 – 3. oktoober 2026
+
+- Kinnistu struktuuris saab sama vanema all sama tüüpi üksusi üles/alla liigutada: hoone korpusi, korpuse korruseid või korruse ruume.
+- Järjestus salvestatakse `property_nodes.sort_order` väljale. Olemasolevad kirjed alustavad ID-põhises järjekorras; uued üksused lisatakse oma õdede-vendade loendi lõppu. Muutmise õigus on kliendiadministraatoril ning tegevus logitakse auditlogisse.
+- Mõjutatud failid: `sql/021_property_sibling_order.sql`, `src/Services/PropertyService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/property/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `docs/08-kinnistu-struktuuri-moodul.md`.
+- Andmebaasimuudatus: lisatud `property_nodes.sort_order`; idempotentne migratsioon algväärtustab vanade kirjete järjekorra nende ID-de põhjal ning registreerib versiooni 1.34.
+- Kontrollitud: PHP süntaks, järjestamise marsruudi ja migratsiooni registreering ning eraldi korpuse/korruse õdede-vendade järjestuse puhas test.
+- Järgmiseks versiooniks pärast 1.34 on `1.35`.
+
 ## Versioon 1.33 – 3. oktoober 2026
 
 - Töölepingute loendi **Location** veerg kuvab nüüd kinnistu täieliku nimeahela hoonest valitud tasandini, näiteks `Peamaja - B korpus - 2. korrus - 205`, mitte ainult ruumi/korruse nime.
@@ -298,6 +307,15 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.34 - October 3, 2026
+
+- Property structure entries of the same type can be moved up or down under the same parent: wings within a building, floors within a wing, and rooms within a floor.
+- Order is stored in `property_nodes.sort_order`. Existing entries retain ID order as their initial order; new entries are appended to their sibling list. Reordering is restricted to client administrators and audited.
+- Affected files: `sql/021_property_sibling_order.sql`, `src/Services/PropertyService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/property/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, and `docs/08-kinnistu-struktuuri-moodul.md`.
+- Database: added `property_nodes.sort_order`; an idempotent migration initializes existing rows by ID and records version 1.34.
+- Verified: PHP syntax, reorder route and migration registration, and a pure test of independent wing/floor sibling ordering.
+- The next version after 1.34 is `1.35`.
 
 ## Version 1.33 - October 3, 2026
 

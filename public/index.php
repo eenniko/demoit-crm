@@ -274,6 +274,10 @@ switch (true) {
         handle_panel_property_edit($method);
         break;
 
+    case $path === '/panel/property/reorder':
+        handle_panel_property_reorder($method);
+        break;
+
     case $path === '/panel/employment':
         header('Location: /panel/employment/contracts');
         break;
@@ -1523,6 +1527,28 @@ function handle_panel_property_edit(string $method): void
     }
 
     render_panel_page('Edit location', 'property/edit.php', ['node' => $node, 'error' => $error], 'property');
+}
+
+function handle_panel_property_reorder(string $method): void
+{
+    if (!require_property_manager()) {
+        return;
+    }
+    if ($method !== 'POST' || !Csrf::validate($_POST['csrf_token'] ?? null)) {
+        header('Location: /panel/property');
+        return;
+    }
+
+    $nodeId = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+    $direction = is_string($_POST['direction'] ?? null) ? $_POST['direction'] : '';
+    if ($nodeId === false || $nodeId <= 0) {
+        header('Location: /panel/property?error=' . rawurlencode('Invalid location.'));
+        return;
+    }
+
+    [$success, $message] = PropertyService::moveSibling(ClientContext::clientId(), $nodeId, $direction, ClientContext::userId());
+    $queryKey = $success ? 'message' : 'error';
+    header('Location: /panel/property?' . $queryKey . '=' . rawurlencode($message));
 }
 
 function require_employment_module(): bool
