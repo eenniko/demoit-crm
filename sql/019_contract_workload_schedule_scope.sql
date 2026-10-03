@@ -1,0 +1,2 @@
+INSERT IGNORE INTO system_version_logs (version, description, released_at)
+VALUES ('1.32', 'Keep workload on employment contracts and defer monthly active-workday hours calculation to scheduling.', NOW());

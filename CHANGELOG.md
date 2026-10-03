@@ -1,5 +1,15 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.32 – 3. oktoober 2026
+
+- Eemaldatud kuupõhine normtundide kalkulaator lepingu lisamise ja muutmise vormist. Koormuse valik ja lepingule salvestatud protsendikoopia jäävad alles.
+- Kuu normtundide arvutus (koormus × jooksva kuu aktiivsed tööpäevad × päevatunnid) on tulevase graafikumooduli vastutus, mitte lepingu koostamise osa.
+- Kinnistu asukoha valik näitab nüüd tervet hierarhiat, näiteks `Peamaja - B korpus - 2. korrus`, mitte ainult kriipsudega taanet.
+- Mõjutatud failid: `views/panel/employment/contract-form.php`, `src/Services/PropertyService.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/09-toolepingute-moodul.md`, `src/Services/SchemaInstaller.php` ja `sql/019_contract_workload_schedule_scope.sql`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.32 tabelis `system_version_logs`.
+- Kontrollitud: PHP süntaks; lepinguvormis on koormuse valik alles ning kuupõhise arvutuse väljad eemaldatud. Kinnistu asukohasilt moodustatakse hoonest kuni valitud tasandini. Graafikumooduli arvutust siin ei rakendata.
+- Järgmiseks versiooniks pärast 1.32 on `1.33`.
+
 ## Versioon 1.31 – 3. oktoober 2026
 
 - Lisatud töölepingute moodulisse eraldi **Workloads** kataloog, kus kliendiadministraator saab koormuse nime ja protsenti (0,01–100,00%) lisada, muuta, peita ja taasaktiveerida.
@@ -280,6 +290,16 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.32 - October 3, 2026
+
+- Removed the monthly required-hours calculator from contract create/edit forms. Workload selection and the percentage snapshot stored on each contract remain.
+- Monthly required hours (workload × current month's active workdays × daily hours) belong to the future scheduling module, not contract creation.
+- Property location options now show the complete hierarchy, for example `Main building - Wing B - Floor 2`, instead of indentation marks alone.
+- Affected files: `views/panel/employment/contract-form.php`, `src/Services/PropertyService.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/09-toolepingute-moodul.md`, `src/Services/SchemaInstaller.php`, and `sql/019_contract_workload_schedule_scope.sql`.
+- Database: no schema changes; a migration records version 1.32 in `system_version_logs`.
+- Verified: PHP syntax; workload selection remains, monthly calculation controls are removed, and property labels use the full hierarchy. Scheduling calculations are not implemented here.
+- The next version after 1.32 is `1.33`.
 
 ## Version 1.31 - October 3, 2026
 

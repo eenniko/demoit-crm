@@ -32,20 +32,26 @@ class PropertyService
         $stmt = db()->prepare('SELECT id, parent_id, node_type, name FROM property_nodes WHERE client_id = :client_id ORDER BY id');
         $stmt->execute(['client_id' => $clientId]);
 
+        return self::buildTree($stmt->fetchAll());
+    }
+
+    public static function buildTree(array $nodes): array
+    {
         $children = [];
-        foreach ($stmt->fetchAll() as $node) {
+        foreach ($nodes as $node) {
             $children[$node['parent_id'] ?? 0][] = $node;
         }
 
         $tree = [];
-        $appendChildren = function (int $parentId, int $depth) use (&$appendChildren, &$tree, $children): void {
+        $appendChildren = function (int $parentId, int $depth, array $parentPath) use (&$appendChildren, &$tree, $children): void {
             foreach ($children[$parentId] ?? [] as $node) {
                 $node['depth'] = $depth;
+                $node['path'] = array_merge($parentPath, [$node['name']]);
                 $tree[] = $node;
-                $appendChildren((int) $node['id'], $depth + 1);
+                $appendChildren((int) $node['id'], $depth + 1, $node['path']);
             }
         };
-        $appendChildren(0, 0);
+        $appendChildren(0, 0, []);
 
         return $tree;
     }
