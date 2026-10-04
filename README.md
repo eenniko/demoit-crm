@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.70 | 04.10.2026 | Graafiku „Planeeritud h“ veerg nimetati ümber „Kokku h“-ks. |
 | 1.69 | 04.10.2026 | Eraldi riigipühade vaheleht näitab kõiki imporditud pühi. |
 | 1.68 | 04.10.2026 | Riigipühade XML-vorm ja imporditeated tõlgitud eesti, inglise ja vene keelde. |
 | 1.67 | 04.10.2026 | Pühade XML-import lisab ainult uued kirjed; riigi- ja rahvuspühad on graafikus töövabad. |
@@ -91,6 +92,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.70 | 04.10.2026 | Renamed the schedule's "Planned h" column to "Sum h". |
 | 1.69 | 04.10.2026 | A dedicated public-holidays tab lists every imported entry. |
 | 1.68 | 04.10.2026 | Public-holiday XML form and import messages translated into Estonian, English and Russian. |
 | 1.67 | 04.10.2026 | Public-holiday XML import adds only new entries; statutory holidays are non-working schedule days. |

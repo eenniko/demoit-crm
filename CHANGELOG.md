@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.70 – 4. oktoober 2026
+
+- Graafiku tundide veeru silt muudeti „Planeeritud h“ asemel „Kokku h“ (inglise keeles „Sum h“).
+- Mõjutatud failid: `views/panel/schedule/index.php`, `sql/057_schedule_sum_label_translation.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud sildi tõlked eesti, inglise ja vene keeles olemasolevasse kataloogi; migratsioon registreerib versiooni 1.70.
+- Kontrollitud live-vaates: eesti keeles „Kokku h“ ja inglise keeles „Sum h“.
+- Järgmiseks versiooniks pärast 1.70 on `1.71`.
+
 ## Versioon 1.69 – 4. oktoober 2026
 
 - Riigipühade XML-import viidi eraldi graafiku vahelehele, kus kuvatakse kõik imporditud päevad koos nimetuse, liigi ja märkustega.
@@ -597,6 +605,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.70 - October 4, 2026
+
+- Renamed the schedule hours column from "Planned h" to "Sum h" (Estonian: "Kokku h").
+- Affected files: `views/panel/schedule/index.php`, `sql/057_schedule_sum_label_translation.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: add Estonian, English and Russian label translations to the existing catalog; migration records version 1.70.
+- Verified live: the label reads "Kokku h" in Estonian and "Sum h" in English.
+- The next version after 1.70 is `1.71`.
 
 ## Version 1.69 - October 4, 2026
 

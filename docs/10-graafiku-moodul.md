@@ -1,6 +1,6 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.69
+**Süsteemi arendusversioon:** 1.70
 
 ## Eesti keeles
 

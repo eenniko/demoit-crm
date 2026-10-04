@@ -35,7 +35,7 @@
                             <?= $day ?><br><small><?= e(date('D', strtotime($date))) ?></small>
                         </th>
                     <?php endfor; ?>
-                    <th class="schedule-total-column">Planned h</th>
+                    <th class="schedule-total-column"><?= e(t('ui.' . hash('sha256', 'Sum h'), 'Sum h')) ?></th>
                     <th class="schedule-total-column">Min h</th>
                     <th class="schedule-total-column">OT</th>
                     <th class="schedule-total-column">Tri-OT</th>
