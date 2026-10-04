@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.75 | 04.10.2026 | Arendusprompt ja graafikujuhend viidi kooskõlla pühade arvestuse ning uue koondveeruga. |
 | 1.74 | 04.10.2026 | Prindigraafiku vaates jäävad administraatori vahelehed nähtavaks. |
 | 1.73 | 04.10.2026 | Vahetuste seadete ja riigipühade vahelehed jäävad valimisel nähtavaks. |
 | 1.72 | 04.10.2026 | Prinditud graafiku töötajaridade kõrgused ühtlustati. |
@@ -96,6 +97,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.75 | 04.10.2026 | Updated the AI prompt and schedule guide for holiday calculations and the current total label. |
 | 1.74 | 04.10.2026 | Keep administrator schedule tabs visible on the print schedule page. |
 | 1.73 | 04.10.2026 | Schedule settings and public-holiday tabs remain visible when selected. |
 | 1.72 | 04.10.2026 | Equalized employee row heights in the printed schedule. |

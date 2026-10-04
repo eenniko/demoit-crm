@@ -77,6 +77,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/059_schedule_print_row_height.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.72' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/060_schedule_tab_visibility.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.73' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/061_schedule_print_admin_tabs.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.74' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/062_documentation_alignment.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.75' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

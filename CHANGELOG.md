@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.75 – 4. oktoober 2026
+
+- Uuendatud AI arendusprompti süsteemiversioon ning järgmise versiooni juhis; parandatud graafikujuhendi riigipühade norm- ja exception-tundide kirjeldus ning koondveeru nimi.
+- Mõjutatud failid: `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/10-graafiku-moodul.md`, `docs/01-projektinouded-ja-disaininouded.md`, `README.md`, `CHANGELOG.md`, `src/Services/SchemaInstaller.php` ja `sql/062_documentation_alignment.sql`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.75.
+- Kontrollitud: vananenud versiooniviiteid ega vastuolulist riigipühade arvestuse kirjeldust ei jäänud.
+- Järgmiseks versiooniks pärast 1.75 on `1.76`.
+
 ## Versioon 1.74 – 4. oktoober 2026
 
 - Prindigraafiku vaatel kuvatakse administraatorile jätkuvalt kõik graafiku vahelehed, sealhulgas „Vahetuste seaded“ ja „Riigipühad“.
@@ -641,6 +649,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.75 - October 4, 2026
+
+- Updated the AI development prompt's system version and next-version guidance; corrected the schedule guide's public-holiday workday/exception rules and current total label.
+- Affected files: `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/10-graafiku-moodul.md`, `docs/01-projektinouded-ja-disaininouded.md`, `README.md`, `CHANGELOG.md`, `src/Services/SchemaInstaller.php` and `sql/062_documentation_alignment.sql`.
+- Database: no schema changes; migration records version 1.75.
+- Verified that no stale system-version reference or conflicting public-holiday calculation text remains.
+- The next version after 1.75 is `1.76`.
 
 ## Version 1.74 - October 4, 2026
 
