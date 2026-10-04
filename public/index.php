@@ -1942,6 +1942,7 @@ function handle_panel_schedule_holidays(): void
     }
 
     render_panel_page('Public holidays', 'schedule/holidays.php', [
+        'canManageTemplates' => true,
         'holidays' => PublicHolidayService::listAll(),
         'message' => is_string($_GET['message'] ?? null) ? $_GET['message'] : null,
         'error' => is_string($_GET['error'] ?? null) ? $_GET['error'] : null,
@@ -2118,6 +2119,7 @@ function handle_panel_schedule_templates(string $method): void
     }
 
     render_panel_page('Schedule settings', 'schedule/templates.php', [
+        'canManageTemplates' => true,
         'templates' => ScheduleService::listTemplates($clientId),
         'message' => $message,
         'error' => $error,

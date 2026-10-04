@@ -75,6 +75,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/057_schedule_sum_label_translation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.70' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = CONCAT('ui.', SHA2('Sum h', 256))) LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/058_schedule_printing.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.71' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = CONCAT('ui.', SHA2('Print schedule', 256))) LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/059_schedule_print_row_height.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.72' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/060_schedule_tab_visibility.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.73' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

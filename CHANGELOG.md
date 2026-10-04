@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.73 – 4. oktoober 2026
+
+- Graafiku „Vahetuste seaded“ ja „Riigipühad“ vahelehed jäävad nähtavaks ka siis, kui vastav vaheleht on valitud.
+- Mõjutatud failid: `public/index.php`, `src/Services/SchemaInstaller.php`, `sql/060_schedule_tab_visibility.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.73.
+- Kontrollitud live'is: aktiivse vahelehe kõrval kuvatakse mõlemad lingid mõlemal seadete lehel.
+- Järgmiseks versiooniks pärast 1.73 on `1.74`.
+
 ## Versioon 1.72 – 4. oktoober 2026
 
 - Prinditud graafiku kõikide töötajaridade kõrgus ühtlustati „Temporary assignment“ reaga.
@@ -625,6 +633,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.73 - October 4, 2026
+
+- Keep the Schedule settings and Public holidays tabs visible when either tab is selected.
+- Affected files: `public/index.php`, `src/Services/SchemaInstaller.php`, `sql/060_schedule_tab_visibility.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: no schema changes; migration records version 1.73.
+- Verified live: both tab links remain available on each settings page.
+- The next version after 1.73 is `1.74`.
 
 ## Version 1.72 - October 4, 2026
 

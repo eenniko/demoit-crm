@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.73 | 04.10.2026 | Vahetuste seadete ja riigipühade vahelehed jäävad valimisel nähtavaks. |
 | 1.72 | 04.10.2026 | Prinditud graafiku töötajaridade kõrgused ühtlustati. |
 | 1.71 | 04.10.2026 | Kuugraafiku prindivaates saab valida asukoha/osakonna kaupa eraldi landscape-lehtedele prinditavad grupid. |
 | 1.70 | 04.10.2026 | Graafiku „Planeeritud h“ veerg nimetati ümber „Kokku h“-ks. |
@@ -94,6 +95,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.73 | 04.10.2026 | Schedule settings and public-holiday tabs remain visible when selected. |
 | 1.72 | 04.10.2026 | Equalized employee row heights in the printed schedule. |
 | 1.71 | 04.10.2026 | Monthly schedule print view supports multi-select location/department groups, one landscape page per group. |
 | 1.70 | 04.10.2026 | Renamed the schedule's "Planned h" column to "Sum h". |
