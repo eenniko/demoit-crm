@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.74 | 04.10.2026 | Prindigraafiku vaates jäävad administraatori vahelehed nähtavaks. |
 | 1.73 | 04.10.2026 | Vahetuste seadete ja riigipühade vahelehed jäävad valimisel nähtavaks. |
 | 1.72 | 04.10.2026 | Prinditud graafiku töötajaridade kõrgused ühtlustati. |
 | 1.71 | 04.10.2026 | Kuugraafiku prindivaates saab valida asukoha/osakonna kaupa eraldi landscape-lehtedele prinditavad grupid. |
@@ -95,6 +96,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.74 | 04.10.2026 | Keep administrator schedule tabs visible on the print schedule page. |
 | 1.73 | 04.10.2026 | Schedule settings and public-holiday tabs remain visible when selected. |
 | 1.72 | 04.10.2026 | Equalized employee row heights in the printed schedule. |
 | 1.71 | 04.10.2026 | Monthly schedule print view supports multi-select location/department groups, one landscape page per group. |

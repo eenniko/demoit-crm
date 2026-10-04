@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.74 – 4. oktoober 2026
+
+- Prindigraafiku vaatel kuvatakse administraatorile jätkuvalt kõik graafiku vahelehed, sealhulgas „Vahetuste seaded“ ja „Riigipühad“.
+- Mõjutatud failid: `public/index.php`, `src/Services/SchemaInstaller.php`, `sql/061_schedule_print_admin_tabs.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.74.
+- Kontrollitud live'is: printimisel jäävad kõik neli graafiku vahelehte nähtavaks ja õige vaheleht on aktiivne.
+- Järgmiseks versiooniks pärast 1.74 on `1.75`.
+
 ## Versioon 1.73 – 4. oktoober 2026
 
 - Graafiku „Vahetuste seaded“ ja „Riigipühad“ vahelehed jäävad nähtavaks ka siis, kui vastav vaheleht on valitud.
@@ -633,6 +641,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.74 - October 4, 2026
+
+- Keep all schedule tabs, including Shift settings and Public holidays, visible to administrators on the print schedule page.
+- Affected files: `public/index.php`, `src/Services/SchemaInstaller.php`, `sql/061_schedule_print_admin_tabs.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: no schema changes; migration records version 1.74.
+- Verified live: all four schedule tabs remain visible on the print page with the correct tab active.
+- The next version after 1.74 is `1.75`.
 
 ## Version 1.73 - October 4, 2026
 

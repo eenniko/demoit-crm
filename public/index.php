@@ -1912,6 +1912,7 @@ function handle_panel_schedule_print(): void
     }
 
     render_panel_page('Print schedule', 'schedule/print.php', [
+        'canManageTemplates' => $isClientAdmin,
         'month' => $month,
         'locations' => $locations,
         'entries' => $data['entries'],
