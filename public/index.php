@@ -46,6 +46,10 @@ try {
     }
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
+    if ($path === '/language') {
+        handle_language_change($method);
+    }
+
     // Force the one-time initial setup flow until it has been completed.
     if (!InitialSetupService::isCompleted() && $path !== '/setup') {
         header('Location: /setup');
@@ -283,6 +287,10 @@ switch (true) {
         handle_panel_schedule($method);
         break;
 
+    case $path === '/panel/schedule/workload':
+        handle_panel_schedule_workload($method);
+        break;
+
     case $path === '/panel/schedule/templates':
         handle_panel_schedule_templates($method);
         break;
@@ -293,6 +301,10 @@ switch (true) {
 
     case $path === '/panel/employment/contracts':
         handle_panel_employment_contracts();
+        break;
+
+    case $path === '/panel/employment/contracts/archive':
+        handle_panel_employment_contract_archive($method);
         break;
 
     case $path === '/panel/employment/contracts/create':
@@ -1056,6 +1068,27 @@ function selected_language_or_default(): array
     return [$languages, $languages[0] ?? ['id' => 0, 'name' => 'English', 'language_code' => 'en']];
 }
 
+function handle_language_change(string $method): void
+{
+    if ($method === 'POST' && Csrf::validate($_POST['csrf_token'] ?? null)) {
+        LanguageService::setCurrentCode((string) ($_POST['language_code'] ?? ''));
+    }
+
+    $returnTo = is_string($_POST['return_to'] ?? null) ? $_POST['return_to'] : '/';
+    $parts = parse_url($returnTo);
+    $safeReturnTo = is_array($parts)
+        && !isset($parts['host'], $parts['user'], $parts['pass'])
+        && isset($parts['path'])
+        && str_starts_with($parts['path'], '/')
+        && !str_starts_with($parts['path'], '//')
+        && preg_match('/[\r\n]/', $returnTo) !== 1
+            ? $returnTo
+            : '/';
+
+    header('Location: ' . $safeReturnTo, true, 303);
+    exit;
+}
+
 function handle_admin_translations_index(): void
 {
     if (!require_system_role()) {
@@ -1604,6 +1637,32 @@ function handle_panel_employment_contracts(): void
     ], 'employment');
 }
 
+function handle_panel_employment_contract_archive(string $method): void
+{
+    if (!require_employment_manager()) {
+        return;
+    }
+    if ($method !== 'POST' || !Csrf::validate($_POST['csrf_token'] ?? null)) {
+        header('Location: /panel/employment/contracts?error=' . rawurlencode('Invalid request, please try again.'));
+        exit;
+    }
+
+    $contractId = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+    if ($contractId === false || $contractId <= 0) {
+        header('Location: /panel/employment/contracts?error=' . rawurlencode('Temporary contract not found.'));
+        exit;
+    }
+
+    [$success, $message] = EmploymentContractService::toggleTemporaryArchive(
+        ClientContext::clientId(),
+        $contractId,
+        ClientContext::userId()
+    );
+    $queryKey = $success ? 'message' : 'error';
+    header('Location: /panel/employment/contracts?' . $queryKey . '=' . rawurlencode($message));
+    exit;
+}
+
 function handle_panel_employment_contract_form(string $method, ?int $contractId): void
 {
     if (!require_employment_manager()) {
@@ -1782,6 +1841,7 @@ function handle_panel_schedule(string $method): void
                 'requiredHours' => $contract['required_hours'] === null ? null : $requiredHours,
                 'monthlyBalance' => $contract['monthly_balance_hours'],
                 'trimesterBalance' => $contract['trimester_balance_hours'],
+                'monthlyWorkloadId' => $contract['monthly_workload_id'] ?? null,
             ];
         }
         header('Content-Type: application/json; charset=utf-8');
@@ -1797,6 +1857,7 @@ function handle_panel_schedule(string $method): void
         'month' => $month,
         'contracts' => $data['contracts'],
         'templates' => $data['templates'],
+        'workloads' => EmploymentCatalogService::listForClient($clientId, 'workloads'),
         'entries' => $data['entries'],
         'oldAssignments' => $oldAssignments,
         'canManage' => $isClientAdmin || $data['contracts'] !== [],
@@ -1804,6 +1865,82 @@ function handle_panel_schedule(string $method): void
         'message' => $message,
         'error' => $error,
     ], 'schedule');
+}
+
+function handle_panel_schedule_workload(string $method): void
+{
+    if (!require_schedule_modules()) {
+        return;
+    }
+
+    header('Content-Type: application/json; charset=utf-8');
+    $isAjaxRequest = $method === 'POST'
+        && strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
+    if (!$isAjaxRequest) {
+        http_response_code(405);
+        echo json_encode(['success' => false, 'message' => 'Invalid request, please try again.']);
+        return;
+    }
+    if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Invalid session token, please try again.']);
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    $isClientAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
+    $monthValue = is_string($_POST['month'] ?? null) ? $_POST['month'] : '';
+    $month = ScheduleService::monthInfo($monthValue);
+    $contractId = filter_var($_POST['contract_id'] ?? null, FILTER_VALIDATE_INT);
+    $workloadValue = $_POST['workload_id'] ?? '';
+    $workloadId = $workloadValue === '' ? null : filter_var($workloadValue, FILTER_VALIDATE_INT);
+    if ($month === null || $contractId === false || $contractId <= 0 || ($workloadValue !== '' && ($workloadId === false || $workloadId <= 0))) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Choose a valid month, primary contract and workload.']);
+        return;
+    }
+
+    $visibleContracts = ScheduleService::listScheduleContracts($clientId, $userId, $isClientAdmin, $month);
+    $visibleContract = null;
+    foreach ($visibleContracts as $contract) {
+        if ((int) $contract['contract_id'] === (int) $contractId) {
+            $visibleContract = $contract;
+            break;
+        }
+    }
+    if ($visibleContract === null || $visibleContract['contract_type'] !== 'primary') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Choose a primary contract you are allowed to manage.']);
+        return;
+    }
+
+    [$success, $message] = ScheduleService::saveMonthlyWorkload(
+        $clientId,
+        (int) $contractId,
+        $month['month'],
+        $workloadId === false ? null : $workloadId,
+        $userId
+    );
+    if (!$success) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => $message], JSON_INVALID_UTF8_SUBSTITUTE);
+        return;
+    }
+
+    $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month);
+    $hourSummary = [];
+    foreach ($data['contracts'] as $contract) {
+        $hourSummary[(string) $contract['contract_id']] = [
+            'plannedHours' => (float) $contract['planned_hours'],
+            'temporaryPlannedHours' => (float) $contract['temporary_planned_hours'],
+            'requiredHours' => $contract['required_hours'],
+            'monthlyBalance' => $contract['monthly_balance_hours'],
+            'trimesterBalance' => $contract['trimester_balance_hours'],
+            'monthlyWorkloadId' => $contract['monthly_workload_id'] ?? null,
+        ];
+    }
+    echo json_encode(['success' => true, 'message' => $message, 'hourSummary' => $hourSummary], JSON_INVALID_UTF8_SUBSTITUTE);
 }
 
 function handle_panel_schedule_templates(string $method): void

@@ -52,13 +52,22 @@ class ScheduleService
         return $count;
     }
 
+    public static function requiredHoursForMonth(float $workloadPercent, int $workingDays): float
+    {
+        if ($workloadPercent <= 0 || $workloadPercent > 100 || $workingDays < 0 || $workingDays > 31) {
+            throw new InvalidArgumentException('Invalid monthly workload inputs.');
+        }
+
+        return $workingDays * 8 * ($workloadPercent / 100);
+    }
+
     public static function listTemplates(int $clientId): array
     {
         $stmt = db()->prepare(
             'SELECT id, template_type, code, name, start_time, duration_minutes, color_hex, status
              FROM employee_schedule_templates
              WHERE client_id = :client_id
-             ORDER BY FIELD(template_type, \'shift\', \'exception\'), status, code'
+             ORDER BY FIELD(template_type, \'shift\', \'exception\', \'block\'), status, code'
         );
         $stmt->execute(['client_id' => $clientId]);
 
@@ -73,7 +82,7 @@ class ScheduleService
         $startTime = is_string($data['start_time'] ?? null) ? $data['start_time'] : '';
         $duration = is_string($data['duration_hours'] ?? null) ? $data['duration_hours'] : '';
         $color = is_string($data['color_hex'] ?? null) ? strtoupper(trim($data['color_hex'])) : '#0000FF';
-        if (!in_array($type, ['shift', 'exception'], true)
+        if (!in_array($type, ['shift', 'exception', 'block'], true)
             || !preg_match('/^[\p{L}\p{N}_-]{1,20}$/u', $code)
             || ($name !== '' && (preg_match('//u', $name) !== 1 || preg_match_all('/./us', $name) > 100))
             || !preg_match('/^(?:0?\.\d{1,2}|\d{1,2}(?:\.\d{1,2})?|24(?:\.0{1,2})?)$/', $duration)
@@ -158,6 +167,21 @@ class ScheduleService
     public static function monthData(int $clientId, int $managerId, bool $isClientAdmin, array $month): array
     {
         $contracts = self::listScheduleContracts($clientId, $managerId, $isClientAdmin, $month);
+        $monthlyWorkloadOverrides = self::monthlyWorkloadOverrides(
+            $clientId,
+            array_map(static fn (array $contract): int => (int) $contract['contract_id'], $contracts),
+            $month['month']
+        );
+        foreach ($contracts as &$contract) {
+            $contract['base_workload_id'] = (int) ($contract['workload_id'] ?? 0);
+            $contract['base_workload_percent'] = (float) $contract['workload_percent'];
+            $override = $monthlyWorkloadOverrides[(int) $contract['contract_id']] ?? null;
+            $contract['monthly_workload_id'] = $override !== null ? (int) $override['workload_id'] : null;
+            if ($contract['contract_type'] === 'primary' && $override !== null) {
+                $contract['workload_percent'] = (float) $override['workload_percent'];
+            }
+        }
+        unset($contract);
         $templates = self::listTemplates($clientId);
         $entries = self::getMonthEntries($clientId, $contracts, $month);
         $plannedMinutes = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $contracts, $month);
@@ -183,7 +207,7 @@ class ScheduleService
 
             $contract['planned_hours'] = round(($plannedMinutes['byEmployee'][$employeeId] ?? 0) / 60, 2);
             $contract['temporary_planned_hours'] = round(($temporaryMinutesByEmployee[$employeeId] ?? 0) / 60, 2);
-            $contract['required_hours'] = round((float) $contract['workload_percent'] * (int) $contract['active_workdays'] * 8 / 100, 2);
+            $contract['required_hours'] = round(self::requiredHoursForMonth((float) $contract['workload_percent'], (int) $contract['active_workdays']), 2);
             $contract['monthly_balance_hours'] = round($contract['planned_hours'] - $contract['required_hours'], 2);
         }
         unset($contract);
@@ -226,7 +250,7 @@ class ScheduleService
             $sql =
                 "SELECT id AS contract_id, employee_id, start_date, end_date, workload_percent
                  FROM employment_contracts
-                 WHERE client_id = :client_id AND contract_type = 'primary'
+                 WHERE client_id = :client_id AND contract_type = 'primary' AND archived_at IS NULL
                    AND employee_id IN (" . implode(', ', $placeholders) . ")
                    AND start_date <= :month_end
                    AND (end_date IS NULL OR end_date >= :month_start)";
@@ -239,6 +263,11 @@ class ScheduleService
             $periodContracts = $stmt->fetchAll();
 
             if ($periodContracts !== []) {
+                $periodWorkloadOverrides = self::monthlyWorkloadOverrides(
+                    $clientId,
+                    array_map(static fn (array $contract): int => (int) $contract['contract_id'], $periodContracts),
+                    $period['month']
+                );
                 $plannedMinutesByEmployee = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $periodContracts, $period)['byEmployee'];
                 $requiredHoursByEmployee = [];
                 foreach ($periodContracts as $contract) {
@@ -246,8 +275,10 @@ class ScheduleService
                     $contractEnd = $contract['end_date'] === null ? $period['end'] : min($period['end'], $contract['end_date']);
                     $activeWorkdays = self::countWeekdays(new DateTimeImmutable($contractStart), new DateTimeImmutable($contractEnd));
                     $employeeId = (int) $contract['employee_id'];
+                    $override = $periodWorkloadOverrides[(int) $contract['contract_id']] ?? null;
+                    $workloadPercent = $override !== null ? (float) $override['workload_percent'] : (float) $contract['workload_percent'];
                     $requiredHoursByEmployee[$employeeId] = ($requiredHoursByEmployee[$employeeId] ?? 0.0)
-                        + (float) $contract['workload_percent'] * $activeWorkdays * 8 / 100;
+                        + self::requiredHoursForMonth($workloadPercent, $activeWorkdays);
                 }
                 foreach ($requiredHoursByEmployee as $employeeId => $requiredHours) {
                     $plannedHours = ($plannedMinutesByEmployee[$employeeId] ?? 0) / 60;
@@ -259,6 +290,122 @@ class ScheduleService
         }
 
         return $balances;
+    }
+
+    private static function monthlyWorkloadOverrides(int $clientId, array $contractIds, string $month): array
+    {
+        $contractIds = array_values(array_unique(array_map('intval', $contractIds)));
+        if ($contractIds === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = ['client_id' => $clientId, 'workload_month' => $month . '-01'];
+        foreach ($contractIds as $index => $contractId) {
+            $key = 'contract_' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $contractId;
+        }
+        $stmt = db()->prepare(
+            'SELECT contract_id, workload_id, workload_percent
+             FROM employment_contract_monthly_workloads
+             WHERE client_id = :client_id AND workload_month = :workload_month
+               AND contract_id IN (' . implode(', ', $placeholders) . ')'
+        );
+        $stmt->execute($params);
+
+        $overrides = [];
+        foreach ($stmt->fetchAll() as $override) {
+            $overrides[(int) $override['contract_id']] = $override;
+        }
+
+        return $overrides;
+    }
+
+    public static function saveMonthlyWorkload(int $clientId, int $contractId, string $month, ?int $workloadId, int $actorUserId): array
+    {
+        $monthInfo = self::monthInfo($month);
+        if ($monthInfo === null || ($workloadId !== null && $workloadId <= 0)) {
+            return [false, 'Choose a valid month and workload.'];
+        }
+
+        $pdo = db();
+        try {
+            $pdo->beginTransaction();
+            $contractQuery = $pdo->prepare(
+                'SELECT contract_type, start_date, end_date, archived_at
+                 FROM employment_contracts
+                 WHERE client_id = :client_id AND id = :contract_id
+                 FOR UPDATE'
+            );
+            $contractQuery->execute(['client_id' => $clientId, 'contract_id' => $contractId]);
+            $contract = $contractQuery->fetch();
+            if ($contract === false || $contract['contract_type'] !== 'primary' || $contract['archived_at'] !== null) {
+                $pdo->rollBack();
+                return [false, 'Choose an active primary contract.'];
+            }
+            if ($contract['start_date'] > $monthInfo['end'] || ($contract['end_date'] !== null && $contract['end_date'] < $monthInfo['start'])) {
+                $pdo->rollBack();
+                return [false, 'The primary contract does not cover this month.'];
+            }
+
+            if ($workloadId === null) {
+                $delete = $pdo->prepare(
+                    'DELETE FROM employment_contract_monthly_workloads
+                     WHERE client_id = :client_id AND contract_id = :contract_id AND workload_month = :workload_month'
+                );
+                $delete->execute([
+                    'client_id' => $clientId,
+                    'contract_id' => $contractId,
+                    'workload_month' => $monthInfo['start'],
+                ]);
+                $message = 'Monthly workload reset to the contract default.';
+            } else {
+                $workloadQuery = $pdo->prepare(
+                    "SELECT workload_percent FROM employment_workloads
+                     WHERE client_id = :client_id AND id = :workload_id AND status = 'active'"
+                );
+                $workloadQuery->execute(['client_id' => $clientId, 'workload_id' => $workloadId]);
+                $workloadPercent = $workloadQuery->fetchColumn();
+                if ($workloadPercent === false) {
+                    $pdo->rollBack();
+                    return [false, 'Choose an active workload.'];
+                }
+
+                $save = $pdo->prepare(
+                    'INSERT INTO employment_contract_monthly_workloads
+                        (client_id, contract_id, workload_month, workload_id, workload_percent, created_by, updated_by)
+                     VALUES (:client_id, :contract_id, :workload_month, :workload_id, :workload_percent, :created_by, :updated_by)
+                     ON DUPLICATE KEY UPDATE workload_id = VALUES(workload_id), workload_percent = VALUES(workload_percent), updated_by = VALUES(updated_by)'
+                );
+                $save->execute([
+                    'client_id' => $clientId,
+                    'contract_id' => $contractId,
+                    'workload_month' => $monthInfo['start'],
+                    'workload_id' => $workloadId,
+                    'workload_percent' => (float) $workloadPercent,
+                    'created_by' => $actorUserId,
+                    'updated_by' => $actorUserId,
+                ]);
+                $message = 'Monthly workload saved.';
+            }
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            return [false, 'Could not save the monthly workload.'];
+        }
+
+        AuditLogService::log(
+            $actorUserId,
+            $clientId,
+            'schedule.monthly_workload_saved',
+            'employment_contract_monthly_workloads',
+            $contractId . ':' . $month
+        );
+
+        return [true, $message];
     }
 
     private static function plannedWorkMinutes(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
@@ -293,7 +440,7 @@ class ScheduleService
             'SELECT e.employee_id, e.contract_id, e.schedule_date, template.template_type, template.start_time, template.duration_minutes
              FROM employee_schedule_entries e
              INNER JOIN employment_contracts contract
-                ON contract.client_id = e.client_id AND contract.id = e.contract_id
+                     ON contract.client_id = e.client_id AND contract.id = e.contract_id AND contract.archived_at IS NULL
              INNER JOIN employee_schedule_templates template
                 ON template.client_id = e.client_id AND template.id = e.template_id
              WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :month_end
@@ -330,6 +477,9 @@ class ScheduleService
     {
         if ($templateType === 'shift') {
             return true;
+        }
+        if ($templateType === 'block') {
+            return false;
         }
         if ($templateType !== 'exception') {
             return false;
@@ -379,15 +529,15 @@ class ScheduleService
     public static function listScheduleContracts(int $clientId, int $managerId, bool $isClientAdmin, array $month, bool $forUpdate = false): array
     {
         $sql =
-            "SELECT c.id AS contract_id, c.employee_id, c.property_node_id, c.department_id, c.contract_type,
-                    c.start_date, c.end_date, c.workload_percent,
+                "SELECT c.id AS contract_id, c.employee_id, c.property_node_id, c.department_id, c.contract_type,
+                    c.start_date, c.end_date, c.workload_id, c.workload_percent,
                     employee.username, employee.full_name, department.name AS department_name,
                     property.name AS property_name
              FROM employment_contracts c
              INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
              INNER JOIN property_nodes property ON property.id = c.property_node_id AND property.client_id = c.client_id
              LEFT JOIN employment_departments department ON department.id = c.department_id AND department.client_id = c.client_id
-             WHERE c.client_id = :client_id AND c.contract_type IN ('primary', 'temporary')
+             WHERE c.client_id = :client_id AND c.archived_at IS NULL AND c.contract_type IN ('primary', 'temporary')
                AND employee.status = 'active'
                AND c.start_date <= :month_end
                AND (c.end_date IS NULL OR c.end_date >= :month_start)";
@@ -544,13 +694,13 @@ class ScheduleService
                     $templateId = filter_var($templateValue, FILTER_VALIDATE_INT);
                     if ($templateId === false || $templateId <= 0) {
                         $pdo->rollBack();
-                        return [false, 'Choose a valid shift or exception.'];
+                        return [false, 'Choose a valid schedule template.'];
                     }
                     $selectedTemplateStatus = $templateStatus[$templateId] ?? false;
                     $retainingHidden = $existing !== false && (int) $existing['template_id'] === $templateId;
                     if ($selectedTemplateStatus === false || ($selectedTemplateStatus !== 'active' && !$retainingHidden)) {
                         $pdo->rollBack();
-                        return [false, 'Choose an active shift or exception.'];
+                        return [false, 'Choose an active schedule template.'];
                     }
 
                     $upsert = $pdo->prepare(
@@ -627,7 +777,7 @@ class ScheduleService
                 ON template.client_id = e.client_id AND template.id = e.template_id
              WHERE e.client_id = :client_id AND e.schedule_date BETWEEN :range_start AND :range_end
                AND e.employee_id IN (' . implode(', ', $placeholders) . ')
-               AND template.template_type IN (\'shift\', \'exception\')
+               AND template.template_type IN (\'shift\', \'exception\', \'block\')
              ORDER BY e.employee_id, e.schedule_date, template.start_time
              FOR UPDATE'
         );
@@ -654,16 +804,40 @@ class ScheduleService
             ($first['employee_id'] <=> $second['employee_id']) ?: ($first['start'] <=> $second['start'])
         );
         $lastEndByEmployee = [];
+        $lastPlannedEndByEmployee = [];
+        $lastBlockEndByEmployee = [];
         foreach ($shifts as $shift) {
             $employeeId = $shift['employee_id'];
-            if (!self::templateCountsAsPlanned($shift['template_type'], $shift['date'])) {
+            $templateType = $shift['template_type'];
+            if ($templateType === 'block') {
+                if (isset($lastEndByEmployee[$employeeId]) && $shift['start'] < $lastEndByEmployee[$employeeId]) {
+                    return $shift['date'];
+                }
+                if (!isset($lastEndByEmployee[$employeeId]) || $shift['end'] > $lastEndByEmployee[$employeeId]) {
+                    $lastEndByEmployee[$employeeId] = $shift['end'];
+                }
+                if (!isset($lastBlockEndByEmployee[$employeeId]) || $shift['end'] > $lastBlockEndByEmployee[$employeeId]) {
+                    $lastBlockEndByEmployee[$employeeId] = $shift['end'];
+                }
                 continue;
             }
-            if (isset($lastEndByEmployee[$employeeId]) && $shift['start'] < $lastEndByEmployee[$employeeId]) {
+            if (isset($lastBlockEndByEmployee[$employeeId]) && $shift['start'] < $lastBlockEndByEmployee[$employeeId]) {
+                return $shift['date'];
+            }
+            if (!self::templateCountsAsPlanned($templateType, $shift['date'])) {
+                if (!isset($lastEndByEmployee[$employeeId]) || $shift['end'] > $lastEndByEmployee[$employeeId]) {
+                    $lastEndByEmployee[$employeeId] = $shift['end'];
+                }
+                continue;
+            }
+            if (isset($lastPlannedEndByEmployee[$employeeId]) && $shift['start'] < $lastPlannedEndByEmployee[$employeeId]) {
                 return $shift['date'];
             }
             if (!isset($lastEndByEmployee[$employeeId]) || $shift['end'] > $lastEndByEmployee[$employeeId]) {
                 $lastEndByEmployee[$employeeId] = $shift['end'];
+            }
+            if (!isset($lastPlannedEndByEmployee[$employeeId]) || $shift['end'] > $lastPlannedEndByEmployee[$employeeId]) {
+                $lastPlannedEndByEmployee[$employeeId] = $shift['end'];
             }
         }
 

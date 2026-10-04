@@ -61,6 +61,14 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/043_schedule_temp_label.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.56' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/044_schedule_weekday_exception_hours.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.57' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/045_schedule_single_cell_autosave.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.58' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/046_employment_contract_archive.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.59' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contracts' AND COLUMN_NAME = 'archived_at') LIMIT 1", 'handler' => 'employmentContractArchive'],
+        ['file' => __DIR__ . '/../../sql/047_schedule_block_templates.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.60' AND EXISTS (SELECT 1 FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_schedule_templates' AND COLUMN_NAME = 'template_type' AND COLUMN_TYPE LIKE '%block%') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/048_ui_languages.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.61' AND EXISTS (SELECT 1 FROM system_languages WHERE language_code = 'et' AND is_active = 1) AND EXISTS (SELECT 1 FROM system_languages WHERE language_code = 'ru' AND is_active = 1) AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = 'layout.language') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/049_ui_static_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.62' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = CONCAT('ui.', SHA2('Access level', 256)) AND module_context = 'ui') AND EXISTS (SELECT 1 FROM system_translation_values v INNER JOIN system_translation_keys k ON k.id = v.translation_key_id INNER JOIN system_languages l ON l.id = v.language_id WHERE k.translation_key = CONCAT('ui.', SHA2('Access level', 256)) AND l.language_code = 'et' AND v.status = 'active') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/050_monthly_workload_overrides.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.63' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contract_monthly_workloads') AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = 'panel.contract_default_workload') AND EXISTS (SELECT 1 FROM system_translation_values v INNER JOIN system_translation_keys k ON k.id = v.translation_key_id INNER JOIN system_languages l ON l.id = v.language_id WHERE k.translation_key = 'panel.contract_default_workload' AND l.language_code = 'et' AND v.status = 'active') AND EXISTS (SELECT 1 FROM system_translation_values v INNER JOIN system_translation_keys k ON k.id = v.translation_key_id INNER JOIN system_languages l ON l.id = v.language_id WHERE k.translation_key = 'panel.contract_default_workload' AND l.language_code = 'ru' AND v.status = 'active') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/051_schedule_monthly_workload_modal.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.64' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/052_schedule_weekend_color.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.65' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/053_schedule_weekend_transparency.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.66' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
@@ -77,6 +85,8 @@ class SchemaInstaller
                     self::ensureScheduleTemplateColor();
                 } elseif (($migration['handler'] ?? null) === 'scheduleContractDayIndex') {
                     self::ensureScheduleContractDayIndex();
+                } elseif (($migration['handler'] ?? null) === 'employmentContractArchive') {
+                    self::ensureEmploymentContractArchiveColumn();
                 }
                 self::runSqlFile($migration['file']);
             }
@@ -136,6 +146,21 @@ class SchemaInstaller
         }
         if (!isset($indexes['uq_employee_schedule_contract_day'])) {
             db()->exec('ALTER TABLE employee_schedule_entries ADD UNIQUE KEY uq_employee_schedule_contract_day (client_id, contract_id, schedule_date)');
+        }
+    }
+
+    private static function ensureEmploymentContractArchiveColumn(): void
+    {
+        $stmt = db()->prepare(
+            "SELECT 1
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contracts'
+               AND COLUMN_NAME = 'archived_at'
+             LIMIT 1"
+        );
+        $stmt->execute();
+        if ($stmt->fetchColumn() === false) {
+            db()->exec('ALTER TABLE employment_contracts ADD COLUMN archived_at DATETIME NULL');
         }
     }
 

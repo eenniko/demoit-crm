@@ -11,6 +11,7 @@
         <select class="form-select" id="template_type" name="template_type">
             <option value="shift">Shift</option>
             <option value="exception">Exception</option>
+            <option value="block">Block</option>
         </select>
     </div>
     <div class="col-md-2">

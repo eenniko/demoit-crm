@@ -1,5 +1,69 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.66 – 4. oktoober 2026
+
+- Nädalavahetuse roosa taust muudeti 50% läbipaistvaks.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `sql/053_schedule_weekend_transparency.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md` ja `docs/01-projektinouded-ja-disaininouded.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.66.
+- Kontrollitud: PHP süntaks ja live-graafiku nädalavahetuse taustavärvi 50% alfa.
+- Järgmiseks versiooniks pärast 1.66 on `1.67`.
+
+## Versioon 1.65 – 4. oktoober 2026
+
+- Nädalavahetuse graafikupäevade taust muudeti punase ja valge 50% seguks.
+- Mõjutatud failid: `views/panel/schedule/index.php`, `sql/052_schedule_weekend_color.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md` ja `docs/01-projektinouded-ja-disaininouded.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.65.
+- Kontrollitud: PHP süntaks ja live-graafikus nädalavahetuse arvutatud taustavärv.
+- Järgmiseks versiooniks pärast 1.65 on `1.66`.
+
+## Versioon 1.64 – 4. oktoober 2026
+
+- Asendatud graafikurea kuu koormuse rippvalik eraldi modaali avava protsendinupuga. Valik salvestub modaali sulgemisel ning värskendab Required-, OT- ja Tri-OT saldosid.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.64.
+- Kontrollitud: PHP süntaks ning live’is modaali valimine, salvestamine ja lepingu vaikeväärtusele lähtestamine.
+- Järgmiseks versiooniks pärast 1.64 on `1.65`.
+
+## Versioon 1.63 – 4. oktoober 2026
+
+- Lisatud põhilepingu kuu-põhised koormuse erandid. Graafiku kuu koormuse valik muudab selle kuu Required-, OT- ja Tri-OT arvestust ilma lepingut või päevakandeid poolitamata; vaikimisi kasutatakse lepingu koormust.
+- Mõjutatud failid: `sql/050_monthly_workload_overrides.sql`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/schedule/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud kliendi- ja lepingu-põhine kuukoormuse erandite tabel koos koormusprotsendi snapshot’iga ning auditväljadega.
+- Kontrollitud: PHP süntaks ja kuu-/neljakuulise koormusarvestuse loogika.
+- Järgmiseks versiooniks pärast 1.63 on `1.64`.
+
+## Versioon 1.62 – 4. oktoober 2026
+
+- Lisatud olemasolevatesse tõlketabelitesse staatilise kasutajaliidese kataloog inglise, eesti ja vene väärtustega. Keelevalik rakendub jagatud päise, menüüde, lehepealkirjade, tekstisõlmede ja ligipääsetavussiltide kaudu; admin saab tõlkeid muuta tavalisest tõlkevaatest.
+- Mõjutatud failid: `src/Services/TranslationService.php`, `src/Services/SchemaInstaller.php`, `views/layout/footer.php`, `sql/049_ui_static_translations.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud staatilise UI teksti tõlkevõtmed ja inglise/eesti/vene väärtused; puuduv tõlge kasutab inglise lähteväärtust.
+- Kontrollitud: PHP süntaks, SQL-migratsiooni lausete tükeldus ja tekstikataloogi maht.
+- Järgmiseks versiooniks pärast 1.62 on `1.63`.
+
+## Versioon 1.61 – 4. oktoober 2026
+
+- Lisatud päises seansipõhine keelevalik. Inglise, eesti ja vene keele kataloogid kasutavad olemasolevaid tõlketabeleid; ühine päis ning admini- ja kliendipaneeli menüüd loevad tõlked andmebaasist.
+- Mõjutatud failid: `src/Services/LanguageService.php`, `src/Services/TranslationService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/render.php`, `views/layout/header.php`, `views/admin/shell.php`, `views/panel/shell.php`, `sql/048_ui_languages.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: aktiveeritud keeled `et` ja `ru`; lisatud ühise päise ning navigeerimise tõlkevõtmed ja väärtused.
+- Kontrollitud: PHP süntaks ja tõlke-/keelevaliku marsruutide staatiline kontroll.
+- Järgmiseks versiooniks pärast 1.61 on `1.62`.
+
+## Versioon 1.60 – 4. oktoober 2026
+
+- Lisatud `Block` graafikumalli tüüp. Blokk keelab sama töötaja kattuvad shift- ja exception-vahemikud, kuid selle tunde ei lisata Planned-arvestusse. Näiteks saab luua `EST` malli algusega 00:00 ja kestusega 24 tundi.
+- Täpsustatud ajutisi lepinguid: samal töötajal võib olla sama kuu jooksul lepinguid eri korrustel, kuid mitte sama korruse topeltlepinguid.
+- Mõjutatud failid: `src/Services/ScheduleService.php`, `src/Services/EmploymentContractService.php`, `views/panel/schedule/index.php`, `views/panel/schedule/templates.php`, `src/Services/SchemaInstaller.php`, `sql/047_schedule_block_templates.sql`, `docs/01-projektinouded-ja-disaininouded.md`, `docs/05-ai-eeskirjad-ja-prompt.md`, `docs/10-graafiku-moodul.md`, `README.md` ja `CHANGELOG.md`.
+- Andmebaasimuudatus: `employee_schedule_templates.template_type` ENUM-i lisatakse `block`; olemasolevad shift- ja exception-kirjed säilivad.
+- Kontrollitud: PHP süntaks, Block/shift/exception kattuvused, täpne üleandmine ning Planned-arvestuse piirjuhud.
+- Järgmiseks versiooniks pärast 1.60 on `1.61`.
+
+## Versioon 1.59 – 3. oktoober 2026
+
+- Lisatud lepingutele pööratav soft-archive. Ajutist lepingut saab arhiveerida ainult siis, kui sel pole graafikukandeid; arhiveeritud leping peidetakse graafikust ja seda saab taastada.
+- Mõjutatud failid: `sql/017_employment_module.sql`, `sql/046_employment_contract_archive.sql`, `src/Services/EmploymentContractService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/employment/contracts.php`, `src/Services/ScheduleService.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Andmebaasimuudatus: lisatud nullitav `employment_contracts.archived_at`; olemasolevatele paigaldustele lisatakse veerg idempotentselt.
+- Kontrollitud: PHP süntaks ja arhiveerimise piirang, mis blokeerib graafikukannetega lepingud.
+- Järgmiseks versiooniks pärast 1.59 on `1.60`.
+
 ## Versioon 1.58 – 3. oktoober 2026
 
 - Muudatuse järel saadab automaatsalvestus ainult valitud lepingu ja päeva. Vanast brauseritabulist ei saadeta enam kogu kuu aegunud väärtusi, mis võisid teised vahetused üle kirjutada.
@@ -507,6 +571,66 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.66 - October 4, 2026
+
+- Made the schedule's pink weekend background 50% transparent.
+- Affected files: `views/panel/schedule/index.php`, `sql/053_schedule_weekend_transparency.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md` and `docs/01-projektinouded-ja-disaininouded.md`.
+- Database: no schema changes; migration records version 1.66.
+- Verified PHP syntax and 50% alpha on the live schedule's weekend background.
+- The next version after 1.66 is `1.67`.
+
+## Version 1.65 - October 4, 2026
+
+- Changed schedule weekend-day backgrounds to a 50/50 red-and-white mix.
+- Affected files: `views/panel/schedule/index.php`, `sql/052_schedule_weekend_color.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md` and `docs/01-projektinouded-ja-disaininouded.md`.
+- Database: no schema changes; migration records version 1.65.
+- Verified PHP syntax and the computed weekend background color in the live schedule.
+- The next version after 1.65 is `1.66`.
+
+## Version 1.64 - October 4, 2026
+
+- Replaced the monthly workload dropdown with a percentage button that opens a modal. The choice saves when the modal closes and refreshes Required, OT and Tri-OT balances.
+- Database: no schema changes; migration records version 1.64.
+- Verified PHP syntax and the live modal selection, save and reset-to-contract-default workflow.
+- The next version after 1.64 is `1.65`.
+
+## Version 1.63 - October 4, 2026
+
+- Added month-specific workload overrides for primary contracts. The schedule month's workload selector updates Required, OT and Tri-OT without splitting contracts or daily schedule entries; the contract workload remains the default.
+- Database: add client- and contract-scoped monthly overrides with a workload-percent snapshot and audit fields.
+- Verified PHP syntax and monthly/four-month required-hours calculation paths.
+- The next version after 1.63 is `1.64`.
+
+## Version 1.62 - October 4, 2026
+
+- Added a database-backed catalog for existing static UI text in English, Estonian and Russian. The selected language applies to shared navigation, page titles, text nodes and accessible labels; administrators can edit values in the existing translation editor.
+- Database: add static UI translation keys and English/Estonian/Russian values; missing translations fall back to the English source.
+- Verified PHP syntax, migration statement splitting and translation-catalog size.
+- The next version after 1.62 is `1.63`.
+
+## Version 1.61 - October 4, 2026
+
+- Added a session-based language selector to the shared header. English, Estonian and Russian use the existing translation tables; the shared header and admin/client navigation now read database-backed values.
+- Database: activate `et` and `ru`; add shared-header and navigation translation keys and values.
+- Verified PHP syntax and statically checked the language-selection and translation routes.
+- The next version after 1.61 is `1.62`.
+
+## Version 1.60 - October 4, 2026
+
+- Added the `Block` schedule template type. Blocks prevent overlapping shift and exception intervals for an employee without adding hours to Planned. For example, an `EST` template can start at 00:00 and last 24 hours.
+- Temporary contracts can cover different floors in the same month, while duplicate temporary contracts for the same floor are rejected.
+- Database: extend `employee_schedule_templates.template_type` with `block`; existing shift and exception rows are preserved.
+- Verified PHP syntax, Block/shift/exception overlaps, exact handoffs and Planned-hour edge cases.
+- The next version after 1.60 is `1.61`.
+
+## Version 1.59 - October 3, 2026
+
+- Added reversible soft-archive for contracts. A temporary contract can be archived only if it has no schedule entries; archived contracts are hidden from schedules and can be restored.
+- Affected files: `sql/017_employment_module.sql`, `sql/046_employment_contract_archive.sql`, `src/Services/EmploymentContractService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/employment/contracts.php`, `src/Services/ScheduleService.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md`, and `docs/05-ai-eeskirjad-ja-prompt.md`.
+- Database: added nullable `employment_contracts.archived_at`; existing installs receive the column idempotently.
+- Verified: PHP syntax and the archive restriction preventing archival of contracts with schedule entries.
+- The next version after 1.59 is `1.60`.
 
 ## Version 1.58 - October 3, 2026
 

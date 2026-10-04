@@ -8,6 +8,57 @@ require_once __DIR__ . '/AuditLogService.php';
 /** Translation keys/values with English fallback (doc 02 §6, doc 04 §7). */
 class TranslationService
 {
+    private static array $catalogues = [];
+    private static array $textMaps = [];
+
+    public static function translate(string $key, string $fallback = ''): string
+    {
+        $languageCode = LanguageService::currentCode();
+        if (!isset(self::$catalogues[$languageCode])) {
+            $stmt = db()->prepare(
+                'SELECT k.translation_key, english.value AS english_value, translated.value AS translated_value
+                 FROM system_translation_keys k
+                 INNER JOIN system_languages english_language ON english_language.language_code = \'en\'
+                 INNER JOIN system_translation_values english
+                         ON english.translation_key_id = k.id AND english.language_id = english_language.id AND english.status = \'active\'
+                 LEFT JOIN system_languages selected_language
+                        ON selected_language.language_code = :language_code AND selected_language.is_active = 1
+                 LEFT JOIN system_translation_values translated
+                        ON translated.translation_key_id = k.id AND translated.language_id = selected_language.id AND translated.status = \'active\'
+                 ORDER BY k.translation_key'
+            );
+            $stmt->execute(['language_code' => $languageCode]);
+            $catalogue = [];
+            $textMap = [];
+            foreach ($stmt->fetchAll() as $row) {
+                $translatedValue = $row['translated_value'];
+                $value = is_string($translatedValue) && $translatedValue !== ''
+                    ? $translatedValue
+                    : (string) $row['english_value'];
+                $catalogue[$row['translation_key']] = $value;
+                $source = (string) $row['english_value'];
+                if ($source !== '' && $value !== $source) {
+                    $textMap[$source] ??= $value;
+                }
+            }
+            self::$catalogues[$languageCode] = $catalogue;
+            self::$textMaps[$languageCode] = $textMap;
+        }
+
+        return self::$catalogues[$languageCode][$key] ?? $fallback;
+    }
+
+    /** @return array<string, string> English text to the current language text. */
+    public static function textMap(): array
+    {
+        $languageCode = LanguageService::currentCode();
+        if (!isset(self::$catalogues[$languageCode])) {
+            self::translate('', '');
+        }
+
+        return self::$textMaps[$languageCode] ?? [];
+    }
+
     /** All keys with their value for a given language (NULL if missing -> falls back to English at read time). */
     public static function listForLanguage(int $languageId): array
     {

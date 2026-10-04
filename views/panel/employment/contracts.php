@@ -41,7 +41,18 @@
                         <td><?= e($contract['start_date']) ?> – <?= e($contract['end_date'] ?: 'Open-ended') ?></td>
                         <td><?= e(ucfirst($contract['period_status'])) ?></td>
                         <?php if ($canManage): ?>
-                            <td><a class="btn btn-outline-secondary btn-sm" href="/panel/employment/contracts/edit?id=<?= (int) $contract['id'] ?>">Edit</a></td>
+                            <td class="text-nowrap">
+                                <?php if ($contract['archived_at'] === null): ?>
+                                    <a class="btn btn-outline-secondary btn-sm" href="/panel/employment/contracts/edit?id=<?= (int) $contract['id'] ?>">Edit</a>
+                                <?php endif; ?>
+                                <?php if ($contract['contract_type'] === 'temporary' && empty($contract['has_schedule_entries'])): ?>
+                                    <form method="post" action="/panel/employment/contracts/archive" class="d-inline">
+                                        <?= Csrf::field() ?>
+                                        <input type="hidden" name="id" value="<?= (int) $contract['id'] ?>">
+                                        <button class="btn btn-outline-danger btn-sm" type="submit"><?= $contract['archived_at'] === null ? 'Archive' : 'Restore' ?></button>
+                                    </form>
+                                <?php endif; ?>
+                            </td>
                         <?php endif; ?>
                     </tr>
                 <?php endforeach; ?>

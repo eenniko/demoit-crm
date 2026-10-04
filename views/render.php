@@ -17,3 +17,8 @@ function e(?string $value): string
 {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
+
+function t(string $key, string $fallback = ''): string
+{
+    return TranslationService::translate($key, $fallback);
+}

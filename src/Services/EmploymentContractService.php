@@ -11,13 +11,15 @@ class EmploymentContractService
     public static function listForClient(int $clientId): array
     {
         $stmt = db()->prepare(
-                "SELECT c.id, c.employee_id, c.property_node_id, c.contract_type, c.start_date, c.end_date, c.workload_percent,
+                "SELECT c.id, c.employee_id, c.property_node_id, c.contract_type, c.start_date, c.end_date, c.workload_percent, c.archived_at,
+                    EXISTS (SELECT 1 FROM employee_schedule_entries e WHERE e.client_id = c.client_id AND e.contract_id = c.id) AS has_schedule_entries,
                     workload.name AS workload_name,
                     employee.username, employee.full_name,
                     property.name AS property_name, property.node_type AS property_type,
                     title.name AS job_title, department.name AS department_name,
                     manager.full_name AS manager_name, manager.username AS manager_username,
                     CASE
+                        WHEN c.archived_at IS NOT NULL THEN 'archived'
                         WHEN c.start_date > CURRENT_DATE THEN 'scheduled'
                         WHEN c.end_date IS NOT NULL AND c.end_date < CURRENT_DATE THEN 'ended'
                         ELSE 'current'
@@ -52,10 +54,60 @@ class EmploymentContractService
         return $contracts;
     }
 
+    /** @return array{0: bool, 1: string} */
+    public static function toggleTemporaryArchive(int $clientId, int $contractId, int $actorUserId): array
+    {
+        $pdo = db();
+        try {
+            $pdo->beginTransaction();
+            $stmt = $pdo->prepare(
+                'SELECT contract_type, archived_at
+                 FROM employment_contracts
+                 WHERE client_id = :client_id AND id = :id
+                 FOR UPDATE'
+            );
+            $stmt->execute(['client_id' => $clientId, 'id' => $contractId]);
+            $contract = $stmt->fetch();
+            if ($contract === false || $contract['contract_type'] !== 'temporary') {
+                $pdo->rollBack();
+                return [false, 'Temporary contract not found for this client.'];
+            }
+
+            if ($contract['archived_at'] === null) {
+                $scheduleEntries = $pdo->prepare(
+                    'SELECT 1 FROM employee_schedule_entries
+                     WHERE client_id = :client_id AND contract_id = :id LIMIT 1'
+                );
+                $scheduleEntries->execute(['client_id' => $clientId, 'id' => $contractId]);
+                if ($scheduleEntries->fetchColumn() !== false) {
+                    $pdo->rollBack();
+                    return [false, 'A temporary contract with schedule entries cannot be archived.'];
+                }
+                $update = $pdo->prepare('UPDATE employment_contracts SET archived_at = CURRENT_TIMESTAMP WHERE client_id = :client_id AND id = :id');
+                $update->execute(['client_id' => $clientId, 'id' => $contractId]);
+                $action = 'archived';
+            } else {
+                $update = $pdo->prepare('UPDATE employment_contracts SET archived_at = NULL WHERE client_id = :client_id AND id = :id');
+                $update->execute(['client_id' => $clientId, 'id' => $contractId]);
+                $action = 'restored';
+            }
+            $pdo->commit();
+        } catch (Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            return [false, 'Could not change temporary contract archive status.'];
+        }
+
+        AuditLogService::log($actorUserId, $clientId, "employment.contract.{$action}", 'employment_contracts', (string) $contractId);
+
+        return [true, $action === 'archived' ? 'Temporary contract archived.' : 'Temporary contract restored.'];
+    }
+
     public static function findForClient(int $clientId, int $contractId): ?array
     {
         $stmt = db()->prepare(
-                'SELECT c.id, c.employee_id, c.property_node_id, c.job_title_id, c.workload_id, c.workload_percent,
+                'SELECT c.id, c.employee_id, c.property_node_id, c.job_title_id, c.workload_id, c.workload_percent, c.archived_at,
                     c.department_id, c.manager_user_id, c.contract_type, c.start_date, c.end_date,
                     employee.username, employee.full_name
              FROM employment_contracts c
@@ -138,6 +190,16 @@ class EmploymentContractService
             && ($secondEnd === null || $firstStart <= $secondEnd);
     }
 
+    public static function dateRangesShareMonth(string $firstStart, ?string $firstEnd, string $secondStart, ?string $secondEnd): bool
+    {
+        $firstStartMonth = substr($firstStart, 0, 7);
+        $firstEndMonth = substr($firstEnd ?? '9999-12-31', 0, 7);
+        $secondStartMonth = substr($secondStart, 0, 7);
+        $secondEndMonth = substr($secondEnd ?? '9999-12-31', 0, 7);
+
+        return $firstStartMonth <= $secondEndMonth && $secondStartMonth <= $firstEndMonth;
+    }
+
     public static function dateRangeContains(string $outerStart, ?string $outerEnd, string $innerStart, ?string $innerEnd): bool
     {
         return $innerStart >= $outerStart
@@ -159,6 +221,9 @@ class EmploymentContractService
         $existing = $contractId !== null ? self::findForClient($clientId, $contractId) : null;
         if ($contractId !== null && $existing === null) {
             return [false, 'Contract not found for this client.'];
+        }
+        if ($existing !== null && $existing['archived_at'] !== null) {
+            return [false, 'Restore the archived contract before editing it.'];
         }
 
         $employeeId = $existing !== null
@@ -239,6 +304,10 @@ class EmploymentContractService
                 $error = 'The primary contract dates and location must continue to cover each linked temporary workplace at a different property location.';
                 return [false, $error];
             }
+            if ($type === 'temporary' && self::hasTemporaryAtSameFloorInMonth($pdo, $clientId, $employeeId, $propertyId, $startDate, $endDate, $contractId)) {
+                $pdo->rollBack();
+                return [false, 'An employee can have only one temporary contract on the same floor in each month.'];
+            }
             if ($type === 'temporary' && !self::hasDifferentPrimaryLocation($pdo, $clientId, $employeeId, $propertyId, $startDate, $endDate)) {
                 $pdo->rollBack();
                 return [false, 'A temporary contract must fit within a primary contract period and use a different property location.'];
@@ -298,7 +367,7 @@ class EmploymentContractService
     private static function hasOverlappingPrimary(PDO $pdo, int $clientId, int $employeeId, string $startDate, ?string $endDate, ?int $excludeId): bool
     {
         $sql = "SELECT id, start_date, end_date FROM employment_contracts
-                WHERE client_id = :client_id AND employee_id = :employee_id AND contract_type = 'primary'";
+                WHERE client_id = :client_id AND employee_id = :employee_id AND contract_type = 'primary' AND archived_at IS NULL";
         $params = ['client_id' => $clientId, 'employee_id' => $employeeId];
         if ($excludeId !== null) {
             $sql .= ' AND id <> :exclude_id';
@@ -320,7 +389,7 @@ class EmploymentContractService
     {
         $stmt = $pdo->prepare(
             "SELECT property_node_id, start_date, end_date FROM employment_contracts
-             WHERE client_id = :client_id AND employee_id = :employee_id AND contract_type = 'primary'"
+             WHERE client_id = :client_id AND employee_id = :employee_id AND contract_type = 'primary' AND archived_at IS NULL"
         );
         $stmt->execute(['client_id' => $clientId, 'employee_id' => $employeeId]);
         $overlapping = [];
@@ -333,11 +402,48 @@ class EmploymentContractService
         return $overlapping !== [] && !in_array($propertyId, $overlapping, true);
     }
 
+    private static function hasTemporaryAtSameFloorInMonth(PDO $pdo, int $clientId, int $employeeId, int $propertyId, string $startDate, ?string $endDate, ?int $excludeId): bool
+    {
+        $sql = "SELECT property_node_id, start_date, end_date FROM employment_contracts
+                WHERE client_id = :client_id AND employee_id = :employee_id
+                    AND contract_type = 'temporary' AND archived_at IS NULL";
+        $params = ['client_id' => $clientId, 'employee_id' => $employeeId];
+        if ($excludeId !== null) {
+            $sql .= ' AND id <> :exclude_id';
+            $params['exclude_id'] = $excludeId;
+        }
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        $floorByNode = [];
+        foreach (PropertyService::listTreeForClient($clientId) as $node) {
+            $nodeId = (int) $node['id'];
+            $parentId = (int) ($node['parent_id'] ?? 0);
+            $floorByNode[$nodeId] = $node['node_type'] === 'floor'
+                ? $nodeId
+                : ($floorByNode[$parentId] ?? null);
+        }
+        $floorId = $floorByNode[$propertyId] ?? null;
+
+        foreach ($stmt->fetchAll() as $contract) {
+            $existingPropertyId = (int) $contract['property_node_id'];
+            $existingFloorId = $floorByNode[$existingPropertyId] ?? null;
+            $sameFloor = $floorId !== null && $existingFloorId !== null
+                ? $floorId === $existingFloorId
+                : $propertyId === $existingPropertyId;
+            if ($sameFloor && self::dateRangesShareMonth($startDate, $endDate, $contract['start_date'], $contract['end_date'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static function hasInvalidTemporaryAssignments(PDO $pdo, int $clientId, int $employeeId, int $propertyId, string $startDate, ?string $endDate, ?array $existingPrimary): bool
     {
         $stmt = $pdo->prepare(
             "SELECT property_node_id, start_date, end_date FROM employment_contracts
-             WHERE client_id = :client_id AND employee_id = :employee_id AND contract_type = 'temporary'"
+             WHERE client_id = :client_id AND employee_id = :employee_id AND contract_type = 'temporary' AND archived_at IS NULL"
         );
         $stmt->execute(['client_id' => $clientId, 'employee_id' => $employeeId]);
         foreach ($stmt->fetchAll() as $contract) {

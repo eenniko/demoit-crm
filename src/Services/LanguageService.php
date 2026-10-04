@@ -13,6 +13,42 @@ class LanguageService
         return db()->query('SELECT * FROM system_languages ORDER BY is_default DESC, name')->fetchAll();
     }
 
+    public static function listActive(): array
+    {
+        return db()->query('SELECT id, language_code, name, is_default FROM system_languages WHERE is_active = 1 ORDER BY is_default DESC, name')->fetchAll();
+    }
+
+    public static function currentCode(): string
+    {
+        $code = is_string($_SESSION['language_code'] ?? null) ? $_SESSION['language_code'] : 'en';
+        foreach (self::listActive() as $language) {
+            if ($language['language_code'] === $code) {
+                return $code;
+            }
+        }
+
+        foreach (self::listActive() as $language) {
+            if ((int) $language['is_default'] === 1) {
+                return (string) $language['language_code'];
+            }
+        }
+
+        return 'en';
+    }
+
+    public static function setCurrentCode(string $code): bool
+    {
+        $code = strtolower(trim($code));
+        foreach (self::listActive() as $language) {
+            if ($language['language_code'] === $code) {
+                $_SESSION['language_code'] = $code;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @return array{0: bool, 1: string}
      */

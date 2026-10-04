@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS employment_contracts (
     contract_type ENUM('primary', 'temporary') NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NULL,
+    archived_at DATETIME NULL,
     created_by INT UNSIGNED NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

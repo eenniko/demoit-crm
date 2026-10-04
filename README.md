@@ -15,6 +15,14 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.66 | 04.10.2026 | Nädalavahetuse roosa taust on 50% läbipaistvusega. |
+| 1.65 | 04.10.2026 | Graafiku nädalavahetuse päevade taust on punase ja valge 50% segu. |
+| 1.64 | 04.10.2026 | Kuu koormuse protsendinupp avab modaali ning värskendab Required/OT/Tri-OT saldosid. |
+| 1.63 | 04.10.2026 | Põhilepingu kuupõhine koormus muudab Required/OT/Tri-OT arvestust lepingut poolitamata. |
+| 1.62 | 04.10.2026 | Staatilise kasutajaliidese inglise/eesti/vene tõlkekataloog, mida saab administ muuta. |
+| 1.61 | 04.10.2026 | Päise keelevalik ning andmebaasipõhised päise ja menüü tõlked eesti ja vene keeles. |
+| 1.60 | 04.10.2026 | Block-mallid keelavad kattuvad vahetused ja exception’id, lisamata tunde Planned-i. |
+| 1.59 | 03.10.2026 | Ajutisi graafikuta lepinguid saab turvaliselt arhiveerida ja taastada. |
 | 1.58 | 03.10.2026 | Automaatsalvestus muudab ainult valitud päeva; tööpäeva exception kontrollitakse kattuvuse vastu. |
 | 1.57 | 03.10.2026 | Exception-tunnid lähevad Planned-arvestusse ainult tööpäevadel. |
 | 1.56 | 03.10.2026 | Ajutiste tundide sulgudes jaotus kuvab ainult tunnid. |
@@ -80,6 +88,14 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.66 | 04.10.2026 | The pink schedule weekend background is 50% transparent. |
+| 1.65 | 04.10.2026 | Schedule weekend-day backgrounds use a 50/50 red-and-white mix. |
+| 1.64 | 04.10.2026 | Monthly workload button opens a modal and refreshes Required/OT/Tri-OT balances. |
+| 1.63 | 04.10.2026 | Monthly primary-contract workload overrides update Required/OT/Tri-OT without splitting contracts. |
+| 1.62 | 04.10.2026 | Editable English/Estonian/Russian database catalog for static interface text. |
+| 1.61 | 04.10.2026 | Header language selector and database-backed header/navigation translations in Estonian and Russian. |
+| 1.60 | 04.10.2026 | Block templates prevent overlapping shifts and exceptions without adding Planned hours. |
+| 1.59 | 03.10.2026 | Temporary contracts without schedule entries can be archived and restored. |
 | 1.58 | 03.10.2026 | Autosave updates one day; weekday exceptions are checked for overlap. |
 | 1.57 | 03.10.2026 | Exception hours count as Planned on weekdays only. |
 | 1.56 | 03.10.2026 | Temporary-hour breakdown shows the hours only. |
