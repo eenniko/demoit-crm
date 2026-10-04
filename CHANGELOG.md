@@ -8,7 +8,8 @@
 - Kontrollitud live'is: kuu 2026-10 kuus gruppi, mitmikvaliku tühjendamine ja üksikvalik, printimisel `break-after: page` ning eesti/inglise juhtelementide tõlked.
 - Visuaalselt kontrollitud landscape-eelvaade: kuu päevad ja saldoveerud mahuvad samale lehele.
 - Kontrollitud live'is: prindivaates säilivad vahetusmallide värvid ning põhilepingu `Sum h` all kuvatakse ajutiste tundide jaotus.
-- Print-vaates peidetakse CRM-i päis, menüü, jalus ja valikunupud; iga prindilehe paremas ülanurgas kuvatakse tänane kuupäev.
+- Print-vaates peidetakse CRM-i päis, menüüd, vahelehed, jalus ja valikunupud; iga prindilehe paremas ülanurgas kuvatakse tänane kuupäev.
+- Prinditabelis kuvatakse ainult `Sum h`; `Min h`, `OT` ja `Tri-OT` jäetakse välja.
 - Järgmiseks versiooniks pärast 1.71 on `1.72`.
 
 ## Versioon 1.70 – 4. oktoober 2026
@@ -625,7 +626,8 @@ Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab v
 - Verified live for October 2026: six groups, clear/single selection behavior, `break-after: page` in print media, and translated Estonian/English controls.
 - Visually checked the landscape preview: day and balance columns fit on one page.
 - Verified live: printed schedule cells preserve shift-template colors and primary-contract `Sum h` totals include the temporary-hours breakdown.
-- The print layout hides the CRM header, navigation, footer and selection controls; each page shows today's date at the top right.
+- The print layout hides the CRM header, navigation, schedule tabs, footer and selection controls; each page shows today's date at the top right.
+- The print table keeps `Sum h` and omits `Min h`, `OT` and `Tri-OT`.
 - The next version after 1.71 is `1.72`.
 
 ## Version 1.70 - October 4, 2026

@@ -58,9 +58,6 @@
                                     </th>
                                 <?php endfor; ?>
                                 <th class="print-total-column"><?= e(t('ui.' . hash('sha256', 'Sum h'), 'Sum h')) ?></th>
-                                <th class="print-total-column"><?= e(t('ui.' . hash('sha256', 'Min h'), 'Min h')) ?></th>
-                                <th class="print-total-column">OT</th>
-                                <th class="print-total-column">Tri-OT</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -87,9 +84,6 @@
                                             <small class="print-secondary-label">(+<?= e(ScheduleService::formatHours((float) $contract['temporary_planned_hours'])) ?>)</small>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="print-total-column"><?= $contract['required_hours'] === null ? '—' : e(ScheduleService::formatHours((float) $contract['required_hours'])) ?></td>
-                                    <td class="print-total-column"><?= $contract['monthly_balance_hours'] === null ? '—' : e(ScheduleService::formatBalance((float) $contract['monthly_balance_hours'])) ?></td>
-                                    <td class="print-total-column"><?= $contract['trimester_balance_hours'] === null ? '—' : e(ScheduleService::formatBalance((float) $contract['trimester_balance_hours'])) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -125,6 +119,7 @@
     .app-main > .container-fluid > .row { display: block !important; margin: 0 !important; }
     .app-main > .container-fluid > .row > nav { display: none !important; }
     .app-main > .container-fluid > .row > section { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    .app-main > .container-fluid > .row > section > .nav-tabs { display: none !important; }
     .no-print, .print-location-page[hidden] { display: none !important; }
     #schedule-print-pages { display: block !important; }
     .print-location-page { break-after: page; page-break-after: always; }
