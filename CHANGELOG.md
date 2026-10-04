@@ -1,5 +1,16 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.71 – 4. oktoober 2026
+
+- Lisatud kuu graafiku prindivaade, kus saab korraga valida mitu asukoha/osakonna gruppi; iga valitud grupp algab printimisel uuelt landscape-lehelt ning brauserist saab printida või PDF-ina salvestada.
+- Mõjutatud failid: `public/index.php`, `views/panel/schedule/nav.php`, `views/panel/schedule/print.php`, `src/Services/SchemaInstaller.php`, `sql/058_schedule_printing.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud printimisvaate tõlked olemasolevasse kataloogi; migratsioon registreerib versiooni 1.71.
+- Kontrollitud live'is: kuu 2026-10 kuus gruppi, mitmikvaliku tühjendamine ja üksikvalik, printimisel `break-after: page` ning eesti/inglise juhtelementide tõlked.
+- Visuaalselt kontrollitud landscape-eelvaade: kuu päevad ja saldoveerud mahuvad samale lehele.
+- Kontrollitud live'is: prindivaates säilivad vahetusmallide värvid ning põhilepingu `Sum h` all kuvatakse ajutiste tundide jaotus.
+- Print-vaates peidetakse CRM-i päis, menüü, jalus ja valikunupud; iga prindilehe paremas ülanurgas kuvatakse tänane kuupäev.
+- Järgmiseks versiooniks pärast 1.71 on `1.72`.
+
 ## Versioon 1.70 – 4. oktoober 2026
 
 - Graafiku tundide veeru silt muudeti „Planeeritud h“ asemel „Kokku h“ (inglise keeles „Sum h“).
@@ -605,6 +616,17 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.71 - October 4, 2026
+
+- Added a monthly schedule print view with multi-select location/department groups. Each selected group starts on a separate landscape page; the browser can print or save the result as PDF.
+- Affected files: `public/index.php`, `views/panel/schedule/nav.php`, `views/panel/schedule/print.php`, `src/Services/SchemaInstaller.php`, `sql/058_schedule_printing.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: add print-view translations to the existing catalog; migration records version 1.71.
+- Verified live for October 2026: six groups, clear/single selection behavior, `break-after: page` in print media, and translated Estonian/English controls.
+- Visually checked the landscape preview: day and balance columns fit on one page.
+- Verified live: printed schedule cells preserve shift-template colors and primary-contract `Sum h` totals include the temporary-hours breakdown.
+- The print layout hides the CRM header, navigation, footer and selection controls; each page shows today's date at the top right.
+- The next version after 1.71 is `1.72`.
 
 ## Version 1.70 - October 4, 2026
 

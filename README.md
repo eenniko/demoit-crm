@@ -15,6 +15,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.71 | 04.10.2026 | Kuugraafiku prindivaates saab valida asukoha/osakonna kaupa eraldi landscape-lehtedele prinditavad grupid. |
 | 1.70 | 04.10.2026 | Graafiku „Planeeritud h“ veerg nimetati ümber „Kokku h“-ks. |
 | 1.69 | 04.10.2026 | Eraldi riigipühade vaheleht näitab kõiki imporditud pühi. |
 | 1.68 | 04.10.2026 | Riigipühade XML-vorm ja imporditeated tõlgitud eesti, inglise ja vene keelde. |
@@ -92,6 +93,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.71 | 04.10.2026 | Monthly schedule print view supports multi-select location/department groups, one landscape page per group. |
 | 1.70 | 04.10.2026 | Renamed the schedule's "Planned h" column to "Sum h". |
 | 1.69 | 04.10.2026 | A dedicated public-holidays tab lists every imported entry. |
 | 1.68 | 04.10.2026 | Public-holiday XML form and import messages translated into Estonian, English and Russian. |

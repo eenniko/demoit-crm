@@ -1,6 +1,6 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.70
+**Süsteemi arendusversioon:** 1.71
 
 ## Eesti keeles
 
@@ -17,6 +17,10 @@ Vali kuu; iga kehtiv põhi- või ajutine leping kuvatakse oma asukoha/osakonna a
 Päevaseks valikuks saab määrata vahetuse või erandi. Malli algusaeg ja kestus määravad tööaja; vahetus võib kesta kuni 24 tundi ja jätkuda järgmise päeva hommikusse. Näiteks `12Ö` algab 20:00 ja kestab 12 tundi; `24H` algab 08:00 ja kestab 24 tundi. Shift-tunnid lähevad Planned-summasse kõigil päevadel; Exception-tunnid lähevad sinna ainult esmaspäevast reedeni.
 
 `Block`-mall blokeerib sama töötaja kattuvad vahetuse ja exception’i ajavahemikud, kuid Block-tunde Planned-summasse ei arvestata. Kogu päeva blokeerimiseks võib näiteks luua `EST`-malli algusega 00:00 ja kestusega 24 tundi. Täpselt kõrvuti lõppev/alustav vahemik on lubatud.
+
+### Printimine
+
+Vahelehel **Print schedule** vali kuu ja märgi prinditavad asukoha/osakonna grupid. Kõik grupid on vaikimisi valitud; **Select all** ja **Clear selection** muudavad valikut. Nupp **Print / Save as PDF** avab brauseri printimisakna. Iga valitud grupp algab eraldi landscape-lehelt; suurem grupp võib jätkuda järgmisel lehel. Printimisel peidetakse CRM-i päis, menüü, jalus ja valikunupud; iga leht kuvab paremas ülanurgas tänase kuupäeva. Prindivaates säilivad vahetusmallide värvid ning põhilepingu **Sum h** veerus kuvatakse ka ajutiste töötundide jaotus.
 
 ### Vahetuste seaded ja tundide kokkuvõte
 
@@ -43,6 +47,10 @@ Choose a month; each valid primary or temporary contract appears under its own l
 Each day can have a shift or an exception. A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Shift hours count as Planned on every day; exception hours count only Monday-Friday.
 
 A `Block` template prevents overlapping shift and exception intervals for the same employee, but Block hours are excluded from Planned. To block a full day, create a template such as `EST` starting at 00:00 for 24 hours. Exact end-to-start handoffs remain allowed.
+
+### Printing
+
+On **Print schedule**, choose a month and select the location/department groups to print. All groups are selected by default; **Select all** and **Clear selection** change the selection. **Print / Save as PDF** opens the browser print dialog. Each selected group starts on a separate landscape page; a large group may continue onto additional pages. Printing hides the CRM header, navigation, footer and selection controls; each page shows today's date at the top right. The print view preserves shift-template colors and shows the temporary-hours breakdown under primary-contract **Sum h** totals.
 
 ### Shift settings and hour summary
 

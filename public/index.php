@@ -292,6 +292,10 @@ switch (true) {
         handle_panel_schedule($method);
         break;
 
+    case $path === '/panel/schedule/print':
+        handle_panel_schedule_print();
+        break;
+
     case $path === '/panel/schedule/workload':
         handle_panel_schedule_workload($method);
         break;
@@ -1873,6 +1877,44 @@ function handle_panel_schedule(string $method): void
         'canManageTemplates' => $isClientAdmin,
         'message' => $message,
         'error' => $error,
+    ], 'schedule');
+}
+
+function handle_panel_schedule_print(): void
+{
+    if (!require_schedule_modules()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    $isClientAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
+    $monthValue = is_string($_GET['month'] ?? null) ? $_GET['month'] : date('Y-m');
+    $month = ScheduleService::monthInfo($monthValue);
+    if ($month === null) {
+        http_response_code(400);
+        render_page('Invalid month', 'errors/404.php');
+        return;
+    }
+
+    $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month);
+    $locations = [];
+    foreach ($data['contracts'] as $contract) {
+        $locationKey = (int) $contract['property_node_id'] . ':' . (int) ($contract['department_id'] ?? 0);
+        if (!isset($locations[$locationKey])) {
+            $department = $contract['department_name'] ?: 'No department';
+            $locations[$locationKey] = [
+                'label' => $contract['property_path'] . ' · ' . $department,
+                'contracts' => [],
+            ];
+        }
+        $locations[$locationKey]['contracts'][] = $contract;
+    }
+
+    render_panel_page('Print schedule', 'schedule/print.php', [
+        'month' => $month,
+        'locations' => $locations,
+        'entries' => $data['entries'],
     ], 'schedule');
 }
 
