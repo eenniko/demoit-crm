@@ -129,6 +129,7 @@
     .print-date { font-size: 8pt; white-space: nowrap; }
     .schedule-print-grid { margin: 0; }
     .schedule-print-grid th, .schedule-print-grid td { padding: .6mm .2mm; font-size: 6pt; }
+    .schedule-print-grid tbody tr > * { height: 7.3mm; }
     .schedule-print-grid .print-employee-column { width: 30mm; }
     .schedule-print-grid .print-day-column { width: auto; }
     .schedule-print-grid .print-day-column small, .print-secondary-label { font-size: 5pt; }

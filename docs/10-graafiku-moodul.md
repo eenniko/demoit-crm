@@ -1,6 +1,6 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.71
+**Süsteemi arendusversioon:** 1.72
 
 ## Eesti keeles
 
@@ -20,7 +20,7 @@ Päevaseks valikuks saab määrata vahetuse või erandi. Malli algusaeg ja kestu
 
 ### Printimine
 
-Vahelehel **Print schedule** vali kuu ja märgi prinditavad asukoha/osakonna grupid. Kõik grupid on vaikimisi valitud; **Select all** ja **Clear selection** muudavad valikut. Nupp **Print / Save as PDF** avab brauseri printimisakna. Iga valitud grupp algab eraldi landscape-lehelt; suurem grupp võib jätkuda järgmisel lehel. Printimisel peidetakse CRM-i päis, menüüd, graafiku vahelehed, jalus ja valikunupud; iga leht kuvab paremas ülanurgas tänase kuupäeva. Tundide veergudest kuvatakse ainult **Sum h**; **Min h**, **OT** ja **Tri-OT** jäetakse välja. Prindivaates säilivad vahetusmallide värvid ning põhilepingu **Sum h** veerus kuvatakse ka ajutiste töötundide jaotus.
+Vahelehel **Print schedule** vali kuu ja märgi prinditavad asukoha/osakonna grupid. Kõik grupid on vaikimisi valitud; **Select all** ja **Clear selection** muudavad valikut. Nupp **Print / Save as PDF** avab brauseri printimisakna. Iga valitud grupp algab eraldi landscape-lehelt; suurem grupp võib jätkuda järgmisel lehel. Printimisel peidetakse CRM-i päis, menüüd, graafiku vahelehed, jalus ja valikunupud; iga leht kuvab paremas ülanurgas tänase kuupäeva. Tundide veergudest kuvatakse ainult **Sum h**; **Min h**, **OT** ja **Tri-OT** jäetakse välja. Kõik töötajaread on sama kõrgusega nagu „Temporary assignment“ rida. Prindivaates säilivad vahetusmallide värvid ning põhilepingu **Sum h** veerus kuvatakse ka ajutiste töötundide jaotus.
 
 ### Vahetuste seaded ja tundide kokkuvõte
 
@@ -50,7 +50,7 @@ A `Block` template prevents overlapping shift and exception intervals for the sa
 
 ### Printing
 
-On **Print schedule**, choose a month and select the location/department groups to print. All groups are selected by default; **Select all** and **Clear selection** change the selection. **Print / Save as PDF** opens the browser print dialog. Each selected group starts on a separate landscape page; a large group may continue onto additional pages. Printing hides the CRM header, navigation, schedule tabs, footer and selection controls; each page shows today's date at the top right. Only **Sum h** is shown among the totals; **Min h**, **OT** and **Tri-OT** are omitted. The print view preserves shift-template colors and shows the temporary-hours breakdown under primary-contract **Sum h** totals.
+On **Print schedule**, choose a month and select the location/department groups to print. All groups are selected by default; **Select all** and **Clear selection** change the selection. **Print / Save as PDF** opens the browser print dialog. Each selected group starts on a separate landscape page; a large group may continue onto additional pages. Printing hides the CRM header, navigation, schedule tabs, footer and selection controls; each page shows today's date at the top right. Only **Sum h** is shown among the totals; **Min h**, **OT** and **Tri-OT** are omitted. All employee rows have the same height as the Temporary assignment row. The print view preserves shift-template colors and shows the temporary-hours breakdown under primary-contract **Sum h** totals.
 
 ### Shift settings and hour summary
 

@@ -1,5 +1,13 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.72 – 4. oktoober 2026
+
+- Prinditud graafiku kõikide töötajaridade kõrgus ühtlustati „Temporary assignment“ reaga.
+- Mõjutatud failid: `views/panel/schedule/print.php`, `sql/059_schedule_print_row_height.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: skeem ei muutu; migratsioon registreerib versiooni 1.72.
+- Kontrollitud live-print-vaates: kõik 39 rida on sama kõrgusega (27,58 px).
+- Järgmiseks versiooniks pärast 1.72 on `1.73`.
+
 ## Versioon 1.71 – 4. oktoober 2026
 
 - Lisatud kuu graafiku prindivaade, kus saab korraga valida mitu asukoha/osakonna gruppi; iga valitud grupp algab printimisel uuelt landscape-lehelt ning brauserist saab printida või PDF-ina salvestada.
@@ -617,6 +625,14 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.72 - October 4, 2026
+
+- Equalized all printed employee row heights to match the Temporary assignment row.
+- Affected files: `views/panel/schedule/print.php`, `sql/059_schedule_print_row_height.sql`, `src/Services/SchemaInstaller.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: no schema changes; migration records version 1.72.
+- Verified in the live print view: all 39 rows have the same height (27.58 px).
+- The next version after 1.72 is `1.73`.
 
 ## Version 1.71 - October 4, 2026
 
