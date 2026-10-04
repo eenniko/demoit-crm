@@ -1,5 +1,31 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.69 – 4. oktoober 2026
+
+- Riigipühade XML-import viidi eraldi graafiku vahelehele, kus kuvatakse kõik imporditud päevad koos nimetuse, liigi ja märkustega.
+- Vaheleht ning loendi tekstid tõlgiti eesti, inglise ja vene keelde.
+- Mõjutatud failid: `views/panel/schedule/nav.php`, `views/panel/schedule/holidays.php`, `views/panel/schedule/index.php`, `public/index.php`, `src/Services/PublicHolidayService.php`, `src/Services/SchemaInstaller.php`, `sql/056_public_holiday_tab_translations.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud pühadevahelehe tõlked olemasolevasse kataloogi; migratsioon registreerib versiooni 1.69.
+- Kontrollitud live'is: vahelehel kuvatakse 174 kirjet ning kordusimport näitab 0 uut ja 174 olemasolevat kirjet.
+- Järgmiseks versiooniks pärast 1.69 on `1.70`.
+
+## Versioon 1.68 – 4. oktoober 2026
+
+- Lisatud riigipühade XML-vormi ja imporditulemuste tõlked eesti, inglise ja vene keelde.
+- Mõjutatud failid: `sql/055_public_holiday_translations.sql`, `src/Services/SchemaInstaller.php`, `src/Services/PublicHolidayService.php`, `public/index.php`, `views/panel/schedule/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` ja `docs/10-graafiku-moodul.md`.
+- Andmebaasimuudatus: lisatud olemasolevasse tõlkekataloogi XML-vormi, imporditulemuse ja veateadete tõlked; migratsioon registreerib versiooni 1.68.
+- Kontrollitud: eestikeelne vorm ja impordi kordustulemus kuvasid tõlked õigesti.
+- Järgmiseks versiooniks pärast 1.68 on `1.69`.
+
+## Versioon 1.67 – 4. oktoober 2026
+
+- Graafiku administraator saab eraldi XML-vormist importida riiklikke tähtpäevi. Import lisab ainult puuduvaid kirjeid ega muuda olemasolevaid.
+- Riigi- ja rahvuspüha (`kind_id` 1 ja 2) käituvad graafikus nädalavahetuse töövaba päevana; riiklikud tähtpäevad ja lühendatud tööpäevad jäävad tööpäevadeks.
+- Mõjutatud failid: `src/Services/PublicHolidayService.php`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/schedule/index.php`, `sql/054_public_holidays.sql`, `docs/10-graafiku-moodul.md`, `README.md`, `CHANGELOG.md` ja `docs/01-projektinouded-ja-disaininouded.md`.
+- Andmebaasimuudatus: lisatud globaalne pühade tabel koos unikaalse allikavõtmega; migratsioon registreerib versiooni 1.67.
+- Kontrollitud: manuse 174 kirjest lisati esimesel korral 174 ja kordusimport lisas 0; detsembri 2026 tööpäevi arvestatakse 21 ning 24.–25. detsembril rakendus graafikus puhkepäeva taust.
+- Järgmiseks versiooniks pärast 1.67 on `1.68`.
+
 ## Versioon 1.66 – 4. oktoober 2026
 
 - Nädalavahetuse roosa taust muudeti 50% läbipaistvaks.
@@ -571,6 +597,32 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.69 - October 4, 2026
+
+- Moved public-holiday XML import to a dedicated schedule tab that lists every imported date with its title, kind and notes.
+- Translated the tab and list text into Estonian, English and Russian.
+- Affected files: `views/panel/schedule/nav.php`, `views/panel/schedule/holidays.php`, `views/panel/schedule/index.php`, `public/index.php`, `src/Services/PublicHolidayService.php`, `src/Services/SchemaInstaller.php`, `sql/056_public_holiday_tab_translations.sql`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: add holiday-tab translations to the existing catalog; migration records version 1.69.
+- Verified live: the tab lists 174 entries and a repeat import reports zero new and 174 existing entries.
+- The next version after 1.69 is `1.70`.
+
+## Version 1.68 - October 4, 2026
+
+- Added Estonian, English and Russian translations for the public-holiday XML form and import results.
+- Affected files: `sql/055_public_holiday_translations.sql`, `src/Services/SchemaInstaller.php`, `src/Services/PublicHolidayService.php`, `public/index.php`, `views/panel/schedule/index.php`, `README.md`, `CHANGELOG.md`, `docs/01-projektinouded-ja-disaininouded.md` and `docs/10-graafiku-moodul.md`.
+- Database: add the XML form, import result and error translations to the existing catalog; migration records version 1.68.
+- Verified that the form and duplicate-import result are translated into Estonian.
+- The next version after 1.68 is `1.69`.
+
+## Version 1.67 - October 4, 2026
+
+- Schedule administrators can import public holidays from a separate XML form. Imports add only missing entries and never replace existing values.
+- National and public holidays (`kind_id` 1 and 2) behave as non-working schedule days; observances and shortened workdays remain workdays.
+- Affected files: `src/Services/PublicHolidayService.php`, `src/Services/ScheduleService.php`, `src/Services/SchemaInstaller.php`, `public/index.php`, `views/panel/schedule/index.php`, `sql/054_public_holidays.sql`, `docs/10-graafiku-moodul.md`, `README.md`, `CHANGELOG.md` and `docs/01-projektinouded-ja-disaininouded.md`.
+- Database: add a global public-holiday table with a unique source key; migration records version 1.67.
+- Verified: all 174 attached XML entries imported once, the repeat import added zero, December 2026 has 21 working weekdays, and December 24-25 use the schedule non-working-day background.
+- The next version after 1.67 is `1.68`.
 
 ## Version 1.66 - October 4, 2026
 

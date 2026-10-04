@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/AuditLogService.php';
 require_once __DIR__ . '/PropertyService.php';
+require_once __DIR__ . '/PublicHolidayService.php';
 
 class ScheduleService
 {
@@ -44,12 +45,19 @@ class ScheduleService
     {
         $count = 0;
         for ($day = $start; $day <= $end; $day = $day->modify('+1 day')) {
-            if ((int) $day->format('N') <= 5) {
+            if ((int) $day->format('N') <= 5 && !PublicHolidayService::isDayOff($day->format('Y-m-d'))) {
                 $count++;
             }
         }
 
         return $count;
+    }
+
+    public static function isNonWorkingDay(string $date): bool
+    {
+        $day = new DateTimeImmutable($date);
+
+        return (int) $day->format('N') >= 6 || PublicHolidayService::isDayOff($day->format('Y-m-d'));
     }
 
     public static function requiredHoursForMonth(float $workloadPercent, int $workingDays): float
@@ -485,7 +493,9 @@ class ScheduleService
             return false;
         }
 
-        return (int) (new DateTimeImmutable($scheduleDate))->format('N') <= 5;
+        $date = new DateTimeImmutable($scheduleDate);
+
+        return (int) $date->format('N') <= 5 && !PublicHolidayService::isDayOff($date->format('Y-m-d'));
     }
 
     public static function shiftMinutesInMonth(string $scheduleDate, string $startTime, int $durationMinutes, array $month): int

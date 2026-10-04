@@ -1,6 +1,6 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.63
+**Süsteemi arendusversioon:** 1.69
 
 ## Eesti keeles
 
@@ -48,7 +48,9 @@ A `Block` template prevents overlapping shift and exception intervals for the sa
 
 A client administrator manages shift and exception codes, start times and durations on **Shift settings**. Default shifts are `12Ö` (20:00, 12h), `12P` (08:00, 12h), `24H` (08:00, 24h) and `8P` (08:00, 8h). Default exceptions are `HP`, `K`, `LHP`, `LIP`, `P`, `TV` and `X` (08:00, 8h). Referenced templates are retained and can be hidden; existing schedule entries remain intact.
 
-The roster ends with Planned, Required, OT and four-month Tri-OT totals. A temporary row shows only its location's Planned hours; the primary row combines primary and temporary planned hours, while Required uses only primary-contract workload. Monthly OT = Planned − Required. Tri-OT accumulates over January-April, May-August and September-December. Shift minutes crossing a month boundary are split between months, except in the final month of a four-month period, where the full shift stays in that period. Required hours use primary-contract workload × Monday-Friday workdays × 8 hours; public holidays are not deducted.
+The roster ends with Planned, Required, OT and four-month Tri-OT totals. A temporary row shows only its location's Planned hours; the primary row combines primary and temporary planned hours, while Required uses only primary-contract workload. Monthly OT = Planned − Required. Tri-OT accumulates over January-April, May-August and September-December. Shift minutes crossing a month boundary are split between months, except in the final month of a four-month period, where the full shift stays in that period. Required hours use primary-contract workload × working weekdays × 8 hours; imported national and public holidays (`kind_id` 1 and 2) are excluded. Weekday exceptions on those holidays are excluded from Planned, matching weekend behavior.
+
+Client administrators can upload an XML holiday list from the dedicated **Public holidays** schedule tab, which also lists every imported date, title, kind and note. The import adds only entries not already stored; existing records are never overwritten. National observances and shortened workdays (`kind_id` 3 and 4) are retained as calendar data but do not turn a weekday into a non-working day.
 
 Primary contract workload applies by default throughout the contract. For a temporary monthly change, choose the workload under the employee name in that month's schedule. The override affects only that month's Required, OT and Tri-OT; the contract and existing daily entries are not split. Select the contract default to remove the monthly override.
 

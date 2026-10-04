@@ -15,6 +15,9 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.69 | 04.10.2026 | Eraldi riigipühade vaheleht näitab kõiki imporditud pühi. |
+| 1.68 | 04.10.2026 | Riigipühade XML-vorm ja imporditeated tõlgitud eesti, inglise ja vene keelde. |
+| 1.67 | 04.10.2026 | Pühade XML-import lisab ainult uued kirjed; riigi- ja rahvuspühad on graafikus töövabad. |
 | 1.66 | 04.10.2026 | Nädalavahetuse roosa taust on 50% läbipaistvusega. |
 | 1.65 | 04.10.2026 | Graafiku nädalavahetuse päevade taust on punase ja valge 50% segu. |
 | 1.64 | 04.10.2026 | Kuu koormuse protsendinupp avab modaali ning värskendab Required/OT/Tri-OT saldosid. |
@@ -88,6 +91,9 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.69 | 04.10.2026 | A dedicated public-holidays tab lists every imported entry. |
+| 1.68 | 04.10.2026 | Public-holiday XML form and import messages translated into Estonian, English and Russian. |
+| 1.67 | 04.10.2026 | Public-holiday XML import adds only new entries; statutory holidays are non-working schedule days. |
 | 1.66 | 04.10.2026 | The pink schedule weekend background is 50% transparent. |
 | 1.65 | 04.10.2026 | Schedule weekend-day backgrounds use a 50/50 red-and-white mix. |
 | 1.64 | 04.10.2026 | Monthly workload button opens a modal and refreshes Required/OT/Tri-OT balances. |

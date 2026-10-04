@@ -27,6 +27,7 @@ require_once __DIR__ . '/../src/Services/PropertyService.php';
 require_once __DIR__ . '/../src/Services/EmploymentCatalogService.php';
 require_once __DIR__ . '/../src/Services/EmploymentContractService.php';
 require_once __DIR__ . '/../src/Services/ScheduleService.php';
+require_once __DIR__ . '/../src/Services/PublicHolidayService.php';
 require_once __DIR__ . '/../views/render.php';
 require_once __DIR__ . '/../views/admin/render.php';
 require_once __DIR__ . '/../views/panel/render.php';
@@ -283,6 +284,10 @@ switch (true) {
         handle_panel_property_reorder($method);
         break;
 
+    case $path === '/panel/schedule/holidays/import':
+        handle_panel_schedule_holiday_import($method);
+        break;
+
     case $path === '/panel/schedule':
         handle_panel_schedule($method);
         break;
@@ -293,6 +298,10 @@ switch (true) {
 
     case $path === '/panel/schedule/templates':
         handle_panel_schedule_templates($method);
+        break;
+
+    case $path === '/panel/schedule/holidays':
+        handle_panel_schedule_holidays();
         break;
 
     case $path === '/panel/employment':
@@ -1796,7 +1805,7 @@ function handle_panel_schedule(string $method): void
         return;
     }
 
-    $error = null;
+    $error = is_string($_GET['error'] ?? null) ? $_GET['error'] : null;
     $message = $_GET['message'] ?? null;
     $oldAssignments = [];
     if ($method === 'POST') {
@@ -1865,6 +1874,100 @@ function handle_panel_schedule(string $method): void
         'message' => $message,
         'error' => $error,
     ], 'schedule');
+}
+
+function require_schedule_admin(): bool
+{
+    if (!require_schedule_modules()) {
+        return false;
+    }
+
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    if (!RoleService::hasAnyRole($userId, $clientId, ['client_admin'])) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return false;
+    }
+
+    return true;
+}
+
+function handle_panel_schedule_holidays(): void
+{
+    if (!require_schedule_admin()) {
+        return;
+    }
+
+    render_panel_page('Public holidays', 'schedule/holidays.php', [
+        'holidays' => PublicHolidayService::listAll(),
+        'message' => is_string($_GET['message'] ?? null) ? $_GET['message'] : null,
+        'error' => is_string($_GET['error'] ?? null) ? $_GET['error'] : null,
+    ], 'schedule');
+}
+
+function handle_panel_schedule_holiday_import(string $method): void
+{
+    if (!require_schedule_admin()) {
+        return;
+    }
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    if ($method !== 'POST') {
+        header('Location: /panel/schedule/holidays');
+        return;
+    }
+
+    $success = false;
+    $result = 'The XML upload failed.';
+
+    if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+        $result = 'Invalid session token, please try again.';
+    } else {
+        $file = $_FILES['public_holidays_xml'] ?? null;
+        if (!is_array($file) || (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $result = 'Select a valid public-holiday XML file.';
+        } elseif (strtolower(pathinfo((string) ($file['name'] ?? ''), PATHINFO_EXTENSION)) !== 'xml') {
+            $result = 'The uploaded file must have an .xml extension.';
+        } elseif ((int) ($file['size'] ?? 0) > 2 * 1024 * 1024) {
+            $result = 'The XML file must be no larger than 2 MB.';
+        } elseif (!is_uploaded_file((string) ($file['tmp_name'] ?? ''))) {
+            $result = 'The uploaded file could not be verified.';
+        } else {
+            $xml = file_get_contents((string) $file['tmp_name']);
+            if ($xml === false) {
+                $result = 'The uploaded XML file could not be read.';
+            } else {
+                [$success, $result] = PublicHolidayService::importXml($xml);
+                if ($success) {
+                    $summaryTemplate = 'Added %d new entries, %d were already present.';
+                    $summaryKey = 'ui.' . hash('sha256', $summaryTemplate);
+                    $result = sprintf(
+                        TranslationService::translate($summaryKey, $summaryTemplate),
+                        $result['added'],
+                        $result['existing']
+                    );
+                    AuditLogService::log(
+                        $userId,
+                        $clientId,
+                        'schedule.public_holidays_imported',
+                        'system_public_holidays',
+                        null,
+                        null,
+                        $result
+                    );
+                }
+            }
+        }
+    }
+
+    if (!$success) {
+        $result = TranslationService::translate('ui.' . hash('sha256', $result), $result);
+    }
+
+    $statusKey = $success ? 'message' : 'error';
+    header('Location: /panel/schedule/holidays?' . $statusKey . '=' . rawurlencode($result));
+    exit;
 }
 
 function handle_panel_schedule_workload(string $method): void

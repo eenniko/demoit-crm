@@ -69,6 +69,9 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/051_schedule_monthly_workload_modal.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.64' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/052_schedule_weekend_color.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.65' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/053_schedule_weekend_transparency.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.66' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/054_public_holidays.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.67' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'system_public_holidays') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/055_public_holiday_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.68' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = CONCAT('ui.', SHA2('Public holidays XML', 256))) LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/056_public_holiday_tab_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.69' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = CONCAT('ui.', SHA2('Public holidays', 256))) LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

@@ -31,7 +31,7 @@
                     <th class="schedule-location">Floor / department</th>
                     <?php for ($day = 1; $day <= $month['days']; $day++): ?>
                         <?php $date = sprintf('%s-%02d', $month['month'], $day); ?>
-                        <th class="text-center schedule-day <?= (int) date('N', strtotime($date)) >= 6 ? 'schedule-weekend' : '' ?>">
+                        <th class="text-center schedule-day <?= ScheduleService::isNonWorkingDay($date) ? 'schedule-weekend' : '' ?>">
                             <?= $day ?><br><small><?= e(date('D', strtotime($date))) ?></small>
                         </th>
                     <?php endfor; ?>
@@ -100,9 +100,9 @@
                             $entry = $entries[$contractId][$date] ?? null;
                             $entryColor = $entry === null ? null : ScheduleService::safeTemplateColor($entry['color_hex'] ?? null);
                             $withinContract = $date >= $contract['start_date'] && ($contract['end_date'] === null || $date <= $contract['end_date']);
-                            $weekend = (int) date('N', strtotime($date)) >= 6;
+                            $nonWorkingDay = ScheduleService::isNonWorkingDay($date);
                             ?>
-                            <td class="schedule-day <?= $weekend ? 'schedule-weekend' : '' ?>">
+                            <td class="schedule-day <?= $nonWorkingDay ? 'schedule-weekend' : '' ?>">
                                 <?php if ($canManage && $withinContract): ?>
                                     <input class="schedule-assignment" type="hidden" name="assignments[<?= $contractId ?>][<?= e($date) ?>]" value="<?= (int) ($entry['template_id'] ?? 0) ?>">
                                     <button
