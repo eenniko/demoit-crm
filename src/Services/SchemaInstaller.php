@@ -78,6 +78,23 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/060_schedule_tab_visibility.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.73' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/061_schedule_print_admin_tabs.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.74' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/062_documentation_alignment.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.75' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/063_reconstruction_documentation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.76' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/064_documentation_migration_delimiter_fix.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.77' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/065_client_management_read_only.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.78' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/066_level_f_self_service_scope.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.79' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/067_level_f_schedule_print_scope.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.80' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/068_level_f_hidden_modules_property.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.81' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/069_manager_own_schedule_scope.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.82' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/070_schedule_manager_substitutes.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.83' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/071_support_conversations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.84' LIMIT 1", 'handler' => 'supportTicketColumns'],
+        ['file' => __DIR__ . '/../../sql/072_estonian_time_zone.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.85' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/073_notification_archive.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.86' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/074_support_unopened_count.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.87' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/075_support_reply_unread.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.88' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/076_support_unread_rows.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.89' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/077_property_type_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.90' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/078_new_job_title_translation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.91' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/079_employment_ui_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.92' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
@@ -96,8 +113,30 @@ class SchemaInstaller
                     self::ensureScheduleContractDayIndex();
                 } elseif (($migration['handler'] ?? null) === 'employmentContractArchive') {
                     self::ensureEmploymentContractArchiveColumn();
+                } elseif (($migration['handler'] ?? null) === 'supportTicketColumns') {
+                    self::ensureSupportTicketColumns();
                 }
                 self::runSqlFile($migration['file']);
+            }
+        }
+    }
+
+    private static function ensureSupportTicketColumns(): void
+    {
+        $stmt = db()->prepare(
+            "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'system_support_tickets'"
+        );
+        $stmt->execute();
+        $columns = array_flip($stmt->fetchAll(PDO::FETCH_COLUMN));
+        $definitions = [
+            'recipient_type' => "ENUM('system', 'client_admin', 'manager') NOT NULL DEFAULT 'system'",
+            'closed_at' => 'DATETIME NULL, ADD KEY idx_support_closed (closed_at, id)',
+            'closed_by_user_id' => 'INT UNSIGNED NULL, ADD CONSTRAINT fk_support_closed_by FOREIGN KEY (closed_by_user_id) REFERENCES system_users (id) ON DELETE SET NULL',
+        ];
+        foreach ($definitions as $column => $definition) {
+            if (!isset($columns[$column])) {
+                db()->exec('ALTER TABLE system_support_tickets ADD COLUMN ' . $column . ' ' . $definition);
             }
         }
     }

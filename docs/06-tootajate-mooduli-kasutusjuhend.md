@@ -4,6 +4,8 @@
 **Süsteemi arendusversioon:** 1.22  
 **Sihtrühm:** süsteemiadministraatorid ja ettevõtte kliendiadministraatorid
 
+Hilisemate vormimuudatuste, ajutise parooli voo tegelike piirangute ja kogu süsteemi taastamise jaoks loe ka [baasfunktsioonide juhendit](11-baasfunktsioonid-ja-teostuse-piirid.md) ning [dokumentatsioonikaarti](00-dokumentatsiooni-kaart.md). Käesoleva juhendi 1.22 tähistab selle algset väljalaset.
+
 ## 1. Mooduli eesmärk
 
 Töötajate moodul haldab ettevõtte töötajate kasutajakontosid, kontaktandmeid, ligipääsutasemeid ja konto olekut. Moodul sisaldab:
@@ -22,6 +24,8 @@ Töötajate moodul haldab ettevõtte töötajate kasutajakontosid, kontaktandmei
 Peaadministraator või sobiva süsteemse rolliga kasutaja aktiveerib mooduli ettevõtte detailvaates. Ettevõtte sees saab töötajaid hallata aktiivse `client_admin` rolliga kasutaja.
 
 Tavakasutaja ei saa töötajaid lisada, muuta, aktiveerida, importida ega nende paroole lähtestada. Kõik kontrollid toimuvad serveris; menüü nähtavus ei ole ainus turvakontroll.
+
+Alates versioonist 1.79 näeb aktiivse Level F rolliga kasutaja **Employees & permissions** all ainult enda kontot. Seos kontrollitakse sisselogitud kasutaja ID järgi, mitte nime järgi: sama nimega teist kontot ei näidata. Enda kirje on ainult vaatamiseks; enda parooli saab muuta kontovaates. Kui kontol on ka aktiivne `client_admin` roll, säilivad administraatori õigused ja kogu kliendi loend. Teiste rollide nähtavus ei muutu.
 
 Ettevõttel peab alati säilima vähemalt üks aktiivne kliendiadministraator. Süsteem blokeerib viimase aktiivse administraatori deaktiveerimise või tema administraatorirolli eemaldamise.
 

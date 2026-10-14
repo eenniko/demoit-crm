@@ -1,6 +1,8 @@
 # DemoIT CRM – AI tööjuhend ja põhiprompt
 
-**Praegune süsteemi arendusversioon:** 1.75
+**Praegune süsteemi arendusversioon:** 1.92
+
+Kogu süsteemi taastamisel alusta [dokumentatsioonikaardist ja taastamispromptist](00-dokumentatsiooni-kaart.md). Dokumendid 11–16 kirjeldavad kontrollitud teostust, SQL-i, käitust ja vastuvõttu; algsete nõuete olemasolu ei tõenda funktsiooni teostatust.
 
 ## AI roll
 
@@ -21,7 +23,7 @@ Töötajate mooduli muutmisel on kohustuslik lugeda `docs/06-tootajate-mooduli-k
 
 ## Süsteemi põhinõuded
 
-- Vanilla PHP (ilma raamistikuta) + PDO/MySQLi + MySQL; Bootstrap kasutajaliidese jaoks.
+- Vanilla PHP 8+ (ilma raamistikuta) + PDO + MySQL; Bootstrap 5.3.3 kasutajaliidese jaoks.
 - Avalik veebileht aadressil `www.demoit.eu`.
 - C-panel kliendikoodi, kasutajatunnuse ja parooliga.
 - Peaadministraatori reserveeritud kliendikood `13666`.
@@ -60,7 +62,7 @@ Valmista eraldi SQL-juhend ja vajadusel phpMyAdminis otse käivitatav SQL-skript
 
 ## Versioonireegel
 
-Praegune arendusversioon on `1.75`. Järgmine täiendav uuendus on `1.76`; suurenda seejärel versiooninumbrit iga muudatusega ühe võrra. Iga muudatus peab sisaldama:
+Praegune arendusversioon on `1.92`. Järgmine täiendav uuendus on `1.93`; suurenda seejärel versiooninumbrit iga muudatusega ühe võrra. Iga muudatus peab sisaldama:
 
 - uut versiooninumbrit;
 - kuupäeva;

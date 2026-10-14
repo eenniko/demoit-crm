@@ -3,7 +3,7 @@ RewriteEngine On
 DirectoryIndex index.php
 
 # Never serve these directly, even though the whole repo is deployed to the web root.
-RewriteRule ^(config|src|sql|views|docs)(/|$) - [F,L]
+RewriteRule ^(config|src|sql|views|docs|tests)(/|$) - [F,L]
 RewriteRule ^\.env(\.example)?$ - [F,L]
 RewriteRule ^\.git(/|$) - [F,L]
 RewriteRule ^\.vscode(/|$) - [F,L]

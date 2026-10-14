@@ -27,6 +27,13 @@ class RoleService
         return count(array_intersect(self::rolesFor($userId, $clientId), $roleKeys)) > 0;
     }
 
+    public static function isSelfServiceUser(int $userId, int $clientId): bool
+    {
+        $roles = self::rolesFor($userId, $clientId);
+
+        return in_array('level_f', $roles, true) && !in_array('client_admin', $roles, true);
+    }
+
     /** Roles that can be assigned to client-side users (doc 03 §1). */
     public static function listAssignableClientRoles(): array
     {

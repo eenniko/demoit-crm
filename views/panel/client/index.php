@@ -7,6 +7,28 @@
     <div class="alert alert-danger"><?= e($error) ?></div>
 <?php endif; ?>
 
+<?php if (!$canManage): ?>
+    <dl class="row">
+        <dt class="col-md-4">Company name</dt>
+        <dd class="col-md-8"><?= e($client['company_name']) ?></dd>
+        <dt class="col-md-4">Address</dt>
+        <dd class="col-md-8"><?= e($client['address']) ?></dd>
+        <dt class="col-md-4">Phone</dt>
+        <dd class="col-md-8"><?= e($client['phone']) ?></dd>
+        <dt class="col-md-4">E-mail</dt>
+        <dd class="col-md-8"><?= e($client['email']) ?></dd>
+    </dl>
+    <hr class="my-2">
+    <h2 class="h6">Representative</h2>
+    <dl class="row">
+        <dt class="col-md-4">Full name</dt>
+        <dd class="col-md-8"><?= e($client['contact_person_name']) ?></dd>
+        <dt class="col-md-4">Phone</dt>
+        <dd class="col-md-8"><?= e($client['contact_person_phone']) ?></dd>
+        <dt class="col-md-4">E-mail</dt>
+        <dd class="col-md-8"><?= e($client['contact_person_email']) ?></dd>
+    </dl>
+<?php else: ?>
 <form method="post" action="/panel/client" class="row g-3" novalidate>
     <?= Csrf::field() ?>
 
@@ -56,3 +78,4 @@
         </div>
     <?php endif; ?>
 </form>
+<?php endif; ?>

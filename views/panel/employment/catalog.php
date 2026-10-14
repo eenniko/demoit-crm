@@ -35,7 +35,7 @@
                                 <form id="employment-catalog-<?= (int) $entry['id'] ?>" method="post" class="d-flex gap-2">
                                     <?= Csrf::field() ?>
                                     <input type="hidden" name="id" value="<?= (int) $entry['id'] ?>">
-                                    <input class="form-control form-control-sm" type="text" name="name" maxlength="191" required value="<?= e($entry['name']) ?>" aria-label="<?= e($catalogLabel) ?> name">
+                                    <input class="form-control form-control-sm" type="text" name="name" maxlength="191" required value="<?= e($entry['name']) ?>" aria-label="<?= e(TranslationService::translate('ui.' . hash('sha256', $catalogLabel . ' name'), $catalogLabel . ' name')) ?>">
                                 </form>
                                 <?php if ($catalog !== 'workloads'): ?>
                                     <button class="btn btn-outline-primary btn-sm mt-2" type="submit" form="employment-catalog-<?= (int) $entry['id'] ?>">Save</button>
@@ -47,7 +47,7 @@
                         <?php if ($catalog === 'workloads'): ?>
                             <td>
                                 <?php if ($canManage): ?>
-                                    <input class="form-control form-control-sm" type="number" name="workload_percent" min="0.01" max="100" step="0.01" required value="<?= e($entry['workload_percent']) ?>" aria-label="Workload percentage" form="employment-catalog-<?= (int) $entry['id'] ?>">
+                                    <input class="form-control form-control-sm" type="number" name="workload_percent" min="0.01" max="100" step="0.01" required value="<?= e($entry['workload_percent']) ?>" aria-label="<?= e(TranslationService::translate('ui.' . hash('sha256', 'Workload percentage'), 'Workload percentage')) ?>" form="employment-catalog-<?= (int) $entry['id'] ?>">
                                     <button class="btn btn-outline-primary btn-sm mt-2" type="submit" form="employment-catalog-<?= (int) $entry['id'] ?>">Save</button>
                                 <?php else: ?>
                                     <?= e($entry['workload_percent']) ?>%

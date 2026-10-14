@@ -2,6 +2,8 @@
 
 **Versioon:** 1.2
 
+**Staatus:** algne arhitektuuriettepanek ja kvaliteedinõuded. Tegelik süsteem kasutab PHP 8+ ja PDO-d, keskse front controller'i handler'eid ning SQL-i sisaldavaid teenuseid; eraldi repository/entity/autoload/queue kihti pole. Praegune väljalase on 1.84. Täpne teostus, tõlgete fallback ja teadaolevad erinevused on [taastamisspetsifikatsioonis](12-tehniline-taastamisspetsifikatsioon.md), [baasfunktsioonide juhendis](11-baasfunktsioonid-ja-teostuse-piirid.md) ning [inventuuris](16-tehniline-inventuur.md). Allpool toodud 1.2 versioonijuhis on ajalooline.
+
 ## 1. Tehniline alus
 
 - Vanilla PHP (ilma raamistikuta, nt Laravel/Symfony)

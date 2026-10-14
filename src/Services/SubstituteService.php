@@ -4,10 +4,163 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/AuditLogService.php';
+require_once __DIR__ . '/RoleService.php';
 
 /** Temporary substitutes (asendajad), doc 02 §9, doc 03 §5-6. */
 class SubstituteService
 {
+    public static function activeScheduleManagers(int $clientId, int $userId): array
+    {
+        $stmt = db()->prepare(
+            "SELECT DISTINCT s.original_user_id
+             FROM system_substitutes s
+             INNER JOIN system_users original ON original.id = s.original_user_id AND original.client_id = s.client_id
+             INNER JOIN system_users replacement ON replacement.id = s.substitute_user_id AND replacement.client_id = s.client_id
+             WHERE s.client_id = :client_id AND s.substitute_user_id = :user_id
+               AND s.substitute_type = 'schedule_manager' AND s.status = 'approved'
+               AND s.starts_at <= :active_now_start AND s.ends_at > :active_now_end
+               AND original.status = 'active' AND replacement.status = 'active'"
+        );
+        $now = date('Y-m-d H:i:s');
+        $stmt->execute(['client_id' => $clientId, 'user_id' => $userId,
+            'active_now_start' => $now, 'active_now_end' => $now]);
+
+        return array_values(array_filter(
+            array_map('intval', array_column($stmt->fetchAll(), 'original_user_id')),
+            static fn(int $managerId): bool => !RoleService::isSelfServiceUser($managerId, $clientId)
+        ));
+    }
+
+    public static function canAssignScheduleSubstitute(int $clientId, int $userId): bool
+    {
+        if (RoleService::hasAnyRole($userId, $clientId, ['client_admin'])) {
+            return true;
+        }
+        if (RoleService::isSelfServiceUser($userId, $clientId)) {
+            return false;
+        }
+        $stmt = db()->prepare(
+            "SELECT 1 FROM employment_contracts c
+             INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
+             WHERE c.client_id = :client_id AND c.manager_user_id = :manager_id
+               AND c.employee_id <> :own_id AND c.archived_at IS NULL
+               AND c.contract_type IN ('primary', 'temporary') AND employee.status = 'active'
+               AND (c.end_date IS NULL OR c.end_date >= CURRENT_DATE) LIMIT 1"
+        );
+        $stmt->execute(['client_id' => $clientId, 'manager_id' => $userId, 'own_id' => $userId]);
+
+        return $stmt->fetchColumn() !== false;
+    }
+
+    public static function scheduleAssignments(int $clientId, int $userId, bool $isAdmin): array
+    {
+        $sql = "SELECT s.*, original.full_name AS original_name, original.username AS original_username,
+                    replacement.full_name AS substitute_name, replacement.username AS substitute_username
+                FROM system_substitutes s
+                INNER JOIN system_users original ON original.id = s.original_user_id AND original.client_id = s.client_id
+                INNER JOIN system_users replacement ON replacement.id = s.substitute_user_id AND replacement.client_id = s.client_id
+                WHERE s.client_id = :client_id AND s.substitute_type = 'schedule_manager'";
+        $params = ['client_id' => $clientId];
+        if (!$isAdmin) {
+            $sql .= ' AND (s.original_user_id = :original_id OR s.substitute_user_id = :replacement_id)';
+            $params['original_id'] = $userId;
+            $params['replacement_id'] = $userId;
+        }
+        $stmt = db()->prepare($sql . ' ORDER BY s.starts_at DESC, s.id DESC');
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    public static function assignScheduleSubstitute(int $clientId, int $actorId, array $data): array
+    {
+        $isAdmin = RoleService::hasAnyRole($actorId, $clientId, ['client_admin']);
+        if (!self::canAssignScheduleSubstitute($clientId, $actorId)) {
+            return [false, 'You are not allowed to assign a schedule substitute.'];
+        }
+        $managerId = $isAdmin ? filter_var($data['original_user_id'] ?? null, FILTER_VALIDATE_INT) : $actorId;
+        $replacementId = filter_var($data['substitute_user_id'] ?? null, FILTER_VALIDATE_INT);
+        $start = is_string($data['starts_at'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/D', $data['starts_at']) === 1
+            ? DateTimeImmutable::createFromFormat('!Y-m-d\TH:i', $data['starts_at']) : false;
+        $end = is_string($data['ends_at'] ?? null) && preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/D', $data['ends_at']) === 1
+            ? DateTimeImmutable::createFromFormat('!Y-m-d\TH:i', $data['ends_at']) : false;
+        if (!$managerId || !$replacementId || $managerId === $replacementId
+            || $start === false || $end === false
+            || $start->format('Y-m-d\TH:i') !== $data['starts_at']
+            || $end->format('Y-m-d\TH:i') !== $data['ends_at']
+            || $end <= $start || $end <= new DateTimeImmutable()) {
+            return [false, 'Choose different users and a valid future-ending substitute period.'];
+        }
+        if (RoleService::isSelfServiceUser($managerId, $clientId)) {
+            return [false, 'A print-only Level F user cannot delegate manager editing rights.'];
+        }
+        $users = db()->prepare(
+            "SELECT id FROM system_users WHERE client_id = :client_id AND status = 'active'
+             AND id IN (:manager_id, :replacement_id)"
+        );
+        $users->execute(['client_id' => $clientId, 'manager_id' => $managerId, 'replacement_id' => $replacementId]);
+        if (count($users->fetchAll()) !== 2) {
+            return [false, 'Both users must have active accounts in this client. Add the substitute under Employees & permissions first.'];
+        }
+        $managed = db()->prepare(
+            "SELECT 1 FROM employment_contracts c
+             INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
+             WHERE c.client_id = :client_id AND c.manager_user_id = :manager_id AND c.employee_id <> :own_id
+               AND c.archived_at IS NULL AND employee.status = 'active'
+               AND c.contract_type IN ('primary', 'temporary')
+               AND c.start_date <= :end_date AND (c.end_date IS NULL OR c.end_date >= :start_date) LIMIT 1"
+        );
+        $managed->execute(['client_id' => $clientId, 'manager_id' => $managerId, 'own_id' => $managerId,
+            'start_date' => $start->format('Y-m-d'), 'end_date' => $end->format('Y-m-d')]);
+        if ($managed->fetchColumn() === false) {
+            return [false, 'The original user must manage another active employee contract during the substitute period.'];
+        }
+        $overlap = db()->prepare(
+            "SELECT 1 FROM system_substitutes WHERE client_id = :client_id
+             AND original_user_id = :manager_id AND substitute_user_id = :replacement_id
+             AND substitute_type = 'schedule_manager' AND status = 'approved'
+             AND starts_at < :ends_at AND ends_at > :starts_at LIMIT 1"
+        );
+        $params = ['client_id' => $clientId, 'manager_id' => $managerId, 'replacement_id' => $replacementId,
+            'starts_at' => $start->format('Y-m-d H:i:s'), 'ends_at' => $end->format('Y-m-d H:i:s')];
+        $overlap->execute($params);
+        if ($overlap->fetchColumn() !== false) {
+            return [false, 'This substitute already has an overlapping assignment for this manager.'];
+        }
+        $insert = db()->prepare(
+            "INSERT INTO system_substitutes
+                (client_id, original_user_id, substitute_user_id, substitute_type, starts_at, ends_at,
+                 delegated_permissions, reason, status, approved_by, approved_at)
+             VALUES (:client_id, :manager_id, :replacement_id, 'schedule_manager', :starts_at, :ends_at,
+                 :permissions, :reason, 'approved', :actor_id, NOW())"
+        );
+        $insert->execute($params + ['permissions' => json_encode(['schedule.shifts']),
+            'reason' => is_string($data['reason'] ?? null) ? trim($data['reason']) : null, 'actor_id' => $actorId]);
+        AuditLogService::log($actorId, $clientId, 'schedule.substitute_assigned', 'system_substitutes', (string) db()->lastInsertId());
+
+        return [true, 'Schedule substitute assigned. Existing account roles are unchanged.'];
+    }
+
+    public static function endScheduleSubstitute(int $clientId, int $actorId, int $id): array
+    {
+        $isAdmin = RoleService::hasAnyRole($actorId, $clientId, ['client_admin']);
+        $sql = "UPDATE system_substitutes SET status = 'ended'
+                WHERE id = :id AND client_id = :client_id AND substitute_type = 'schedule_manager' AND status = 'approved'";
+        $params = ['id' => $id, 'client_id' => $clientId];
+        if (!$isAdmin) {
+            $sql .= ' AND original_user_id = :actor_id';
+            $params['actor_id'] = $actorId;
+        }
+        $stmt = db()->prepare($sql);
+        $stmt->execute($params);
+        if ($stmt->rowCount() !== 1) {
+            return [false, 'Schedule substitute assignment not found or not allowed.'];
+        }
+        AuditLogService::log($actorId, $clientId, 'schedule.substitute_ended', 'system_substitutes', (string) $id);
+
+        return [true, 'Schedule substitute rights ended.'];
+    }
+
     public static function listForClient(int $clientId): array
     {
         $stmt = db()->prepare(
@@ -97,6 +250,9 @@ class SubstituteService
         $startsAt = trim((string) ($data['starts_at'] ?? ''));
         $endsAt = trim((string) ($data['ends_at'] ?? ''));
         $substituteType = trim((string) ($data['substitute_type'] ?? 'temporary'));
+        if (strtolower($substituteType) === 'schedule_manager') {
+            return [false, 'Use the Schedule substitutes page to assign schedule editing rights.'];
+        }
         $reason = trim((string) ($data['reason'] ?? ''));
         $delegatedPermissions = isset($data['delegated_permissions']) && is_array($data['delegated_permissions'])
             ? array_values($data['delegated_permissions'])

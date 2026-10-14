@@ -32,7 +32,12 @@
                     <a class="nav-link <?= $activeMenu === 'notifications' ? 'active' : 'link-dark' ?>" href="/admin/notifications"><?= e(t('admin.notifications', 'Notifications')) ?></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link <?= $activeMenu === 'support' ? 'active' : 'link-dark' ?>" href="/admin/support"><?= e(t('admin.support', 'Support')) ?></a>
+                    <a class="nav-link d-flex justify-content-between align-items-center <?= $activeMenu === 'support' ? 'active' : 'link-dark' ?>" href="/admin/support">
+                        <span><?= e(t('admin.support', 'Support')) ?></span>
+                        <?php if (($unreadSupportCount ?? 0) > 0): ?>
+                            <span class="badge rounded-pill text-bg-danger" title="Unread active support tickets"><span data-no-translate><?= (int) $unreadSupportCount ?></span></span>
+                        <?php endif; ?>
+                    </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link <?= $activeMenu === 'settings' ? 'active' : 'link-dark' ?>" href="/admin/settings"><?= e(t('admin.system_settings', 'System settings')) ?></a>

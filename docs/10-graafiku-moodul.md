@@ -1,6 +1,10 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.75
+**Süsteemi arendusversioon:** 1.83
+
+Algoritmide, JSON-liideste, XML-vormingu ja piirijuhtude täpne kirjeldus on [tehnilises taastamisspetsifikatsioonis](12-tehniline-taastamisspetsifikatsioon.md); kontrollnäited [vastuvõtukontrollides](14-taastamise-vastuvotukontrollid.md).
+
+**Algandmete piirang:** allpool nimetatud vaikemallid lisatakse migratsiooni ajal juba olemasolevatele klientidele; hiljem loodud kliendi provisioneerimine neid automaatselt ei loo. Pühade kalender on globaalne, mitte kliendipõhine, ning tuleb eraldi importida. Malli muutmine mõjutab ka olemasolevate kannete tundide arvutust.
 
 ## Eesti keeles
 
@@ -8,9 +12,23 @@
 
 Süsteemiadministraator aktiveerib kliendile **Schedule** mooduli. Graafik vajab samal kliendil ka **Employment** ja **Property structure** moodulite aktiveerimist. Menüülink asub kliendipaneeli **Modules** all.
 
-Kliendiadministraator näeb kõiki kliendi aktiivsete põhilepingutega töötajaid ja saab nende graafikuid hallata. Manager näeb ja muudab töötajaid, kelle kehtival põhilepingul on tema määratud juhiks. Graafik koondab töötajad kinnistu hoone/korpuse/korruse ning lepingu osakonna järgi. Töötaja ruumiüksust graafikus ei kuvata.
+Kliendiadministraator näeb kõiki kliendi aktiivsete kontode kuuga lõikuvaid arhiveerimata põhi- ja ajutisi lepinguid. Manager näeb ja muudab lepinguridu, millel on tema määratud juhiks; ajutise lepingu juhti kontrollitakse eraldi, mitte põhilepingu kaudu. Graafik koondab töötajad lepingu kinnistu asukohatee ning osakonna järgi. Asukohatee võib sisaldada ka ruumi, kui leping seoti ruumiga.
 
-### Kuugraafik
+Alates 1.82 näeb ja muudab manager lisaks enda põhi- ning ajutisi lepinguridu, kui ta on valitud kuul vähemalt ühe teise aktiivse töötaja kuuga lõikuval arhiveerimata põhi-/ajutisel lepingul samas kliendis manager. Enda lepingul võib juhiks olla keegi teine. Ainult tulevane, lõppenud, arhiveeritud või mitteaktiivse töötaja alluvussuhe seda õigust ei anna. Määrangu eemaldamine kaotab õiguse järgmisel päringul. Manager saab ka lubatud põhilepingute kuu koormust muuta; CSRF/kattuvuste kontroll säilib. Eraldi manageri rolli pole, õigus tuleb lepingute manager ID-st. Level F ilma client_admin'ita jääb alati ainult printima ka siis, kui lepingus on ta manager.
+
+### Graafikuasendaja (1.83)
+
+Manager avab **Töögraafik -> Graafikuasendajad**, valib sama kliendi aktiivse töötajakonto ning algus/lõppaja ja määrab asendaja ise, ilma kinnitamiseta. Kliendiadministraator võib valida asendatava päris manageri. Manager saab määrata ainult enda asenduse; asendaja ei saa pärida teiste asenduste õigusi ega neid edasi volitada. Puuduva konto lisab ja aktiveerib kliendiadministraator **Töötajad ja õigused** all, määrates tavalise Juurdepääsutaseme. Asendajal ei pea olema töölepingut ega organisatsiooniseost.
+
+Õigus toimib ainult tegeliku hetke vahemikus `algus <= nüüd < lõpp`: jooksva ja tulevaste kuude manageri enda ning talle managerina määratud lepinguridade vahetusi saab vaadata/muuta. Varasemad kuud pole asendusega muudetavad. Asendus ei anna kuukoormuse, Vahetuste seadete ega Riigipühade haldamise õigust. Olemasoleva rolli iseseisvad õigused jäävad alles. F kasutaja saab ainult Töögraafikus ajutise muutmisvaate; tema muud F piirangud ja enda tavapärane prindiskoobiga vaatamine säilivad. Manageri enda graafiku pärimine nõuab sama valitud kuu alluvaga manageri reeglit kui algsel manageril.
+
+Manager/admin saab vajutada **Lõpeta asendaja õigused**; muidu kaob ligipääs automaatselt lõppajal. Konto deaktiveerimine või algse manageri muutmine print-only F-ks lõpetab asendusõiguse. Croni pole vaja ja konto rolli ei lisata/eemaldata. Vanad organisatsiooni Asendajad-taotlused seda graafikuõigust ei anna. Aja väljade sildil näidatakse PHP rakenduse ajavööndit; asenduse kehtivuse SQL-võrdlus saab sama rakenduse kellaaega parameetrina, mitte DB serveri eraldi ajavööndi NOW väärtust.
+
+### Kuugraafiku kasutamine
+
+Alates versioonist 1.80 saab aktiivne Level F ilma `client_admin` rollita vaikimisi ainult **Print schedule** vaate; 1.83 aktiivne graafikuasendus annab ülal kirjeldatud ajutise erandi ainult vahetustele. Ilma asenduseta **Work schedule** menüü avab printi; kuugraafiku GET suunab valitud kuuga printi. F kuugraafiku POST (ka AJAX) ilma aktiivse asenduseta ja kuukoormuse muutmine alati annavad 403. Monthly schedule pole tavalises F prindivaates nähtav; Shift settings ja Public holidays ning nende otsesed URL-id jäävad F-le keelatuks ka asenduse ajal.
+
+F näeb kogu asukoha/osakonna graafikut koos kaastöötajatega ainult nendes gruppides, kus tal on valitud kuuga lõikuv arhiveerimata põhi- või ajutine leping. Põhikoht ei nõua 100% koormust. Grupp on täpne `property_node_id` + `department_id` paar, NULL osakond eraldi grupina. Osalise kuu leping lubab kogu selle kuu grupi. Lõppenud/tulevane/arhiveeritud leping ei anna selle kuu ligipääsu; ka juhi määrang mujal ei anna F-le lisagruppe. Konto tuvastatakse sessiooni ID, mitte nime/URL-i järgi ja kliendifilter säilib. Lepinguta kuu näitab tühja vaadet. Lubatud gruppe saab valida ja **Print / Save as PDF** abil printida/salvestada. Täiendav aktiivne `client_admin` säilitab administraatori õigused; teiste rollide käitumine ei muutu.
 
 Vali kuu; iga kehtiv põhi- või ajutine leping kuvatakse oma asukoha/osakonna all eraldi real ja kuu päevad eraldi veergudena. Kui leping kehtib ainult osa kuust, on valitavad ainult lepinguperioodi päevad. Ühel töötajal võib samal päeval olla mitu lepingurida ainult siis, kui vahetuste ajavahemikud ei kattu. Tühi **Off** valik tähendab vaba päeva.
 
@@ -38,13 +56,27 @@ Andmed on kliendipõhistes tabelites `employee_schedule_templates` ja `employee_
 
 A system administrator activates the **Schedule** module for a client. The same client must also have **Employment** and **Property structure** active. The link appears under **Modules** in the client panel.
 
-A client administrator can see and manage all employees with active primary contracts. A manager can see and edit employees whose valid primary contract names that user as manager. The roster groups employees by property building/wing/floor and contract department. Room-level units are not shown in this version.
+A client administrator can manage all unarchived primary and temporary contracts overlapping the month for active accounts. A manager can see and edit contract rows that name that user as manager; the temporary contract's manager is checked separately. The roster groups rows by their property path and department. The path can include a room when the contract references a room.
 
-### Monthly roster
+Since 1.82 managers also see/edit their own primary and temporary contracts when assigned as manager to at least one other active employee's unarchived primary/temporary contract overlapping the selected month in the same client. Their own contract may have a different manager. Future, ended, archived or inactive-subordinate assignments do not qualify. Removing the assignment revokes access on the next request. Permitted primary-contract monthly workloads are editable with the existing CSRF/overlap checks. There is no separate manager role: contract manager IDs determine scope. Level F without client_admin remains print-only even if assigned as a manager.
+
+### Schedule substitutes (1.83)
+
+Managers assign their own active same-client employee-account substitute under **Work schedule -> Schedule substitutes**, with start/end datetime and no approval. Administrators may select a real manager. Missing accounts must first be added and activated by the client administrator under Employees & permissions with their ordinary access level. Substitutes need no employment contract or organisation membership.
+
+Only during `start <= now < end`, the substitute may edit current/future month shifts on the original manager's own and explicitly managed contracts. Past-month editing, workload changes, template/holiday administration and delegation chains are not granted. Independent base-role rights remain; F gains editing only in Schedule and retains its other F restrictions and personal print scope.
+
+Managers/admins may end assignments early, otherwise access expires on the next request at the end timestamp without cron or role mutation. Inactive accounts or an original manager becoming print-only F invalidate access. Existing organisation substitution requests grant no such rights. Datetime labels show the application timezone; SQL expiry comparisons receive that same application clock as parameters rather than the database server's independent NOW clock.
+
+### Using the monthly roster
+
+Since 1.80, active Level F users without `client_admin` have only **Print schedule**. The sidebar opens print directly and monthly GET redirects with the selected month. Monthly POST (including AJAX) and workload writes return 403; monthly editing, shift settings and holiday tabs are unavailable.
+
+Level F sees complete coworker rosters only for exact property/department groups containing its own unarchived primary or temporary contract overlapping the selected month. Primary contracts need not have 100% workload. NULL department is a separate group; partial-month membership grants that month's full group. Expired/future/archived or other-client contracts and manager assignments elsewhere do not grant access. Account and client IDs come from the session, not names or URL parameters. A month without membership shows no groups. Group selection and browser **Print / Save as PDF** remain available. An additional active `client_admin` retains administrator rights; other roles remain unchanged.
 
 Choose a month; each valid primary or temporary contract appears under its own location/department row, with each date in its own column. If the contract is valid for only part of the month, only dates inside that contract period are editable. An employee may have multiple contract rows on one date only when shift intervals do not overlap. An empty **Off** choice means a day off.
 
-Each day can have a shift or an exception. A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Shift hours count as Planned on every day; exception hours count only Monday-Friday.
+Each day can have a shift or an exception. A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Shift hours count as Planned on every day; exception hours count only on working weekdays, excluding imported holidays with `kind_id` 1 or 2.
 
 A `Block` template prevents overlapping shift and exception intervals for the same employee, but Block hours are excluded from Planned. To block a full day, create a template such as `EST` starting at 00:00 for 24 hours. Exact end-to-start handoffs remain allowed.
 

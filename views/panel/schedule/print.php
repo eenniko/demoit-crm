@@ -1,9 +1,20 @@
-<?php $scheduleSection = 'print'; require __DIR__ . '/nav.php'; ?>
+<?php
+$scheduleSection = 'print';
+require __DIR__ . '/nav.php';
+
+$monthDate = new DateTimeImmutable($month['start']);
+$monthNames = match (LanguageService::currentCode()) {
+    'et' => ['jaanuar', 'veebruar', 'märts', 'aprill', 'mai', 'juuni', 'juuli', 'august', 'september', 'oktoober', 'november', 'detsember'],
+    'ru' => ['январь', 'февраль', 'март', 'апрель', 'май', 'июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'],
+    default => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+};
+$monthLabel = $monthNames[(int) $monthDate->format('n') - 1] . ' ' . $monthDate->format('Y');
+?>
 
 <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3 no-print">
     <div>
         <h1 class="h4 mb-1"><?= e(t('ui.' . hash('sha256', 'Print schedule'), 'Print schedule')) ?></h1>
-        <p class="text-muted mb-0"><?= e($month['month']) ?></p>
+        <p class="text-muted mb-0"><?= e($monthLabel) ?></p>
     </div>
     <form method="get" action="/panel/schedule/print" class="d-flex align-items-end gap-2">
         <div>
@@ -41,7 +52,7 @@
             <section class="print-location-page" data-location-key="<?= e($locationKey) ?>">
                 <header class="print-page-heading">
                     <div>
-                        <h1><?= e(t('ui.' . hash('sha256', 'Work schedule'), 'Work schedule')) ?> · <?= e($month['month']) ?></h1>
+                        <h1><?= e(t('ui.' . hash('sha256', 'Work schedule'), 'Work schedule')) ?> · <?= e($monthLabel) ?></h1>
                         <h2><?= e($location['label']) ?></h2>
                     </div>
                     <time class="print-date" datetime="<?= e(date('Y-m-d')) ?>"><?= e(date('d.m.Y')) ?></time>
@@ -75,7 +86,10 @@
                                         $entryColor = $entry === null ? null : ScheduleService::safeTemplateColor($entry['color_hex'] ?? null);
                                         ?>
                                         <td class="print-day-column <?= ScheduleService::isNonWorkingDay($date) ? 'schedule-weekend' : '' ?> <?= $entry === null ? '' : 'is-assigned' ?>" style="<?= $entryColor === null ? '' : ' --schedule-color: ' . e($entryColor) . ';' ?>" title="<?= $entry === null ? '' : e(ScheduleService::formatTemplate($entry)) ?>">
-                                            <?= $entry === null ? '' : e($entry['code']) ?>
+                                            <div class="print-day-content">
+                                                <span class="print-day-number <?= $entry === null ? 'is-unassigned' : '' ?>" aria-hidden="true"><?= $day ?></span>
+                                                <?php if ($entry !== null): ?><span class="print-day-code"><?= e($entry['code']) ?></span><?php endif; ?>
+                                            </div>
                                         </td>
                                     <?php endfor; ?>
                                     <td class="print-total-column">
@@ -106,6 +120,10 @@
 .schedule-print-grid .print-employee-column { width: 115px; text-align: left; }
 .schedule-print-grid .print-day-column { width: 24px; }
 .schedule-print-grid .print-day-column small, .print-secondary-label { display: block; font-size: .48rem; font-weight: 400; }
+.print-day-content { position: relative; display: grid; min-height: 1em; place-items: center; }
+.print-day-number { position: absolute; inset: 0; display: grid; place-items: center; color: #6c757d; opacity: .35; font-size: .42rem; line-height: 1; pointer-events: none; }
+.print-day-number.is-unassigned { position: static; opacity: .55; font-size: inherit; }
+.print-day-code { position: relative; z-index: 1; }
 .schedule-print-grid .print-total-column { width: 40px; white-space: nowrap; }
 .schedule-print-grid .schedule-weekend { --bs-table-bg: rgb(255 128 128 / 50%); --bs-table-accent-bg: transparent; }
 .schedule-print-grid .print-day-column.is-assigned { background: color-mix(in srgb, var(--schedule-color, #64748B) 18%, white); box-shadow: inset 0 -4px 0 var(--schedule-color, #64748B); color: var(--bs-body-color); print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -132,6 +150,7 @@
     .schedule-print-grid tbody tr > * { height: 7.3mm; }
     .schedule-print-grid .print-employee-column { width: 30mm; }
     .schedule-print-grid .print-day-column { width: auto; }
+    .print-day-number:not(.is-unassigned) { font-size: 4pt; }
     .schedule-print-grid .print-day-column small, .print-secondary-label { font-size: 5pt; }
     .schedule-print-grid .print-total-column { width: 12mm; }
     .schedule-print-grid .schedule-weekend { print-color-adjust: exact; -webkit-print-color-adjust: exact; }

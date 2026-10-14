@@ -168,6 +168,22 @@ switch (true) {
         handle_admin_support_status($method);
         break;
 
+    case $path === '/admin/support/view':
+        handle_support_ticket($method, true);
+        break;
+
+    case $path === '/admin/support/reply':
+        handle_support_ticket($method, true, 'reply');
+        break;
+
+    case $path === '/admin/support/invite':
+        handle_support_ticket($method, true, 'invite');
+        break;
+
+    case $path === '/admin/support/close':
+        handle_support_ticket($method, true, 'close');
+        break;
+
     case $path === '/panel':
         handle_panel_dashboard();
         break;
@@ -256,6 +272,22 @@ switch (true) {
         handle_panel_support_create($method);
         break;
 
+    case $path === '/panel/support/view':
+        handle_support_ticket($method, false);
+        break;
+
+    case $path === '/panel/support/reply':
+        handle_support_ticket($method, false, 'reply');
+        break;
+
+    case $path === '/panel/support/invite':
+        handle_support_ticket($method, false, 'invite');
+        break;
+
+    case $path === '/panel/support/close':
+        handle_support_ticket($method, false, 'close');
+        break;
+
     case $path === '/panel/patients':
         handle_panel_patients_index();
         break;
@@ -298,6 +330,10 @@ switch (true) {
 
     case $path === '/panel/schedule/workload':
         handle_panel_schedule_workload($method);
+        break;
+
+    case $path === '/panel/schedule/substitutes':
+        handle_panel_schedule_substitutes($method);
         break;
 
     case $path === '/panel/schedule/templates':
@@ -518,6 +554,12 @@ function handle_panel_modules(): void
         return;
     }
 
+    if (RoleService::isSelfServiceUser(ClientContext::userId(), ClientContext::clientId())) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
+
     render_panel_page('Active modules', 'modules/index.php', [
         'modules' => ModuleService::listActiveForClient(ClientContext::clientId()),
     ], 'modules');
@@ -579,9 +621,11 @@ function handle_panel_users(): void
     }
 
     $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    $selfOnly = RoleService::isSelfServiceUser($userId, $clientId);
 
     render_panel_page('Users & permissions', 'users/index.php', [
-        'users' => UserService::listForClient($clientId),
+        'users' => UserService::listForClient($clientId, $selfOnly ? $userId : null),
         'canManage' => RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']),
         'currentUserId' => ClientContext::userId(),
         'message' => $_GET['message'] ?? null,
@@ -1364,21 +1408,16 @@ function handle_admin_support(): void
     }
 
     render_admin_page('Support tickets', 'support/index.php', [
-        'tickets' => SupportService::listAllOpen(),
+        'lists' => SupportService::listVisible(ClientContext::clientId(), ClientContext::userId(), true),
+        'basePath' => '/admin/support',
+        'systemWorkspace' => true,
     ], 'support');
 }
 
 function handle_admin_support_status(string $method): void
 {
-    if (!require_system_role()) {
-        return;
-    }
-
-    if ($method === 'POST' && Csrf::validate($_POST['csrf_token'] ?? null)) {
-        SupportService::updateStatus((int) ($_POST['id'] ?? 0), (string) ($_POST['status'] ?? ''), ClientContext::userId());
-    }
-
-    header('Location: /admin/support');
+    // Keep the old close endpoint, but never allow reopening a closed conversation.
+    handle_support_ticket($method, true, ($_POST['status'] ?? '') === 'closed' ? 'close' : 'invalid');
 }
 
 function handle_panel_notifications(): void
@@ -1389,8 +1428,18 @@ function handle_panel_notifications(): void
         return;
     }
 
+    $archive = ($_GET['archive'] ?? '') === '1';
+    $page = filter_var($_GET['page'] ?? '1', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100000]]);
+    if ($page === false) {
+        http_response_code(400);
+        render_page('Invalid request', 'errors/403.php');
+        return;
+    }
+    $notifications = NotificationService::listForUser(ClientContext::clientId(), ClientContext::userId(), $archive, $page);
     render_panel_page('Notifications', 'notifications/index.php', [
-        'notifications' => NotificationService::listForUser(ClientContext::clientId(), ClientContext::userId()),
+        'notifications' => array_slice($notifications, 0, 50),
+        'hasNextPage' => count($notifications) > 50,
+        'archive' => $archive, 'page' => $page,
     ], 'notifications');
 }
 
@@ -1402,11 +1451,28 @@ function handle_panel_notifications_read(string $method): void
         return;
     }
 
-    if ($method === 'POST' && Csrf::validate($_POST['csrf_token'] ?? null)) {
-        NotificationService::markRead((int) ($_POST['id'] ?? 0), ClientContext::userId());
+    if ($method !== 'POST' || !Csrf::validate($_POST['csrf_token'] ?? null)) {
+        http_response_code($method !== 'POST' ? 405 : 403);
+        if ($method !== 'POST') {
+            header('Allow: POST');
+        }
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
+    $archive = ($_POST['archive'] ?? '') === '1';
+    $page = filter_var($_POST['page'] ?? '1', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 100000]]);
+    if ($page === false) {
+        http_response_code(400);
+        render_page('Invalid request', 'errors/403.php');
+        return;
+    }
+    if (!NotificationService::markRead((int) ($_POST['id'] ?? 0), ClientContext::userId(), ClientContext::clientId())) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
     }
 
-    header('Location: /panel/notifications');
+    header('Location: /panel/notifications?' . http_build_query(['archive' => $archive ? 1 : 0, 'page' => $page]));
 }
 
 function handle_panel_reports(): void
@@ -1431,7 +1497,9 @@ function handle_panel_support(): void
     }
 
     render_panel_page('Support', 'support/index.php', [
-        'tickets' => SupportService::listForClient(ClientContext::clientId()),
+        'lists' => SupportService::listVisible(ClientContext::clientId(), ClientContext::userId()),
+        'basePath' => '/panel/support',
+        'systemWorkspace' => false,
         'message' => $_GET['message'] ?? null,
     ], 'support');
 }
@@ -1452,10 +1520,11 @@ function handle_panel_support_create(string $method): void
             $error = 'Invalid session token, please try again.';
         } else {
             $old = $_POST;
-            [$success, $message] = SupportService::create(ClientContext::clientId(), ClientContext::userId(), $_POST);
+            $result = SupportService::create(ClientContext::clientId(), ClientContext::userId(), $_POST);
+            [$success, $message] = $result;
 
             if ($success) {
-                header('Location: /panel/support?message=' . rawurlencode($message));
+                header('Location: /panel/support/view?id=' . $result[2] . '&message=' . rawurlencode($message));
                 exit;
             }
 
@@ -1463,7 +1532,74 @@ function handle_panel_support_create(string $method): void
         }
     }
 
-    render_panel_page('New support ticket', 'support/create.php', ['error' => $error, 'old' => $old], 'support');
+    render_panel_page('New support ticket', 'support/create.php', [
+        'error' => $error, 'old' => $old,
+        'recipientOptions' => SupportService::recipientOptions(ClientContext::clientId(), ClientContext::userId()),
+    ], 'support');
+}
+
+function handle_support_ticket(string $method, bool $systemWorkspace, ?string $action = null): void
+{
+    if ($systemWorkspace) {
+        if (!require_system_role()) {
+            return;
+        }
+    } elseif (!ClientContext::isLoggedIn()) {
+        header('Location: /login');
+        return;
+    }
+    $basePath = $systemWorkspace ? '/admin/support' : '/panel/support';
+    if ($action !== null && $method !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        render_page('Invalid request', 'errors/403.php', ['error' => 'This action requires POST.']);
+        return;
+    }
+    $ticketId = (int) ($action === null ? ($_GET['id'] ?? 0) : ($_POST['id'] ?? 0));
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    $ticket = SupportService::ticket($ticketId, $clientId, $userId, $systemWorkspace);
+    if ($ticket === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+    $error = null;
+    $old = [];
+    if ($action !== null) {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            http_response_code(403);
+            $error = 'Invalid session token, please try again.';
+        } else {
+            [$success, $message] = SupportService::act($ticketId, $clientId, $userId, $action, $_POST, $systemWorkspace);
+            if ($success) {
+                header('Location: ' . $basePath . '/view?id=' . $ticketId . '&message=' . rawurlencode($message));
+                return;
+            }
+            http_response_code(400);
+            $error = $message;
+            $old = $_POST;
+        }
+    }
+    $vars = [
+        'ticket' => $ticket, 'basePath' => $basePath, 'error' => $error, 'old' => $old,
+        'message' => $_GET['message'] ?? null,
+        'replies' => SupportService::replies($ticketId, $clientId, $userId, $systemWorkspace),
+        'participants' => SupportService::participants($ticketId, $clientId, $userId, $systemWorkspace),
+        'inviteOptions' => SupportService::inviteOptions($ticketId, $clientId, $userId, $systemWorkspace),
+    ];
+    if ($action === null && $method === 'GET'
+        && !SupportService::markOpened($ticketId, $clientId, $userId, $systemWorkspace,
+            $vars['replies'] === [] ? 0 : (int) max(array_column($vars['replies'], 'id')))) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+    if ($systemWorkspace) {
+        render_admin_page('Support ticket', 'support/view.php', $vars, 'support');
+    } else {
+        render_panel_page('Support ticket', 'support/view.php', $vars, 'support');
+    }
 }
 
 function require_property_module(): bool
@@ -1473,7 +1609,8 @@ function require_property_module(): bool
         return false;
     }
 
-    if (!ModuleService::isActiveForClient(ClientContext::clientId(), 'property')) {
+    if (RoleService::isSelfServiceUser(ClientContext::userId(), ClientContext::clientId())
+        || !ModuleService::isActiveForClient(ClientContext::clientId(), 'property')) {
         http_response_code(403);
         render_page('Forbidden', 'errors/403.php');
         return false;
@@ -1642,8 +1779,10 @@ function handle_panel_employment_contracts(): void
     }
 
     $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    $selfOnly = RoleService::isSelfServiceUser($userId, $clientId);
     render_panel_page('Employment contracts', 'employment/contracts.php', [
-        'contracts' => EmploymentContractService::listForClient($clientId),
+        'contracts' => EmploymentContractService::listForClient($clientId, $selfOnly ? $userId : null),
         'canManage' => RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']),
         'message' => $_GET['message'] ?? null,
         'error' => $_GET['error'] ?? null,
@@ -1727,6 +1866,11 @@ function handle_panel_employment_catalog(string $method, string $catalog): void
         return;
     }
     $clientId = ClientContext::clientId();
+    if (RoleService::isSelfServiceUser(ClientContext::userId(), $clientId)) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
     $canManage = RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']);
     $error = null;
     $message = $_GET['message'] ?? null;
@@ -1794,6 +1938,22 @@ function handle_panel_schedule(string $method): void
         && strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
     $clientId = ClientContext::clientId();
     $userId = ClientContext::userId();
+    $hasDelegation = SubstituteService::activeScheduleManagers($clientId, $userId) !== [];
+    if (RoleService::isSelfServiceUser($userId, $clientId) && !$hasDelegation) {
+        if ($method === 'GET') {
+            $monthValue = is_string($_GET['month'] ?? null) ? $_GET['month'] : date('Y-m');
+            header('Location: /panel/schedule/print?month=' . rawurlencode($monthValue));
+        } else {
+            http_response_code(403);
+            if ($isAjaxRequest) {
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => false, 'message' => 'Forbidden']);
+            } else {
+                render_page('Forbidden', 'errors/403.php');
+            }
+        }
+        return;
+    }
     $isClientAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
     $monthValue = $method === 'POST' ? ($_POST['month'] ?? '') : ($_GET['month'] ?? date('Y-m'));
     $month = ScheduleService::monthInfo(is_string($monthValue) ? $monthValue : '');
@@ -1836,6 +1996,14 @@ function handle_panel_schedule(string $method): void
     }
 
     $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month);
+    $workloadIds = array_column(
+        ScheduleService::listScheduleContracts($clientId, $userId, $isClientAdmin, $month, false, null, false),
+        'contract_id'
+    );
+    foreach ($data['contracts'] as &$contract) {
+        $contract['can_manage_workload'] = in_array($contract['contract_id'], $workloadIds, true);
+    }
+    unset($contract);
     if ($isAjaxRequest) {
         if ($error !== null) {
             http_response_code(422);
@@ -1870,11 +2038,12 @@ function handle_panel_schedule(string $method): void
         'month' => $month,
         'contracts' => $data['contracts'],
         'templates' => $data['templates'],
-        'workloads' => EmploymentCatalogService::listForClient($clientId, 'workloads'),
+        'workloads' => $workloadIds !== [] ? EmploymentCatalogService::listForClient($clientId, 'workloads') : [],
         'entries' => $data['entries'],
         'oldAssignments' => $oldAssignments,
         'canManage' => $isClientAdmin || $data['contracts'] !== [],
         'canManageTemplates' => $isClientAdmin,
+        'canAssignSubstitute' => SubstituteService::canAssignScheduleSubstitute($clientId, $userId),
         'message' => $message,
         'error' => $error,
     ], 'schedule');
@@ -1888,6 +2057,8 @@ function handle_panel_schedule_print(): void
 
     $clientId = ClientContext::clientId();
     $userId = ClientContext::userId();
+    $printOnly = RoleService::isSelfServiceUser($userId, $clientId)
+        && SubstituteService::activeScheduleManagers($clientId, $userId) === [];
     $isClientAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
     $monthValue = is_string($_GET['month'] ?? null) ? $_GET['month'] : date('Y-m');
     $month = ScheduleService::monthInfo($monthValue);
@@ -1897,7 +2068,16 @@ function handle_panel_schedule_print(): void
         return;
     }
 
-    $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month);
+    $data = ScheduleService::monthData($clientId, $userId, $isClientAdmin, $month, $printOnly ? $userId : null);
+    if (!$printOnly && RoleService::isSelfServiceUser($userId, $clientId)) {
+        $ownPrint = ScheduleService::monthData($clientId, $userId, false, $month, $userId);
+        $contractsById = array_column($data['contracts'], null, 'contract_id');
+        foreach ($ownPrint['contracts'] as $contract) {
+            $contractsById[$contract['contract_id']] ??= $contract;
+        }
+        $data['contracts'] = array_values($contractsById);
+        $data['entries'] += $ownPrint['entries'];
+    }
     $locations = [];
     foreach ($data['contracts'] as $contract) {
         $locationKey = (int) $contract['property_node_id'] . ':' . (int) ($contract['department_id'] ?? 0);
@@ -1912,6 +2092,8 @@ function handle_panel_schedule_print(): void
     }
 
     render_panel_page('Print schedule', 'schedule/print.php', [
+        'printOnly' => $printOnly,
+        'canAssignSubstitute' => SubstituteService::canAssignScheduleSubstitute($clientId, $userId),
         'canManageTemplates' => $isClientAdmin,
         'month' => $month,
         'locations' => $locations,
@@ -1934,6 +2116,48 @@ function require_schedule_admin(): bool
     }
 
     return true;
+}
+
+function handle_panel_schedule_substitutes(string $method): void
+{
+    if (!require_schedule_modules()) {
+        return;
+    }
+    $clientId = ClientContext::clientId();
+    $userId = ClientContext::userId();
+    if (!SubstituteService::canAssignScheduleSubstitute($clientId, $userId)) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
+    $isAdmin = RoleService::hasAnyRole($userId, $clientId, ['client_admin']);
+    $error = null;
+    $message = null;
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            http_response_code(403);
+            $error = 'Invalid session token, please try again.';
+        } else {
+            if (($_POST['action'] ?? '') === 'end') {
+                $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT);
+                [$success, $result] = SubstituteService::endScheduleSubstitute($clientId, $userId, $id !== false ? (int) $id : 0);
+            } else {
+                [$success, $result] = SubstituteService::assignScheduleSubstitute($clientId, $userId, $_POST);
+            }
+            if ($success) {
+                $message = $result;
+            } else {
+                $error = $result;
+            }
+        }
+    }
+    render_panel_page('Schedule substitutes', 'schedule/substitutes.php', [
+        'canManageTemplates' => $isAdmin, 'canAssignSubstitute' => true,
+        'isAdmin' => $isAdmin, 'currentUserId' => $userId,
+        'users' => UserService::listForClient($clientId),
+        'assignments' => SubstituteService::scheduleAssignments($clientId, $userId, $isAdmin),
+        'old' => $method === 'POST' ? $_POST : [], 'error' => $error, 'message' => $message,
+    ], 'schedule');
 }
 
 function handle_panel_schedule_holidays(): void
@@ -2021,6 +2245,11 @@ function handle_panel_schedule_workload(string $method): void
     }
 
     header('Content-Type: application/json; charset=utf-8');
+    if (RoleService::isSelfServiceUser(ClientContext::userId(), ClientContext::clientId())) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Forbidden']);
+        return;
+    }
     $isAjaxRequest = $method === 'POST'
         && strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
     if (!$isAjaxRequest) {
@@ -2048,7 +2277,7 @@ function handle_panel_schedule_workload(string $method): void
         return;
     }
 
-    $visibleContracts = ScheduleService::listScheduleContracts($clientId, $userId, $isClientAdmin, $month);
+    $visibleContracts = ScheduleService::listScheduleContracts($clientId, $userId, $isClientAdmin, $month, false, null, false);
     $visibleContract = null;
     foreach ($visibleContracts as $contract) {
         if ((int) $contract['contract_id'] === (int) $contractId) {

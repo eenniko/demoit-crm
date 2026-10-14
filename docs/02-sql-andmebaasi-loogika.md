@@ -2,6 +2,8 @@
 
 **Versioon:** 1.2
 
+**Staatus:** algne andmemudeli nõudedokument. Tegelik lahendus kasutab ühist MySQL andmebaasi ja `client_id` filtrit, mitte kliendiprefiksiga tabeleid; iga konto kuulub ühele kliendile. Kõigi väljade, indeksite, seoste ja algandmete iseseisev taastamisallikas on [SQL-taastepakett](15-andmebaasi-taastepakett.sql). Loe ka [tegeliku andmemudeli kaarti](12-tehniline-taastamisspetsifikatsioon.md) ja [paigaldusjuhendit](13-paigaldus-varundus-ja-taastamine.md).
+
 ## 1. Põhimõte
 
 Andmebaas on MySQL-iga ühilduv ning kasutatakse otse PDO/MySQLi kaudu (ilma ORM-ita). SQL-juhend peab hiljem sisaldama otse phpMyAdminis käivitatavaid `CREATE TABLE`, indeksite ja välisvõtmete lauseid.
@@ -27,6 +29,8 @@ Soovituslikud ühised tabelid:
 - `system_initial_setup`
 
 Kõigil tabelitel peavad olema sobivad indeksid, `created_at` ja `updated_at` väljad ning vajalikud välisvõtmed.
+
+Tegelik toe skeem alates 1.84: `system_support_tickets` säilitab algsõnumi, looja, valitud vastaja, `recipient_type`, oleku, `closed_at` ja `closed_by_user_id`. `system_support_replies` hoiab kronoloogilisi vastuseid, `system_support_participants` unikaalseid ticketi/kasutaja kutseid koos kutsuja ja ajaga. PHP-installer lisab puuduvad kolm ticketi veergu enne migratsiooni 071 SQL-i. SQL-only taastepakett sisaldab samaväärset DDL-i. Üksikasjad ja ligipääsufiltrid on [tehnilises spetsifikatsioonis](12-tehniline-taastamisspetsifikatsioon.md).
 
 ## 3. Kliendiprefiksid
 

@@ -1,4 +1,4 @@
-<nav class="nav nav-tabs mb-3" aria-label="Employment">
+<nav class="nav nav-tabs mb-3" aria-label="<?= e(TranslationService::translate('ui.' . hash('sha256', 'Employment'), 'Employment')) ?>">
     <a class="nav-link <?= $employmentSection === 'contracts' ? 'active' : '' ?>" href="/panel/employment/contracts">Contracts</a>
     <?php if ($canManage): ?>
         <a class="nav-link <?= $employmentSection === 'titles' ? 'active' : '' ?>" href="/panel/employment/titles">Job titles</a>

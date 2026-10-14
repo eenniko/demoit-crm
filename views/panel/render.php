@@ -12,6 +12,12 @@ function render_panel_page(string $title, string $contentView, array $vars = [],
     $activeModuleKeys = ClientContext::isLoggedIn()
         ? array_column(ModuleService::listActiveForClient(ClientContext::clientId()), 'module_key')
         : [];
+    $unreadNotificationCount = ClientContext::isLoggedIn()
+        ? NotificationService::unreadCount(ClientContext::clientId(), ClientContext::userId())
+        : 0;
+    $unreadSupportCount = ClientContext::isLoggedIn()
+        ? SupportService::unreadCount(ClientContext::clientId(), ClientContext::userId())
+        : 0;
 
     ob_start();
     require __DIR__ . '/' . $contentView;

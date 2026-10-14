@@ -7,6 +7,8 @@ function render_admin_page(string $title, string $contentView, array $vars = [],
 {
     extract($vars, EXTR_SKIP);
 
+    $unreadSupportCount = SupportService::unreadCount(ClientContext::clientId(), ClientContext::userId(), true);
+
     ob_start();
     require __DIR__ . '/' . $contentView;
     $workspaceContent = ob_get_clean();

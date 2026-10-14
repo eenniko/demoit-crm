@@ -1,9 +1,11 @@
 # DemoIT CRM – projekti- ja disaininõuded
 
 **Dokumendi versioon:** 1.2  
-**Süsteemi arendusversioon:** 1.75
+**Süsteemi arendusversioon:** 1.84
 **Põhikeel:** English  
 **Tehniline alus:** raamistikust sõltumatu veebilahendus, SQL/MySQL ja serveri-/rakenduskihi kokkulepitav teostus
+
+**Staatus:** algsed sihtnõuded, mitte kõigi funktsioonide teostuse kinnitus. Tehniline teostus on nüüd vanilla PHP + PDO/MySQL. Taastamisel lähtu [dokumentatsioonikaardist](00-dokumentatsiooni-kaart.md), [tegelikest baasfunktsioonidest](11-baasfunktsioonid-ja-teostuse-piirid.md) ja [taastamisspetsifikatsioonist](12-tehniline-taastamisspetsifikatsioon.md).
 
 ## 1. Eesmärk
 
@@ -55,6 +57,8 @@ Kliendi põhiosad:
 - raportid ja statistika;
 - seadistused;
 - tugi.
+
+Tugi on alates 1.84 privaatne ticketi vestlus: valitakse süsteemi toe järjekord, konkreetne kliendiadministraator või töötaja kehtiva lepingu manager. Teema avab algsõnumi ja vastused, looja/vastaja võivad lisada osalejaid ning sulgeda. Suletud teema on ainult loetav, viimased 10 kuvatakse eraldi sulgemisaja järgi. Täpne kasutus ja piirid on [baasfunktsioonide juhendis](11-baasfunktsioonid-ja-teostuse-piirid.md).
 
 Kõik ligipääsud tuleb kontrollida serveris või samaväärses usaldusväärses rakenduskihis, mitte ainult kasutajaliideses.
 

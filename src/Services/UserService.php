@@ -9,8 +9,14 @@ require_once __DIR__ . '/EmailService.php';
 /** User + role management scoped to a single client (doc 03). */
 class UserService
 {
-    public static function listForClient(int $clientId): array
+    public static function listForClient(int $clientId, ?int $userId = null): array
     {
+        $params = ['client_id' => $clientId];
+        $userFilter = '';
+        if ($userId !== null) {
+            $userFilter = ' AND u.id = :user_id';
+            $params['user_id'] = $userId;
+        }
         $stmt = db()->prepare(
                 'SELECT u.id, u.username, u.full_name, u.email, u.phone, u.status, u.must_change_password,
                                         GROUP_CONCAT(r.role_key SEPARATOR \',\') AS role_keys,
@@ -25,11 +31,11 @@ class UserService
              FROM system_users u
              LEFT JOIN system_user_roles ur ON ur.user_id = u.id AND ur.client_id = u.client_id AND ur.status = \'active\'
              LEFT JOIN system_roles r ON r.id = ur.role_id
-             WHERE u.client_id = :client_id
+             WHERE u.client_id = :client_id' . $userFilter . '
              GROUP BY u.id, u.username, u.full_name, u.email, u.phone, u.status, u.must_change_password
              ORDER BY u.username'
         );
-        $stmt->execute(['client_id' => $clientId]);
+        $stmt->execute($params);
 
         return $stmt->fetchAll();
     }

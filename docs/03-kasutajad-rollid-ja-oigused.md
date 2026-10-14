@@ -2,7 +2,11 @@
 
 **Versioon:** 1.1
 
+**Staatus:** algsed õiguste sihtnõuded. Praegune autoriseerimine on rolli-, mooduli- ja lepingupõhine; üldine õiguste pärandumine puudub. Alates 1.83 toimib eraldi ajaliselt piiratud manageri graafikuvahetuste asendus, mitte üldine rollide või organisatsiooni õiguste volitamine. Täpne olemasolev ligipääsumaatriks ja piirangud on [baasfunktsioonide juhendis](11-baasfunktsioonid-ja-teostuse-piirid.md) ning [graafikujuhendis](10-graafiku-moodul.md). Mitme kliendi membership-mudelit ega kõigi kirjeldatud kinnituste töövoogu ei tohi taastamisel eeldada.
+
 ## 1. Rollide tasandid
+
+Toe privaatsetes vestlustes (1.84) annab ligipääsu looja ID, nimeline vastaja või kutse. `client_admin` ei ava automaatselt sama kliendi kõiki teemasid ning süsteemirollid avavad ühiselt ainult süsteemi toe suuna. Kutsutud osaleja loeb/vastab, looja/vastaja lisaks kutsub/sulgeb; deaktiveeritud konto ei pääse vestlusse. Manageri graafikuasendus ei anna automaatset ligipääsu manageri toe teemadele. Täpne poliitika on [baasfunktsioonide juhendis](11-baasfunktsioonid-ja-teostuse-piirid.md) ja [tehnilises lepingus](12-tehniline-taastamisspetsifikatsioon.md).
 
 ### Peasüsteem
 

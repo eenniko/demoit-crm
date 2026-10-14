@@ -1,5 +1,142 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.92 – 14. oktoober 2026
+
+- Kontrollitud lepingute loendi/lisamis-/muutmisvormi ning ametinimetuste, osakondade ja koormuste vaadete fraase olemasoleva tõlkekataloogi vastu. Migratsioon 079 lisab kümme puuduvat en/et/ru fraasi: New department, New workload, Job title name, Department name, Workload name, Hide, Activate, Edit contract, Open-ended ja Restore.
+- Kataloogi sisestusväljade ning navigeerimise aria-label tõlgitakse serveris andmebaasi kataloogist, sest olemasolev DOM-tõlkija ei tõlgi esialgse puu kõiki atribuute. Nimed, protsendid, lepingud ja õigused ei muutu; olemasolevaid kohandatud tõlkeid ei kirjutata üle.
+- 129 tõlke-, korduskäivitamise ja renderdamise kontrolli. Veebis kontrollitud kõik neli vahelehte ning lepingu lisamisvorm eesti/vene keeles ilma andmeid salvestamata. Taastamispakett uuendatud. Järgmine versioon `1.93`.
+
+## Versioon 1.91 – 14. oktoober 2026
+
+- Migratsioon 078 lisab dünaamiliselt koostatud „New job title” sildi en/et/ru tõlked: „Uus ametinimetus” ja „Новая должность”. Olemasolevad käsitsi muudetud tõlked säilivad.
+- Kasutatakse olemasolevat andmebaasipõhist UI kataloogi, vormi ja ametinimetuste andmeid ei muudeta. Tõlketest ja taastamispakett uuendatud. Järgmine versioon `1.92`.
+
+## Versioon 1.90 – 14. oktoober 2026
+
+- Migratsioon 077 lisab kinnistu tüüpide Building/Hoone/Здание, Wing/Korpus/Корпус, Floor/Korrus/Этаж ja Room/Ruum/Помещение aktiivsed en/et/ru tõlked andmebaasi. Seniseid käsitsi muudetud tõlkeid ei kirjutata üle.
+- Olemasolev tõlkekataloog rakendab nimetusi nii kinnistu loendis kui lisamise tüübi valikus. Tehnilised node_type väärtused, andmed ja õigused ei muutu.
+- Lisatud tõlkekataloogi ja migratsiooni korduskäivitamise test ning uuendatud taastamispakett. Järgmine versioon `1.91`.
+
+## Versioon 1.89 – 14. oktoober 2026
+
+- Lugemata aktiivse toe ticketi kogu rida on bold ja teema kõrval Uus vastus tähis, kui teise osalise vastus on lugemata; vastuseta avamata teema puhul Lugemata tähis. Loetud/suletud read tavatekstiga.
+- Menüü loendur ja rea märgistus kasutavad ühist SQL-i lugemisreeglit, õigused ning ID-põhine avamine/vastuste lugemine säilivad. Kliendi ja süsteemi vaated kasutavad sama UI-d.
+- Migratsioon 076 lisab en/et/ru märgistuste tõlked ja versiooni, skeem ei muutu. Toe testis 174 kontrolli. Taastamisdokumentatsioon ja inventuur uuendatud. Järgmine versioon `1.90`.
+
+## Versioon 1.88 – 14. oktoober 2026
+
+- Kasutaja kinnitatud käitumismuudatus: uus vastus teeb avatud ticketi teistele osalistele uuesti lugemata, ka algsele loojale. Saatjale jääb loetuks. Number on ticketite, mitte vastuste arv; suletuid ei loendata.
+- Detaili avamine salvestab juba laaditud vastuste maksimaalse ID. Laadimise ajal lisandunud uus vastus jääb lugemata, vana tab ei vähenda lugemispiiri. Saatja lugemisolek salvestatakse vastuse/auditiga samas transaktsioonis. Sekunditäpsusega ajad ei ole lugemisoleku võrdluse alus.
+- Migratsioon 075 lisab vastuse ID lugemispiiri tabeli ja en/et/ru tooltip'i. Vanad esmaavamised säilivad, varasemaid vastuste lugemisi ei oletata.
+- Toe integratsioonitestis 158 kontrolli, taastamisjuhendid ja SQL-pakett/inventuur uuendatud. Järgmine versioon `1.89`.
+
+## Versioon 1.87 – 14. oktoober 2026
+
+- Kliendi ja süsteemi Tugi nupu paremal on kasutajale lubatud avamata open/in_progress teemade arv, nulli korral märki ei näidata. Looja jaoks on enda teema kohe loetud.
+- Vastaja/kutsutu esimene autoriseeritud detailvaate avamine salvestab kasutajapõhise püsiva avamisoleku. Loendi vaatamine ega uus vastus olekut ei muuda. Teema sulgemisel see enam loendurisse ei kuulu.
+- Süsteemi toe ühises järjekorras loetakse iga vastajakonto avamisi eraldi. Kõik varasemad privaatsete teemade/kliendi/rolli piirangud säilivad. Vanad avamised polnud salvestatud ja neid ei oletata backfill'is.
+- Migratsioon 074 lisab system_support_reads ja en/et/ru badge tooltip'i, testis 24 uut kontrolli (144 kokku). Taastamise skeem, õigused ja kasutus uuendatud. Järgmine versioon `1.88`.
+
+## Versioon 1.86 – 14. oktoober 2026
+
+- Teavituste tavavaates on viimase 30 päeva kasutajale suunatud/kliendi ühisteated, vanemad säilivad eraldi Arhiivis. Mõlemad vaated 50-kaupa lehekülgedega ja stabiilse loomisaeg/ID järjekorraga.
+- Menüü Teavitused lingi parempoolne number näitab ainult viimase 24 tunni lugemata teateid, nulli korral puudub. Lugemisolekut ei muudeta lehe avamisega, vaid Märgi loetuks nupuga.
+- Migratsioon 073 lisab kasutajapõhised lugemiskinnitused ka kliendi ühisteadetele, teiste kasutajate loendur säilib. Vanade isiklike is_read=1 olek säilib. Lugemise POST kontrollib saajat/klienti, CSRF-i ja meetodit.
+- Lisatud tegeliku teenuse/handler'i/vaate SQLite integratsioonitest, en/et/ru tõlked ning taastamisskeemi/API/kasutusjuhendi ja inventuuri uuendus. Varasemad teated säilivad, vanade ajavööndite parandamine ei kuulu sellesse uuendusse. Järgmine versioon `1.87`.
+
+## Versioon 1.85 – 14. oktoober 2026
+
+- Parandatud PHP ja SQL ajavööndi lahknevuse juurpõhjus: PHP seatakse Europe/Tallinn ning kõik rakenduse PDO sessioonid Eesti hetke offset'ile enne kasutamist. Teavituste/toe DEFAULT CURRENT_TIMESTAMP ning System logs NOW() salvestavad edaspidi sama kohaliku aja nagu PHP toe vastused/sulgemine.
+- Suvel +03:00, talvel +02:00, DST offset arvutatakse PHP IANA reeglitest. MySQL nimega ajavöönditabeleid ei nõuta, hosti globaalset seadistust ei muudeta. Pika protsessi ühendus kontrollib offset'i muutust igal db() kutsel. Seadistusviga ei varjata.
+- Graafiku UTC-põhised kestuse arvutused ja olemasolevad ajatemplid jäävad puutumata. Ajalooliste andmete parandamine vajab varukoopiat ja välja/ID-põhist päritolu kontrolli; juba õiged PHP sulgemisajad ei tohi nihkuda.
+- Lisatud 16 ajavööndi/DST/PDO/migratsiooni regressioonikontrolli, versioonimigratsioon 072 ning taastamisdokumentatsiooni SQL/PHP ajapoliitika ja vanade andmete kontrollpäringud. Järgmine versioon `1.86`.
+
+## Versioon 1.84 – 14. oktoober 2026
+
+- Tugi on privaatne ticketi vestlus. Looja valib süsteemi toe ühise järjekorra, ühe sama kliendi aktiivse administraatori või enda tänase kehtiva põhi-/ajutise lepingu manageri. Mitme vastaja korral tehakse nimeline valik. F ja töölepinguta kontod saavad süsteemi/kliendiadministraatorile kirjutada.
+- Loendis on klikitav teema, looja nimi, olek ja loomisaeg; avamisel algsõnum ning kronoloogilised vastused autorite/ajaga. Ainult looja, vastaja ja kutsutud näevad sisu. Kõrgem kliendi-/süsteemiroll ei ava automaatselt võõraid nimelisi teemasid.
+- Looja/vastaja võivad lisada sama kliendi aktiivseid töötajakontosid ning sulgeda. Kutsutud saavad lugeda/vastata, mitte kutsuda/sulgeda. Sulgemine säilitab vestluse ainult loetavana; avatud teemade all on viimased 10 closed_at DESC,id DESC järgi. Uuesti avamist ei lisata.
+- Migratsioon 071 ja installeri korduskindel DDL-handler lisavad vastaja liigi, sulgemisaja/kasutaja, vastused ja osalejad ning en/et/ru tõlked. Vanade päringute süsteemi suund ja algtekst säilivad, suletute aeg täidetakse senisest updated_at-ist.
+- Kirjutused kasutavad ticketi lukku, live osaliste kontrolli, CSRF-i, transaktsiooni ja auditit. Lisatud eraldatud tegeliku SQL-i/handler'i/vaate integratsioonitest; dokumenteeritud taastamise andmemudel, õigused, HTTP ja vastuvõtt ning uuendatud SQL-only taastepakett/inventuur.
+- Mõjutatud: SupportService, front controller, toe vaated, installer/migratsioon 071, test ja seotud dokumentatsioon. Järgmine versioon `1.85`.
+
+## Versioon 1.83 – 14. oktoober 2026
+
+- Lisatud Töögraafiku **Graafikuasendajad** leht. Manager võib ise ilma kinnitamiseta määrata enda asendajaks sama kliendi aktiivse töötajakonto; kliendiadministraator võib määrata päris manageri asendaja. Asendaja töölepingut ega organisatsiooniseost ei nõuta. Puuduva konto lisab/aktiveerib kliendiadministraator Töötajad ja õigused all.
+- Määratakse algus/lõpp kuupäeva ja kellaajaga; õigus on algusajal kaasav, lõppajal välistav ning seda kontrollitakse igal päringul ka salvestuse lukustatud SQL-skoobis. Algne manager/admin võib õiguse varem lõpetada. Croni ega konto rollide muutmist pole vaja.
+- Asenduse ajal lubatud ainult jooksva kuu ja tulevaste kuude manageri enda ning talle juhina määratud konkreetsete lepingute vahetused. Varasemate kuude muutmine, kuukoormuse muutmine ja üldiste administraatori õiguste pärimine ei ole asendusega lubatud. Seaded ja riigipühad jäävad ainult olemasoleva client_admin rolli õiguseks.
+- F asendaja saab ainult Töögraafikus ajutise muutmisvaate; mujal säilib F. Enda senine F prindiskoobiga vaatamisõigus säilib lisaks manageri lubatud prindile. Muudel rollidel säilivad nende enda varasemad õigused. Asendaja ei saa pärida/delegeerida manageri asendusi edasi.
+- Kasutatakse olemasolevat `system_substitutes` tabelit eraldi `schedule_manager` tüübi ja `approved` olekuga. Vana organisatsiooni asendustaotlus ei anna neid õigusi ning reserveeritud tüüpi ei saa selle kaudu sisestada.
+- Kontrollitud eraldatud SQLite integratsioonis töölepinguta F, päris manageri SQL/salvestused, jooksva/tulevase kuu salvestused, möödunud kuu/teise kliendi/koormuse/seadete keelud, algus/lõpp, ennetähtaegne lõpetamine, CSRF ja rolle säilitav UI. Päris tootmismääranguid ega graafikukandeid ei muudeta testiks.
+- Mõjutatud: SubstituteService, ScheduleService, handler/route, graafiku UI/menüü, testid, migratsioon 070 ja taastamisjuhendid. Äriskeem ei muutu; lisanduvad en/et/ru tõlked. Järgmine versioon `1.84`.
+
+## Versioon 1.82 – 14. oktoober 2026
+
+- Parandatud manageri enda graafiku nähtavus/muutmine: varem lubas loend ainult lepinguid, kus kasutaja oli manager, kuid enda juhiks määramine pole lepinguvormis lubatud.
+- Kasutaja saab enda põhi- ja ajutisi lepinguid vaadata/muuta, kui ta on valitud kuul samas kliendis vähemalt ühe teise aktiivse töötaja kuuga lõikuval arhiveerimata põhi- või ajutisel lepingul manager. Muud alluvate lepingud on lubatud ainult nende enda manager-määrangu järgi; teise juhiga ajutine leping ei päri põhilepingu õigust.
+- Ühine SQL-skoobireegel kehtib loendi, printimise, kuu salvestuse lukustatud loendi, koormuse handler'i ning planeeritud/Required/OT/Tri-OT arvutuste jaoks. Tri-OT enda õigust hinnatakse valitud kuu, mitte ajaloolise osakuu manager-määranguga.
+- Alluvateta tavakasutaja ei saa enda muutmisõigust. Level F ilma client_admin'ita jääb print-only; administraatori senised õigused säilivad.
+- Lisatud tegeliku teenuse ja AJAX/koormuse handler'i integratsioonitest eraldatud SQLite andmetel: enda/alluvate lubatud salvestused, võõra kliendi/lepingute keelud, mixed-päringu rollback, kattuvused, õiguse eemaldamine, täpne Tri-OT ja F keeld. MySQL-i lukustuse/upsert süntaks kohandatakse ainult testis.
+- Mõjutatud: ScheduleService, kaks testi, installer/migratsioon 069 ja taastamisjuhendid. Äriskeem ei muutu. Järgmine versioon on `1.83`. Live manager-konto kontrolli ei tehtud.
+
+## Versioon 1.81 – 14. oktoober 2026
+
+- Level F ilma aktiivse `client_admin` rollita ei näe Active modules ega Property structure menüülinke. Mõlema lehe otsene avamine tagastab 403, kinnistustruktuuri alamtegevused on samuti keelatud.
+- Kinnistumoodulit ei deaktiveerita: töölepingute asukohaandmed ja lubatud graafikute prindivaade/PDF säilivad. Teiste rollide ning F+admin konto senine ligipääs ei muutu.
+- Mõjutatud: front controller, paneeli menüü, kaks olemasolevat regressioonitesti, installer/migratsioon 068 ja seotud dokumentatsioon/taastepakett. Äriskeem ja kontode rollid ei muutu.
+- Kontrollitud: F/F+viewer/viewer/admin/F+admin lehe- ja menüüõigused, kinnistute GET/POST alamtegevuste keelud, varasemad kliendihalduse/graafiku testid ning prindiskoobi tegelik SQL eraldatud SQLite andmetega, PHP lint/IDE diagnostika.
+- Järgmine versioon on `1.82`. Level F live-kontrolli ei tehtud.
+
+## Versioon 1.80 – 14. oktoober 2026
+
+- Level F ilma aktiivse kliendiadministraatori rollita saab Work schedule all ainult Print schedule vaate. Menüü viib otse printi; kuugraafiku GET suunab valitud kuuga printi, tavaline/AJAX POST ja kuukoormuse salvestamine tagastavad 403 enne graafiku lugemist või muutmist.
+- Print kuvab kogu asukoha/osakonna grupi ainult siis, kui sisselogitud kasutajal on valitud kuuga lõikuv arhiveerimata põhi- või ajutine leping täpselt samas asukoha ID + osakonna ID grupis. Juhi määrang ei anna F-le lisagruppe. Konto/kliendi ID võetakse sessioonist, mitte URL-ist.
+- Kogu lubatud grupi kaastöötajate read ja PDF-printimine säilivad. Lepinguta kuu ei anna gruppe; teise kliendi, lõppenud/tulevane või arhiveeritud leping ei anna valitud kuu ligipääsu.
+- Administraatori ja teiste rollide senine käitumine säilib. Prindivaate varasem kasutajamuudatus jääb puutumata.
+- Mõjutatud: graafikuteenuse loend/arvutus, handler'id, menüü/vahelehed, test, installer/migratsioon 067 ja taastamisjuhendid. Äriskeem ei muutu. Järgmine versioon on `1.81`.
+- Kontrollitud PHP regressioonid, tegelik grupi-SELECT eraldatud SQLite andmetega, 45 migratsiooni/helper'i kontrolli, lint/IDE ja taastamispaketi katvus. Live administraatori print on 200 ning print-nupu sündmus/valikukontroll toimivad; Level F live-kontrolli ega PDF-faili loomist ei tehtud.
+
+
+## Versioon 1.79 – 14. oktoober 2026
+
+- Aktiivse `level_f` rolliga kasutaja näeb töötajate loendis ainult enda kontot ja töölepingute loendis ainult enda põhi- ning ajutisi lepinguid. Seos on sisselogitud kasutaja ID, mitte kuvatava nime järgi; samanimelised kontod ei anna ligipääsu.
+- SQL-päringud säilitavad kliendifiltri ja lisavad kontopõhise filtri. URL-is antud töötaja/kliendi ID ei muuda nähtavuse ulatust.
+- Level F ei näe ametite, osakondade ega koormuste vahelehti; nende otsene GET/POST tagastab 403 enne kataloogi lugemist. Muutmise ja arhiveerimise õigused jäävad kliendiadministraatorile.
+- Kui kontol on lisaks F-le aktiivne `client_admin`, säilivad administraatori õigused. Teiste rollide senine käitumine ei muutu.
+- Mõjutatud: front controller, rolli-, töötaja- ja lepinguteenused, regressioonitest, installer/migratsioon 066 ning seotud juhendid ja taastepakett. Äriskeem ei muutu.
+- Kontroll: eraldatud PHP regressioonitest, varasem kliendihalduse test, PHP lint/IDE diagnostika, dokumentatsiooni ja migratsioonide kontroll. Level F live-kontrolli ei tehtud.
+- Järgmine versioon on `1.80`.
+
+## Versioon 1.78 – 14. oktoober 2026
+
+- Kliendihalduse mitteadministraatori vaade kuvab andmed ainult tekstina. Level F, viewer ja teised `client_admin` rollita kontod ei saa välju täita ega näe salvestusvormi/-nuppu. Menüü ja vaatamisõigus säilivad.
+- Administraatori senine muutmisvorm säilib. Mitteadministraatori otsene POST tagastab endiselt 403 enne andmete salvestamist. Rollid ja kontode andmed ei muutu.
+- Lisatud eraldatud PHP regressioonitest: Level F/viewer/admin GET/POST, CSRF, tekstiväärtuste kodeerimine ja NULL kontaktandmed. Testkausta HTTP ligipääs keelatud.
+- Mõjutatud failid: `views/panel/client/index.php`, `tests/client-management.php`, `.htaccess`, installer/migratsioon 065 ning seotud dokumentatsioon ja taastepakett.
+- Andmebaas: ainult versiooni registreerimine, äriskeemi muutuseta. Järgmine versioon on `1.79`.
+- Kontrollitud: kliendihalduse eraldatud GET/POST regressioonitest, PHP lint/IDE diagnostika, 41 varasemat ja migratsioonikontrolli, dokumentatsiooni katvus ning diff-vorming. Live'i administraatori vaade säilitab vormi ja annab HTTP 200. Level F live-kontroll jäi kasutaja valikul tegemata.
+
+## Versioon 1.77 – 14. oktoober 2026
+
+- Parandatud versiooni 1.76 migratsiooni `database_changes` kirjelduses semikoolon, mida `SchemaInstaller::splitStatements()` käsitles ekslikult SQL-käsu lõpuna. Katkenud INSERT põhjustas automigratsiooni ajal lehe 500 vea.
+- Migratsioon 063 parandatakse otse, sest süntaksivigast käsku ei olnud võimalik lõpetada ega järgmise parandusmigratsioonini jõuda. Migreeritud 1.76 kirje olemasolul jääb senine kirje alles.
+- Lisatud migratsioon 064 versiooni 1.77 registreerimiseks ning värskendatud SQL-taastepakett ja inventuur.
+- Kontrollitud: algse vea reproduktsioon ja parandatud 063/064 terviklikud INSERT-laused installeri tegeliku SQL-jagajaga; kokku 39 DB-ühenduseta kontrolli, PHP lint, IDE diagnostika, dokumentatsiooni katvus ja `git diff --check`. Live'is tagastavad `/`, `/panel` ja `/panel/schedule` HTTP 200 ning veavaadet ei ole.
+- Äriskeem ja kliendiandmed ei muutu. Uuendamiseks peavad serverisse jõudma parandatud 063, uus 064 ja installer; DB taastamist ega seadistuse avamist pole vaja.
+- Järgmiseks versiooniks on `1.78`.
+
+## Versioon 1.76 – 14. oktoober 2026
+
+- Auditeeritud lähtekoodi ja dokumentatsiooni katvus ning lisatud kogu lahenduse AI taastamispakett: dokumentatsioonikaart, puudunud baasfunktsioonide kirjeldused, arhitektuuri/HTTP/graafiku spetsifikatsioon, paigaldus- ja varundusjuhend ning mõõdetavad vastuvõtukontrollid.
+- Lisatud iseseisev tühja andmebaasi SQL-taastepakett kõigi algmigratsioonide, tõlkeseemne ja PHP-installeris olnud skeemiparanduste SQL-ekvivalentidega; tehniline inventuur katab 71 marsruuti, 32 tabelit, 63 migratsiooni ja 157 käivitus-/skeemifaili.
+- Parandatud algsete nõuete ja tegeliku teostuse eristus, lepingujuhendi vananenud graafikuviide ning graafiku juhifiltri, ruumitee, algandmete ja pühade kirjeldused. Dokumenteeritud ka olemasoleva teostuse piirangud, mitte lisatud neid vaikimisi funktsioonidena.
+- Mõjutatud failid: `docs/00-dokumentatsiooni-kaart.md`, `docs/01-projektinouded-ja-disaininouded.md` kuni `docs/07-tootajate-mooduli-ai-arendusjuhend.md`, `docs/09-toolepingute-moodul.md` kuni `docs/16-tehniline-inventuur.md`, `README.md`, `CHANGELOG.md`, `src/Services/SchemaInstaller.php` ja `sql/063_reconstruction_documentation.sql`.
+- Andmebaasimuudatus: äriskeem ei muutu; uus registreeritud migratsioon lisab versiooni 1.76. Rakenduse ärikäitumist ei muudeta.
+- Kontrollitud: kõik dokumentatsioonilingid, kõigi 63 migratsiooni täpne sisaldumine SQL-paketis, kõik marsruudid/tabelid ja inventuuri failiräsid; 34 DB-ühenduseta käitumis-/parseri-/CSRF-kontrolli; muudetud PHP-faili lint, IDE diagnostika ja `git diff --check`.
+- MySQL-is SQL-paketi käivitamist, brauseri vastuvõtuteste ega tootmiskeskkonna taastamist selle ülevaatuse käigus ei tehtud; vajalik kontrollplaan on dokumendis 14. Olemasolev kasutaja prindivaate muudatus jäi puutumata.
+- Uuendamine: laadi dokumentatsioon ja registreeritud migratsioon koos installeriga; automigratsioon lisab ainult versioonikirje. SQL-taastepakett on tühjale DB-le, mitte tootmisuuendus. Tagasipööramine ei nõua ärikirjete kustutamist.
+- Järgmiseks versiooniks pärast 1.76 on `1.77`.
+
 ## Versioon 1.75 – 4. oktoober 2026
 
 - Uuendatud AI arendusprompti süsteemiversioon ning järgmise versiooni juhis; parandatud graafikujuhendi riigipühade norm- ja exception-tundide kirjeldus ning koondveeru nimi.
@@ -649,6 +786,141 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.92 - October 14, 2026
+
+- Audited employment list/create/edit and catalogue phrases against existing translations. Migration 079 seeds ten missing English/Estonian/Russian form, action and accessible labels, preserving custom translations.
+- Catalogue input and navigation aria-labels use server-side database translations because the existing DOM translator does not traverse all initial element attributes. Stored names, contracts, percentages and permissions remain unchanged.
+- 129 translation, idempotency and rendering checks. Verified all four employment tabs and the create form in Estonian/Russian with read-only browser checks. Reconstruction package updated. Next version `1.93`.
+
+## Version 1.91 - October 14, 2026
+
+- Migration 078 seeds English, Estonian and Russian translations for the dynamically composed New job title label, preserving existing custom values.
+- Uses the existing database-backed UI catalogue without changing the form or job title records. Updated translation checks and reconstruction package. Next version `1.92`.
+
+## Version 1.90 - October 14, 2026
+
+- Migration 077 seeds active English, Estonian and Russian translations for Building, Wing, Floor and Room without overwriting existing custom translations.
+- The existing database catalogue translates property list labels and creation options; stored node_type values, records and permissions are unchanged.
+- Added catalogue and migration idempotency checks and updated reconstruction documentation. Next version `1.91`.
+
+## Version 1.89 - October 14, 2026
+
+- Unread active support rows use bold text and a New reply label for unseen replies, or Unread for unopened initial tickets. Read/closed rows are not highlighted.
+- Menu count and row flags share SQL unread predicates, preserving authorization and ID-based reply read state. Client/system lists share the UI.
+- Migration 076 adds en/et/ru labels and version only, no schema changes. Support integration has 174 checks, reconstruction documentation/inventory updated. Next version `1.90`.
+
+## Version 1.88 - October 14, 2026
+
+- User-approved change: replies make active tickets unread for other participants including the creator, but not the sender. Badge counts tickets, not messages, and excludes closed tickets.
+- Detail GET records the maximum already-loaded reply ID, preserving unread replies arriving during loading. Stale tabs cannot lower the watermark. Sender read state commits/rolls back with reply and audit. No second-resolution timestamp comparisons.
+- Migration 075 adds reply ID read watermarks and en/et/ru tooltip. Existing first-open receipts remain, historical reply reads are not guessed.
+- Support integration now has 158 checks, reconstruction contracts and SQL/inventory updated. Next version `1.89`.
+
+## Version 1.87 - October 14, 2026
+
+- Client/system Support menu badges count accessible open/in_progress tickets never opened by the current user, hiding zero. Creators are immediately considered read.
+- First authorized detail GET persists per-user first-open state. List visits and new replies do not reset it. Closed tickets never count.
+- System support responders maintain independent queue read states, preserving existing ticket/client/role authorization. Historical unrecorded opens are not guessed or backfilled.
+- Migration 074 adds system_support_reads and en/et/ru badge tooltip. Added 24 regression checks (144 total support checks) and updated reconstruction contracts. Next version `1.88`.
+
+## Version 1.86 - October 14, 2026
+
+- Notifications now show a rolling 30-day inbox and an older archive, both paginated in stable creation-time/ID order with 50 displayed items per page.
+- Right-aligned menu badge counts only unread notifications from the last 24 hours and hides at zero. Opening the page does not mark messages read, the existing Mark read action does.
+- Migration 073 adds per-user read receipts including client broadcasts, preserving other recipients' unread state and legacy targeted is_read=1. Read POST enforces recipient/client scoping, CSRF and method checks.
+- Added actual-service/handler/view SQLite integration tests, en/et/ru translations and updated recovery schema/API/usage/inventory. Existing messages remain intact, historical timezone repair is outside this update. Next version `1.87`.
+
+## Version 1.85 - October 14, 2026
+
+- Fixed the PHP/SQL clock mismatch at connection bootstrap: PHP uses Europe/Tallinn and every application PDO session receives the current Tallinn offset before use. Notification/ticket SQL defaults and audit NOW() now match PHP replies/closure times.
+- Uses +03:00 in summer and +02:00 in winter from PHP IANA rules without requiring MySQL named timezone tables or changing global hosting settings. Cached connections recheck DST offset on each db() call. Configuration errors propagate explicitly.
+- Schedule UTC duration calculations and existing timestamps remain unchanged. Historical repair requires backup and field/ID provenance verification, preserving already-correct PHP closure times.
+- Added 16 timezone/DST/PDO/migration checks, migration 072 and reconstruction clock policy plus read-only legacy verification SQL. Next version `1.86`.
+
+## Version 1.84 - October 14, 2026
+
+- Support now provides private ticket conversations routed to the shared system support queue, one active same-client administrator or one manager from the creator's currently valid primary/temporary contract. Multiple eligible people require an explicit selection. F and contractless accounts can contact system/client administration.
+- Clickable subjects display creator names, status and creation time; details preserve the initial message and chronological named replies. Only the creator, recipient and invited participants can access content. Client/system roles do not automatically expose unrelated personally directed tickets.
+- Creator/recipient may invite active ticket-client employee accounts and close the ticket. Invitees may read/reply, not invite/close. Closure preserves a read-only thread and shows the latest ten below open tickets ordered by closed_at DESC,id DESC. No reopening.
+- Migration 071 and retry-safe installer DDL add recipient category, closure time/user, replies/participants and en/et/ru translations. Legacy system-directed subjects/messages remain intact; closed timestamps are backfilled from updated_at.
+- Mutations enforce locked ticket access, live permissions, CSRF, transactions and audit. Added isolated actual-service/handler/view integration checks and updated reconstruction schema, authorization, HTTP contracts, acceptance checks, SQL recovery bundle and inventory.
+- Affected: support service, routes/handlers, views, installer/migration, tests and related documentation. Next version `1.85`.
+
+## Version 1.83 - October 14, 2026
+
+- Added Schedule substitutes, where managers assign their own temporary substitute without approval, or client administrators assign a real manager's substitute. The substitute needs an active same-client employee account, not an employment contract or organisation link.
+- Editing rights apply only during the start-inclusive/end-exclusive time window, checked on every request and in locked save scope. Original managers/admins may revoke early; no cron or role promotion is required.
+- Delegation covers current/future month shifts on the original manager's own and explicitly managed contracts, not past months, monthly workloads, template/holiday administration or recursive delegation.
+- F substitutes gain a temporary monthly editing view only in Schedule; all other F restrictions and their existing personal print visibility remain. Other roles retain independent pre-existing rights.
+- Dedicated `schedule_manager` rows reuse system_substitutes. Legacy organisation requests cannot create this reserved delegation type.
+- Isolated SQLite integration verifies contractless F, persisted writes, month/client restrictions, expiry/revocation, CSRF, denied settings/workloads and UI. Production assignments and schedules were not modified for tests.
+- Affected: services, route/handlers, schedule UI, tests, migration 070 and recovery guides. Business schema unchanged, en/et/ru translations added. Next version `1.84`.
+
+## Version 1.82 - October 14, 2026
+
+- Fixed managers' own schedule access: previously only contracts naming the user as manager were visible, while assigning oneself as manager is forbidden.
+- Own primary/temporary rows are now editable when the user manages at least one other active employee's unarchived primary/temporary contract overlapping the selected month in the same client. Other employee rows still require a manager assignment on that exact contract.
+- Shared SQL scope covers viewing/printing, locked save selection, workload authorization and hour/balance calculations. Own Tri-OT access uses the selected month's manager eligibility.
+- Ordinary users without subordinates receive no self-edit rights. Level F remains print-only and administrator rights are preserved.
+- Added isolated SQLite integration tests executing actual service and AJAX/workload handlers, persisted writes, out-of-scope denials, rollback, overlaps, revocation and exact Tri-OT. MySQL lock/upsert dialect is adapted only in tests.
+- Affected: schedule service, tests, installer/migration 069 and recovery documentation. No business-schema changes. Next version: `1.83`. No live manager-account verification.
+
+## Version 1.81 - October 14, 2026
+
+- Active modules and Property structure sidebar links are hidden for Level F without active `client_admin`. Direct page access and property subactions return 403.
+- The property module remains active for contract locations and permitted schedule printing/PDF. Other roles and F+admin retain existing access; account roles and business schema are unchanged.
+- Affected: router, sidebar, two existing regressions, installer/migration 068 and reconstruction documentation.
+- Validated role combinations, property GET/POST denials, prior client/schedule tests including actual scoped SQL on isolated SQLite fixtures, PHP lint and IDE diagnostics. Live Level F was not tested.
+- Next version: `1.82`.
+
+## Version 1.80 - October 14, 2026
+
+- Level F without an active client administrator role has print-only schedule access. The sidebar opens print directly; monthly GET redirects with the selected month, while regular/AJAX schedule POST and monthly workload writes return 403 before schedule access.
+- Printing includes complete location/department groups only where the signed-in account has an unarchived primary or temporary contract overlapping the selected month. Exact property/department IDs and session client/account IDs determine access, independently of manager assignments.
+- Coworker rows and browser Print / Save as PDF remain available in permitted groups. Expired, future, archived or other-client contracts do not grant access for the selected month.
+- Administrator and other-role behavior is preserved, as are the existing user changes to the print view.
+- Affected: schedule service, handlers, navigation, regression test, installer/migration 067 and recovery documentation. No business-schema changes. Next version: `1.81`.
+- Validated PHP regressions, the actual group SELECT on isolated SQLite fixtures, 45 migration/helper checks, lint/IDE diagnostics and recovery coverage. Live administrator print returns 200 and print-button/selection handling works. Live Level F and PDF file generation were not tested.
+
+## Version 1.79 - October 14, 2026
+
+- Active Level F users see only their own employee record and primary/temporary contracts, filtered by signed-in account ID and client ID rather than display name or URL parameters.
+- Employment job title, department and workload tabs remain hidden; direct catalog GET/POST requests return 403 before reading catalog data. Editing and archiving remain administrator-only.
+- An additional active `client_admin` role retains administrator access. Other roles retain their existing behavior.
+- Affected: router, role/user/contract services, regression test, installer/migration 066 and reconstruction documentation. No business-schema changes.
+- Validation: isolated PHP regression, previous client-management regression, PHP lint/IDE diagnostics and documentation/migration verification. Live Level F verification was not performed.
+- The next version is `1.80`.
+
+## Version 1.78 - October 14, 2026
+
+- Non-administrators see client details as plain text with no editable fields, form or save button. The menu and viewing access remain available.
+- Retained the administrator form and existing server-side 403 rejection of unauthorized POST requests before persistence. No account or role changes.
+- Added a standalone PHP regression test for Level F/viewer/admin GET/POST, CSRF, HTML escaping and NULL contacts. Blocked HTTP access to the test directory.
+- Affected: client view, test, `.htaccess`, installer/migration 065 and reconstruction documentation. No business-schema changes.
+- The next version is `1.79`.
+- Verified the isolated client-management regression test, PHP lint/IDE diagnostics, 41 existing/migration checks, documentation coverage and diff formatting. The live administrator view retains its form and returns HTTP 200. The user opted to defer the live Level F check.
+
+## Version 1.77 - October 14, 2026
+
+- Removed a semicolon inside migration 063's `database_changes` string. The installer's delimiter-based SQL splitter incorrectly split the INSERT and blocked application startup with a 500 error.
+- Corrected 063 directly because the invalid statement prevented reaching any later repair migration. Existing successful version records are retained.
+- Added version-registration migration 064 and refreshed the SQL recovery bundle and inventory. No business-schema or client-data changes.
+- Verified the original failure and complete 063/064 INSERT statements with the actual installer splitter: 39 database-free checks, PHP lint, IDE diagnostics, documentation coverage and `git diff --check`. Live `/`, `/panel` and `/panel/schedule` return HTTP 200 with no error view.
+- Deploy corrected 063, new 064 and the installer together. No database restore or reopening setup is necessary.
+- The next version is `1.78`.
+
+## Version 1.76 - October 14, 2026
+
+- Audited implementation/documentation coverage and added a complete AI reconstruction package: documentation map, missing base-feature specifications, architecture/HTTP/scheduling contracts, installation and backup procedures, and measurable acceptance checks.
+- Added a standalone empty-database SQL recovery bundle containing every original migration, translation seed and SQL equivalents of PHP installer repairs. The technical inventory covers 71 routes, 32 tables, 63 migrations and 157 runtime/schema files.
+- Distinguished initial target requirements from implemented behavior; updated employment and scheduling descriptions and explicitly recorded existing limitations rather than silently adding functionality.
+- Affected files: `docs/00-dokumentatsiooni-kaart.md`, documents 01–07 and 09–16, `README.md`, `CHANGELOG.md`, `src/Services/SchemaInstaller.php` and `sql/063_reconstruction_documentation.sql`.
+- Database: no business-schema changes; the registered migration records version 1.76. Runtime business behavior is unchanged.
+- Verified: documentation links, exact inclusion of all 63 migrations, complete route/table coverage, inventory hashes, 34 database-free behavior/parser/CSRF checks, changed PHP lint, IDE diagnostics and `git diff --check`.
+- The SQL bundle was not executed against MySQL, and browser/production recovery tests were not performed. Document 14 records the remaining acceptance plan. The user's existing print-view changes were preserved.
+- Upgrade: deploy documentation, migration and installer together; the automatic migration only adds a version record. The recovery SQL is for an empty database, not a production upgrade. Rollback requires no deletion of business records.
+- The next version after 1.76 is `1.77`.
 
 ## Version 1.75 - October 4, 2026
 

@@ -8,8 +8,14 @@ require_once __DIR__ . '/PropertyService.php';
 
 class EmploymentContractService
 {
-    public static function listForClient(int $clientId): array
+    public static function listForClient(int $clientId, ?int $employeeId = null): array
     {
+        $params = ['client_id' => $clientId];
+        $employeeFilter = '';
+        if ($employeeId !== null) {
+            $employeeFilter = ' AND c.employee_id = :employee_id';
+            $params['employee_id'] = $employeeId;
+        }
         $stmt = db()->prepare(
                 "SELECT c.id, c.employee_id, c.property_node_id, c.contract_type, c.start_date, c.end_date, c.workload_percent, c.archived_at,
                     EXISTS (SELECT 1 FROM employee_schedule_entries e WHERE e.client_id = c.client_id AND e.contract_id = c.id) AS has_schedule_entries,
@@ -31,10 +37,10 @@ class EmploymentContractService
              INNER JOIN employment_workloads workload ON workload.id = c.workload_id AND workload.client_id = c.client_id
              LEFT JOIN employment_departments department ON department.id = c.department_id AND department.client_id = c.client_id
              LEFT JOIN system_users manager ON manager.id = c.manager_user_id AND manager.client_id = c.client_id
-             WHERE c.client_id = :client_id
+             WHERE c.client_id = :client_id" . $employeeFilter . "
              ORDER BY c.start_date DESC, employee.full_name, c.id DESC"
         );
-        $stmt->execute(['client_id' => $clientId]);
+        $stmt->execute($params);
 
         return self::addPropertyPaths($stmt->fetchAll(), PropertyService::listTreeForClient($clientId));
     }

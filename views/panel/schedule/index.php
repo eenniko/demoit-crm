@@ -69,7 +69,7 @@
                             <?= e($contract['full_name'] ?: $contract['username']) ?>
                             <?php if ($contract['contract_type'] === 'temporary'): ?>
                                 <small class="d-block text-muted">Temporary assignment</small>
-                            <?php elseif ($canManage): ?>
+                            <?php elseif ($canManage && ($contract['can_manage_workload'] ?? false)): ?>
                                 <button
                                     class="btn btn-outline-secondary btn-sm w-100 mt-1 schedule-workload-button"
                                     type="button"

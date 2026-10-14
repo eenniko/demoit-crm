@@ -6,6 +6,8 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/AuditLogService.php';
 require_once __DIR__ . '/PropertyService.php';
 require_once __DIR__ . '/PublicHolidayService.php';
+require_once __DIR__ . '/RoleService.php';
+require_once __DIR__ . '/SubstituteService.php';
 
 class ScheduleService
 {
@@ -172,9 +174,10 @@ class ScheduleService
         return [true, $newStatus === 'active' ? 'Template activated.' : 'Template hidden. Existing schedule entries are unchanged.'];
     }
 
-    public static function monthData(int $clientId, int $managerId, bool $isClientAdmin, array $month): array
+    public static function monthData(int $clientId, int $managerId, bool $isClientAdmin, array $month, ?int $locationEmployeeId = null): array
     {
-        $contracts = self::listScheduleContracts($clientId, $managerId, $isClientAdmin, $month);
+        $contracts = self::listScheduleContracts($clientId, $managerId, $isClientAdmin, $month, false, $locationEmployeeId);
+        $allManagers = $isClientAdmin || $locationEmployeeId !== null;
         $monthlyWorkloadOverrides = self::monthlyWorkloadOverrides(
             $clientId,
             array_map(static fn (array $contract): int => (int) $contract['contract_id'], $contracts),
@@ -192,7 +195,7 @@ class ScheduleService
         unset($contract);
         $templates = self::listTemplates($clientId);
         $entries = self::getMonthEntries($clientId, $contracts, $month);
-        $plannedMinutes = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $contracts, $month);
+        $plannedMinutes = self::plannedWorkMinutes($clientId, $managerId, $allManagers, $contracts, $month);
         $temporaryMinutesByEmployee = [];
         foreach ($contracts as $contract) {
             if ($contract['contract_type'] === 'temporary') {
@@ -219,7 +222,7 @@ class ScheduleService
             $contract['monthly_balance_hours'] = round($contract['planned_hours'] - $contract['required_hours'], 2);
         }
         unset($contract);
-        $trimesterBalances = self::trimesterBalances($clientId, $managerId, $isClientAdmin, $contracts, $month);
+        $trimesterBalances = self::trimesterBalances($clientId, $managerId, $allManagers, $contracts, $month);
         foreach ($contracts as &$contract) {
             if ($contract['contract_type'] === 'primary') {
                 $contract['trimester_balance_hours'] = $trimesterBalances[(int) $contract['employee_id']] ?? 0.0;
@@ -263,8 +266,7 @@ class ScheduleService
                    AND start_date <= :month_end
                    AND (end_date IS NULL OR end_date >= :month_start)";
             if (!$isClientAdmin) {
-                $sql .= ' AND manager_user_id = :manager_id';
-                $params['manager_id'] = $managerId;
+                self::appendManagerScope($sql, $params, 'employment_contracts', $managerId, $selectedMonth);
             }
             $stmt = db()->prepare($sql);
             $stmt->execute($params);
@@ -276,7 +278,7 @@ class ScheduleService
                     array_map(static fn (array $contract): int => (int) $contract['contract_id'], $periodContracts),
                     $period['month']
                 );
-                $plannedMinutesByEmployee = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $periodContracts, $period)['byEmployee'];
+                $plannedMinutesByEmployee = self::plannedWorkMinutes($clientId, $managerId, $isClientAdmin, $periodContracts, $period, $selectedMonth)['byEmployee'];
                 $requiredHoursByEmployee = [];
                 foreach ($periodContracts as $contract) {
                     $contractStart = max($period['start'], $contract['start_date']);
@@ -416,7 +418,7 @@ class ScheduleService
         return [true, $message];
     }
 
-    private static function plannedWorkMinutes(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month): array
+    private static function plannedWorkMinutes(int $clientId, int $managerId, bool $isClientAdmin, array $contracts, array $month, ?array $scopeMonth = null): array
     {
         $employeeIds = array_values(array_unique(array_map(
             static fn (array $contract): int => (int) $contract['employee_id'],
@@ -455,8 +457,7 @@ class ScheduleService
                AND e.employee_id IN (' . implode(', ', $placeholders) . ')
                AND template.template_type IN (\'shift\', \'exception\')';
         if (!$isClientAdmin) {
-            $sql .= ' AND contract.manager_user_id = :manager_id';
-            $params['manager_id'] = $managerId;
+            self::appendManagerScope($sql, $params, 'contract', $managerId, $scopeMonth ?? $month);
         }
         $stmt = db()->prepare($sql);
         $stmt->execute($params);
@@ -536,7 +537,82 @@ class ScheduleService
         return $template['code'] . ' · ' . substr($template['start_time'], 0, 5) . ' · ' . $duration . 'h';
     }
 
-    public static function listScheduleContracts(int $clientId, int $managerId, bool $isClientAdmin, array $month, bool $forUpdate = false): array
+    private static function appendManagerScope(string &$sql, array &$params, string $alias, int $userId, array $month, bool $includeDelegation = true): void
+    {
+        $baseScope = '';
+        if (!RoleService::isSelfServiceUser($userId, (int) $params['client_id'])) {
+            $baseScope = "
+            {$alias}.manager_user_id = :scope_manager_id
+            OR ({$alias}.employee_id = :scope_employee_id AND EXISTS (
+                SELECT 1 FROM employment_contracts managed_contract
+                INNER JOIN system_users managed_employee
+                    ON managed_employee.id = managed_contract.employee_id
+                    AND managed_employee.client_id = managed_contract.client_id
+                WHERE managed_contract.client_id = {$alias}.client_id
+                  AND managed_contract.manager_user_id = :scope_assigned_manager_id
+                  AND managed_contract.employee_id <> :scope_other_user_id
+                  AND managed_employee.status = 'active'
+                  AND managed_contract.archived_at IS NULL
+                  AND managed_contract.contract_type IN ('primary', 'temporary')
+                  AND managed_contract.start_date <= :scope_month_end
+                  AND (managed_contract.end_date IS NULL OR managed_contract.end_date >= :scope_month_start)
+            ))
+        ";
+            $params['scope_manager_id'] = $userId;
+            $params['scope_employee_id'] = $userId;
+            $params['scope_assigned_manager_id'] = $userId;
+            $params['scope_other_user_id'] = $userId;
+            $params['scope_month_end'] = $month['end'];
+            $params['scope_month_start'] = $month['start'];
+        }
+        $delegatedScope = '';
+        $delegatedManagers = $includeDelegation && $month['month'] >= date('Y-m')
+            ? SubstituteService::activeScheduleManagers((int) $params['client_id'], $userId) : [];
+        if ($delegatedManagers !== []) {
+            $managerPlaceholders = [];
+            foreach ($delegatedManagers as $index => $managerId) {
+                $key = 'delegated_manager_' . $index;
+                $managerPlaceholders[] = ':' . $key;
+                $params[$key] = $managerId;
+            }
+            $delegatedScope = "EXISTS (
+                SELECT 1 FROM system_substitutes delegation
+                INNER JOIN system_users original_manager ON original_manager.id = delegation.original_user_id
+                    AND original_manager.client_id = delegation.client_id AND original_manager.status = 'active'
+                INNER JOIN system_users substitute ON substitute.id = delegation.substitute_user_id
+                    AND substitute.client_id = delegation.client_id AND substitute.status = 'active'
+                WHERE delegation.client_id = {$alias}.client_id
+                  AND delegation.substitute_user_id = :delegated_user_id
+                  AND delegation.original_user_id IN (" . implode(', ', $managerPlaceholders) . ")
+                  AND delegation.substitute_type = 'schedule_manager' AND delegation.status = 'approved'
+                  AND delegation.starts_at <= :delegation_now_start AND delegation.ends_at > :delegation_now_end
+                  AND ({$alias}.manager_user_id = delegation.original_user_id OR (
+                    {$alias}.employee_id = delegation.original_user_id AND EXISTS (
+                        SELECT 1 FROM employment_contracts delegated_managed
+                        INNER JOIN system_users delegated_employee ON delegated_employee.id = delegated_managed.employee_id
+                            AND delegated_employee.client_id = delegated_managed.client_id AND delegated_employee.status = 'active'
+                        WHERE delegated_managed.client_id = delegation.client_id
+                          AND delegated_managed.manager_user_id = delegation.original_user_id
+                          AND delegated_managed.employee_id <> delegation.original_user_id
+                          AND delegated_managed.archived_at IS NULL
+                          AND delegated_managed.contract_type IN ('primary', 'temporary')
+                          AND delegated_managed.start_date <= :delegated_month_end
+                          AND (delegated_managed.end_date IS NULL OR delegated_managed.end_date >= :delegated_month_start)
+                    )
+                  ))
+            )";
+            $params['delegated_user_id'] = $userId;
+            $params['delegated_month_end'] = $month['end'];
+            $params['delegated_month_start'] = $month['start'];
+            $now = date('Y-m-d H:i:s');
+            $params['delegation_now_start'] = $now;
+            $params['delegation_now_end'] = $now;
+        }
+        $scopes = array_filter([$baseScope, $delegatedScope], static fn(string $scope): bool => $scope !== '');
+        $sql .= ' AND (' . ($scopes === [] ? '1 = 0' : implode(' OR ', $scopes)) . ')';
+    }
+
+    public static function listScheduleContracts(int $clientId, int $managerId, bool $isClientAdmin, array $month, bool $forUpdate = false, ?int $locationEmployeeId = null, bool $includeDelegation = true): array
     {
         $sql =
                 "SELECT c.id AS contract_id, c.employee_id, c.property_node_id, c.department_id, c.contract_type,
@@ -552,9 +628,23 @@ class ScheduleService
                AND c.start_date <= :month_end
                AND (c.end_date IS NULL OR c.end_date >= :month_start)";
         $params = ['client_id' => $clientId, 'month_end' => $month['end'], 'month_start' => $month['start']];
-        if (!$isClientAdmin) {
-            $sql .= ' AND c.manager_user_id = :manager_id';
-            $params['manager_id'] = $managerId;
+        if ($locationEmployeeId !== null) {
+            $sql .= " AND EXISTS (
+                SELECT 1 FROM employment_contracts own_contract
+                WHERE own_contract.client_id = c.client_id
+                  AND own_contract.employee_id = :location_employee_id
+                  AND own_contract.property_node_id = c.property_node_id
+                  AND COALESCE(own_contract.department_id, 0) = COALESCE(c.department_id, 0)
+                  AND own_contract.archived_at IS NULL
+                  AND own_contract.contract_type IN ('primary', 'temporary')
+                  AND own_contract.start_date <= :own_month_end
+                  AND (own_contract.end_date IS NULL OR own_contract.end_date >= :own_month_start)
+            )";
+            $params['location_employee_id'] = $locationEmployeeId;
+            $params['own_month_end'] = $month['end'];
+            $params['own_month_start'] = $month['start'];
+        } elseif (!$isClientAdmin) {
+            self::appendManagerScope($sql, $params, 'c', $managerId, $month, $includeDelegation);
         }
         $sql .= ' ORDER BY property.name, department.name, employee.full_name, c.start_date';
         if ($forUpdate) {

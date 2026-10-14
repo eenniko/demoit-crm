@@ -1,5 +1,8 @@
 # DemoIT CRM
 
+Kogu lahenduse dokumentatsioon ja AI abil taastamise juhis: [dokumentatsioonikaart](docs/00-dokumentatsiooni-kaart.md).
+Complete solution documentation and AI reconstruction entry point: [documentation map](docs/00-dokumentatsiooni-kaart.md).
+
 Kliendipõhine moodulitega CRM, mis kasutab PHP-d, PDO-d ja MySQL-i. Projekt sisaldab peaadministraatori keskkonda, kliendipaneeli ning eraldi aktiveeritavaid patsiendi-, organisatsiooni-, töötajate, kinnistustruktuuri ja töölepingute mooduleid.
 
 A client-based modular CRM built with PHP, PDO and MySQL. It includes a system administrator workspace, a client panel, and independently activated patients, organisation, employees, property structure and employment modules.
@@ -15,6 +18,23 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.92 | 14.10.2026 | Töölepingute mooduli puuduvad vormi-, tegevus- ja ligipääsetavad nimetused tõlgitud eesti ning vene keelde. |
+| 1.91 | 14.10.2026 | New job title vormisilt tõlgitud andmebaasis eesti ja vene keelde. |
+| 1.90 | 14.10.2026 | Kinnistu tüübid Hoone, Korpus, Korrus ja Ruum tõlgitud andmebaasis eesti ning vene keelde. |
+| 1.89 | 14.10.2026 | Lugemata toe ticketi rida on paksu tekstiga ning märgitud Uus vastus või Lugemata tähisega. |
+| 1.88 | 14.10.2026 | Uus toe vastus lisab aktiivse ticketi teiste osaliste lugemata loendurisse, ka algsele loojale. |
+| 1.87 | 14.10.2026 | Tugi menüü kuvab avamata aktiivsete ticketite arvu kasutajapõhiselt; looja kohe loetud ja vastused olekut ei lähtesta. |
+| 1.86 | 14.10.2026 | Teavituste 30 päeva vaade, vanemate arhiiv ja 24 tunni kasutajapõhine lugemata loendur menüüs. |
+| 1.85 | 14.10.2026 | PHP ja MySQL sessiooni ajatemplid ühtlustatud Eesti ajaga, suve-/talveaeg arvestatud; vanad ajad vajavad eraldi kontrolli. |
+| 1.84 | 14.10.2026 | Privaatsed toe vestlused valitud vastaja, vastuste, kutsutud osalejate ja viimase 10 suletud päringu arhiiviga. |
+| 1.83 | 14.10.2026 | Manager määrab ajutise graafikuasendaja ilma töölepingu nõudeta; rollid säilivad, õigus ainult jooksva/tulevase kuu vahetustele asendusajal. |
+| 1.82 | 14.10.2026 | Valitud kuul alluvaga manager näeb/muudab ka enda graafikut; F jääb ainult printima. |
+| 1.81 | 14.10.2026 | Level F ei näe Active modules ega Property structure lehti; otse URL-iga ligipääs on keelatud. |
+| 1.80 | 14.10.2026 | Level F saab ainult prindivaate koos PDF-ga enda kuu lepingute asukoha/osakonna graafikutest. |
+| 1.79 | 14.10.2026 | Level F näeb ainult enda töötajakirjet ja lepinguid; töölepingute kataloogide ligipääs on keelatud. |
+| 1.78 | 14.10.2026 | Mitteadministraator näeb kliendihalduse andmeid ainult tekstina, ilma sisestusväljade ja salvestusvormita. |
+| 1.77 | 14.10.2026 | Parandatud dokumentatsioonimigratsiooni SQL-jagajaga vastuolus olnud semikoolon, mis põhjustas käivitamisel vea. |
+| 1.76 | 14.10.2026 | Terviklik AI taastamispakett: tegelik teostus, paigaldus/varundus, SQL, marsruudid ja vastuvõtukontrollid. |
 | 1.75 | 04.10.2026 | Arendusprompt ja graafikujuhend viidi kooskõlla pühade arvestuse ning uue koondveeruga. |
 | 1.74 | 04.10.2026 | Prindigraafiku vaates jäävad administraatori vahelehed nähtavaks. |
 | 1.73 | 04.10.2026 | Vahetuste seadete ja riigipühade vahelehed jäävad valimisel nähtavaks. |
@@ -97,6 +117,23 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.92 | 14.10.2026 | Completed missing employment form, action and accessible label translations in Estonian and Russian. |
+| 1.91 | 14.10.2026 | Database-backed Estonian and Russian translations for the New job title form label. |
+| 1.90 | 14.10.2026 | Database-backed Estonian and Russian translations for Building, Wing, Floor and Room. |
+| 1.89 | 14.10.2026 | Unread support rows use bold text and New reply or Unread labels consistent with the menu badge. |
+| 1.88 | 14.10.2026 | New support replies count active tickets as unread for other participants including the original creator. |
+| 1.87 | 14.10.2026 | Support menu counts never-opened active tickets per user, treating creators as read without resetting on replies. |
+| 1.86 | 14.10.2026 | 30-day notifications inbox, older archive and per-user unread menu count for the last 24 hours. |
+| 1.85 | 14.10.2026 | PHP and MySQL session clocks aligned to Estonian time with DST handling; legacy timestamps require separate provenance checks. |
+| 1.84 | 14.10.2026 | Private support conversations with recipient selection, replies, invited participants and the ten most recently closed tickets. |
+| 1.83 | 14.10.2026 | Manager-assigned timed schedule substitution without a substitute contract; base roles unchanged, current/future shifts only during the active period. |
+| 1.82 | 14.10.2026 | Managers with a subordinate in the selected month can also view/edit their own roster; Level F stays print-only. |
+| 1.81 | 14.10.2026 | Active modules and Property structure are hidden and direct page access is denied for Level F. |
+| 1.80 | 14.10.2026 | Level F gets print/PDF access only to location/department schedules containing its own contracts in the selected month. |
+| 1.79 | 14.10.2026 | Level F sees only its own employee record and contracts, with employment catalog access denied. |
+| 1.78 | 14.10.2026 | Non-administrators see client details as plain text without editable fields or a save form. |
+| 1.77 | 14.10.2026 | Fixed the documentation migration string delimiter that caused application startup errors. |
+| 1.76 | 14.10.2026 | Complete AI reconstruction documentation: current behavior, installation/backups, SQL recovery, route inventory and acceptance checks. |
 | 1.75 | 04.10.2026 | Updated the AI prompt and schedule guide for holiday calculations and the current total label. |
 | 1.74 | 04.10.2026 | Keep administrator schedule tabs visible on the print schedule page. |
 | 1.73 | 04.10.2026 | Schedule settings and public-holiday tabs remain visible when selected. |
