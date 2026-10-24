@@ -1,6 +1,6 @@
 # Töölepingute moodul / Employment module
 
-**Süsteemi arendusversioon:** 1.93
+**Süsteemi arendusversioon:** 1.97
 
 Täielik andmeskeem asub [SQL-taastepaketis](15-andmebaasi-taastepakett.sql), tehnilised piirijuhud ja testid [taastamisspetsifikatsioonis](12-tehniline-taastamisspetsifikatsioon.md) ning [vastuvõtukontrollides](14-taastamise-vastuvotukontrollid.md).
 
@@ -35,6 +35,8 @@ Mooduli vahelehtedel **Job titles**, **Departments** ja **Workloads** saab lisad
 
 ### Lepingud
 
+Alates 1.97 on loendi kohal töötaja nimeosa otsing ja **Töölepingute loendi seaded**. Otsing hõlmab kõiki nähtavaid lepinguid; uus otsing alustab esimeselt lehelt. Kliendiadministraator saab määrata 1–100 lepingut lehel, vaikimisi 10. See on ühine sama kliendi kasutajatele ja otsingutulemustele, kuid sõltumatu töötajate nimekirja seadest. Leheküljenumbrid kuvatakse täpselt üks kord kogu tabeli all ning lingid säilitavad otsingu. Level F näeb endiselt ainult enda lepinguid, sh lõppenud/arhiveeritud kirjeid.
+
 Leping seob sama kliendi aktiivse töötaja, ametinimetuse, kinnistu asukoha, valikulise osakonna ja valikulise juhi. Töötaja ise juhiks määrata ei saa. Töölepingul on kohustuslik alguskuupäev; lõppkuupäeva võib tühjaks jätta, mis tähendab tähtajatut lepingut. Lepingu lõppkuupäeva hiljem lisamine sulgeb kehtivusperioodi.
 
 Iga leping on kas **Primary workplace** või **Temporary workplace**. Lepingul on koormuse valik ja selle lepingu hetke protsendikoopia. Lepingu vorm ei arvuta kuunormi. Olemasolev graafikumoodul arvutab kohustuslikud tunnid põhilepingu kuu ja kehtivusperioodi ühisosa tööpäevade järgi: `koormusprotsent / 100 × tööpäevad × 8`; näiteks 50% × 20 tööpäeva × 8 tundi = 80 tundi. Asukoht kuvatakse lepingu nimekirjas täieliku teena hoonest valitud korruse või ruumini. Lepingu liiki pärast loomist muuta ei saa. Sama töötaja põhilepingute kuupäevavahemikud on kaasavad ning ei tohi kattuda. Tähtajatu põhileping katab kõik järgnevad kuupäevad kuni sellele lõppkuupäeva lisamiseni. Ajutine töökoht peab täielikult mahtuma põhilepingu perioodi ja kasutama põhikohast erinevat kinnistu asukohta. Põhilepingu muutmisel kontrollitakse, et seotud ajutised töökohad jääksid endiselt kehtivaks. Erinevate ajutiste töökohtade perioodid võivad omavahel kattuda.
@@ -64,6 +66,8 @@ Since version 1.79, active Level F users see only primary/temporary contracts li
 The **Job titles**, **Departments** and **Workloads** tabs allow administrators to add and edit choices. A workload has a name and a percentage from 0.01% to 100.00%. Referenced entries are retained rather than deleted: they can be hidden and reactivated later. Hidden entries are not offered for new contracts, while existing contracts retain their references and workload percentage snapshot.
 
 ### Contracts
+
+Since 1.97, the list supports employee-name substring search and numbered pages. Only client administrators can save a client-wide page size of 1–100 contracts (default 10), independent of the employee-list setting. The same size applies to search results. Page numbers appear once below the entire table and retain the search. Existing client isolation, self-service scope and archived/ended entries remain unchanged.
 
 A contract links an active employee, job title, property location, optional department and optional manager from the same client. An employee cannot be their own manager. A start date is required; the end date may be blank, making the contract open-ended. Adding an end date later closes its validity period.
 

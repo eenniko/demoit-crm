@@ -1,6 +1,12 @@
 # Paigaldamine, varundamine ja taastamine
 
-**Sihtversioon: 1.93.** Juhend ei sisalda tegelikke ligipääsuandmeid. Taastamine tehakse esmalt eraldatud testikeskkonda. Koodi- ja andmebaasitaaste on eraldi: SQL-taastepakett loob tühja skeemi, kuid ei taasta tootmisandmeid ega asenda kinnitatud 1.93 lähtekoodiväljalaset.
+**Sihtversioon: 1.98.** Juhend ei sisalda tegelikke ligipääsuandmeid. Taastamine tehakse esmalt eraldatud testikeskkonda. Koodi- ja andmebaasitaaste on eraldi: SQL-taastepakett loob tühja skeemi, kuid ei taasta tootmisandmeid ega asenda kinnitatud 1.98 lähtekoodiväljalaset.
+
+Versioon 1.98 muudab ainult kinnistu loendi kuvamist ja lisab migratsiooniga 085 versioonikirje. Kontrolli pärast paigaldamist vaikimisi suletud harusid, +/− nuppe, kõigi järglaste peitmist vanema sulgemisel ja administraatori toimingute säilimist. Avamisolekut ei varundata, sest see ei ole püsiseade.
+
+Versiooni 1.97 migratsioon 084, töölepingute teenus/handler/vaade ja ühine lehekülgede vaateosa tuleb paigaldada koos. `employment_contract_list_settings` kuulub andmevarukoopiasse; puuduva rea korral on vaikeväärtus 10. Migratsioon ei kirjuta töötajate loendi seadet üle. Kontrolli nimeotsingut, administraatori salvestusvormi ning et leheküljenumbrid paikneksid täpselt üks kord tabeli all.
+
+Versiooni 1.96 migratsioon 083 tuleb paigaldada koos töötajate loendi teenuse, handler'i ja vaatega: need vajavad `employee_list_settings` tabelit. Tabel kuulub täielikku DB-varukoopiasse, sest seal on iga kliendi ühine lehesuurus. Puhtal paigaldusel/puuduva seadistusrea korral on vaikeväärtus 10. SQL-taastepakett sisaldab tabelit ja en/et/ru tõlkeid. Pärast uuendust kontrolli nimeotsingut, kõigi lehekülgede numbreid ja ainult client_admin nähtavat salvestusvormi.
 
 ## 1. Keskkonna eeldused
 
@@ -11,6 +17,7 @@
 - PDO kontol peab automigratsioonide jaoks olema vajalik DDL/DML õigus (sh CREATE, ALTER, INDEX, SELECT, INSERT, UPDATE, DELETE ja kasutatavate FK-de õigused). Tegelik minimaalse õiguse komplekt kinnitatakse hostis; ainult read/write konto ei piisa esimese käivituse jaoks.
 - Apache koos mod_rewrite'iga, `.htaccess` lubatud, HTTPS; muu veebiserver peab andma samaväärse marsruutimise ja ligipääsupiirangud.
 - Rakendus eeldab domeeni juurpaigaldust: `/panel`, `/admin`, `/assets` on absoluutsed teed. Alamkataloogi base URL-i seadet pole.
+- Kliendi domeeni iframe-moodul eeldab keskserveri `https://crm.demoit.eu` avalikku HTTPS-aadressi. Kliendi domeenile paigaldatud staatiline HTML peab samuti tulema HTTPS-i alt ning selle domeen peab vastama kliendi paneelis määratud hostinimele.
 - Bootstrap 5.3.3 CSS/JS laaditakse jsDelivr CDN-ist; internetita taastamisel on vaja teadlikku lokaalse varakoopia lahendust.
 - Kaasaegne brauser: fetch, FormData, Bootstrap modaalid, MutationObserver, Object.hasOwn, CSS color-mix ja printimise CSS. See pole kinnitatud kõigi vanade brauserite toena.
 
@@ -71,6 +78,20 @@ Praegune paigutus kasutab repositooriumi juurt document root'ina. Juur-`index.ph
 - päriselt olemasolevate failide puhul ei tee üldist ümbersuunamist.
 
 Ära eelda, et ainult `public/` document root'iks määramine töötab sama konfiguratsiooniga: seal ei ole eraldi sama rewrite-faili. Kui valid avaliku kausta root'iks, loo sellele vastav serverikonfiguratsioon ja testi kogu route/asset nimekirja.
+
+### Kliendi domeeni iframe'i seadistamine (1.94)
+
+1. Süsteemi administraator aktiveerib `Customer domain embed` mooduli õigele kliendile.
+2. Kliendi aktiivne `client_admin` kontrollib, et domeen kuulub kliendi kontrolli alla, ja sisestab ainult hostinime (näiteks `portal.example.com`), ilma `https://`, kaldkriipsu või pordita. Rakendus ei tõenda domeeni omandiõigust automaatselt. Salvesta domeen; uus salvestus pöörab tokeni ja muudab vanad HTML-failid kehtetuks.
+3. Laadi HTML-fail alla ja paigalda kliendi HTTPS-veebiserverisse sobivasse avalikku asukohta, tavaliselt `index.html`. Rakendus, sisselogimine, seanss ja andmebaas jäävad DemoIT CRM-i serverisse.
+4. Ava kliendi domeen inkognito/teises brauseris, kontrolli päise ettevõttenime, iframe'i, sisselogimist ja CRM-i tööruumi. Brauseri kolmanda osapoole küpsiste blokeerimisel kasuta lehel olevat eraldi vahekaardi fallback'i; see avab keskserveri tavapärase login'i, mitte kohaliku koopiarakenduse.
+5. Muuda domeen enne uue faili avaldamist ainult siis, kui vana fail tuleb kohe lõpetada: salvestamine pöörab tokeni. Uus domeen võib tuua CSP keeldumise, kuni õige uus fail on avaldatud. Domeeni korduskasutus teisele kliendile on unikaalsuspiiranguga keelatud.
+
+Embed-leht ei ole reverse proxy: aadressiribal jääb kliendi domeen, kuid CRM-i tööruum on iframe'i sisu ja brauser suhtleb sisselogimisel `crm.demoit.eu` serveriga. Iframe'i autentimine ei pruugi töötada rangelt kolmanda osapoole küpsiseid blokeerivas brauseris. Ära muuda globaalselt sessiooniküpsise SameSite seadet üksnes selle funktsiooni jaoks; eraldi vahekaardi fallback on kavandatud lahendus.
+
+Versiooni 1.95 migratsioon 082 lisab kliendi administraatorite haldusvaate tõlked ega muuda andmebaasi äriskeemi. Kliendi kasutajate ega paroolide loomist/uuendamist ei käivitata migratsiooniga; need toimingud vajavad admini UI-d ja nende auditkirjed tekivad kasutaja toimingu ajal.
+
+Kui migratsiooni 082 järel tekib HTTP 500, kontrolli selle versioonikirjelduse SQL-stringi: seal ei tohi olla semikoolonit, sest installer jagab SQL-i iga semikooloni kohalt. Parandatud 082 kasutab punkti. Laadi parandatud fail serverisse ja korda päringut; `INSERT IGNORE` säilitab juba lisatud tõlked ning puuduva 1.95 versioonirea tõttu proovib installer migratsiooni uuesti. Ära kustuta tabeleid ega märgi vigast migratsiooni käsitsi rakendatuks.
 
 Upload'iga peab kaasas olema `.htaccess` ja kõik rakenduse/SQL failid. Ära kasuta isiklikku IDE/SFTP konfiguratsiooni dokumenteeritud deploy-protsessi alusena ega avalda selle sisu.
 

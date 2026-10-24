@@ -2,6 +2,8 @@
 
 ## Eesti keeles
 
+Alates 1.98 on struktuuri harud vaikimisi suletud: alguses on nähtavad ainult hooned. Lastega asukoha **+** nupp avab haru, **−** sulgeb selle koos kõigi järglastega. Sama lehe piires vanema taasavamine säilitab alamtasemete varasema avatud/suletud oleku. Lehe uuesti laadimisel on kõik harud taas suletud. Lehtkirjetel avamisnuppu ei ole; avamine ei muuda andmeid ega õigusi. Nuppu saab kasutada ka Tab + Enter/Space abil. Administraatori senised lisamise, muutmise ja järjestamise toimingud jäävad alles ning ilmuvad koos vastava reaga.
+
 Versioon 1.90 lisab migratsiooniga `sql/077_property_type_translations.sql` andmebaasi aktiivsed en/et/ru tüübinimetused. Võti on `ui.` + ingliskeelse nimetuse SHA-256; olemasolevaid tõlkeid `INSERT IGNORE` ei kirjuta üle. Jagatud tõlkekataloog tõlgib loendi Type veeru ning lisamisvormi valikud, salvestatud `node_type` väärtused jäävad ingliskeelseks.
 
 | node_type | English | Eesti | Русский |
@@ -20,6 +22,8 @@ Kliendi kasutajad saavad struktuuri vaadata. Kliendiadministraator saab lisada h
 Andmed asuvad eraldi tabelis `property_nodes`; `client_id` piirab päringud kliendiga ja sama kliendi välisvõti keelab teise kliendi asukoha kasutamise vanemana. `sort_order` säilitab õdede-vendade järjestuse. Loomisel ja ümberjärjestamisel kontrollitakse serveris kliendi ning administraatori õigust ja CSRF-märgendit. Loomine, nime muutmine ja järjestamine lähevad auditlogisse. Tabeli ja mooduli lisab `sql/015_property_structure.sql`, järjestusvälja `sql/021_property_sibling_order.sql`.
 
 ## In English
+
+Since 1.98, property branches start collapsed on each page load, showing only root buildings. Use **+** to expand a parent and **−** to hide all its descendants. Reopening a parent preserves nested expansion state within the current page. Leaves have no toggle. Native buttons support keyboard activation and expose expanded state and controlled rows to assistive technology. Existing administrator actions and access rules are unchanged.
 
 Version 1.90 seeds the four type labels in English, Estonian and Russian through `sql/077_property_type_translations.sql` (see the table above). Existing custom values are preserved. Database-backed UI translation applies to the property list and creation options; stored `node_type` codes and permissions remain unchanged.
 

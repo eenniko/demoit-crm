@@ -1,5 +1,6 @@
 <?php $selfService = RoleService::isSelfServiceUser(ClientContext::userId(), ClientContext::clientId()); ?>
 <?php $schedulePrintOnly = $selfService && SubstituteService::activeScheduleManagers(ClientContext::clientId(), ClientContext::userId()) === []; ?>
+<?php $canManageDomainEmbed = in_array('client_domain_embed', $activeModuleKeys ?? [], true) && RoleService::hasAnyRole(ClientContext::userId(), ClientContext::clientId(), ['client_admin']); ?>
 <div class="container-fluid flex-grow-1">
     <div class="row">
         <nav class="col-12 col-md-3 col-lg-2 border-end py-3">
@@ -14,6 +15,9 @@
                     <span class="nav-link disabled text-uppercase small text-muted mb-0 pb-0"><?= e(t('panel.modules', 'Modules')) ?></span>
                     <?php if (!$selfService): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'modules' ? 'active' : 'link-dark' ?>" href="/panel/modules"><?= e(t('panel.active_modules', 'Active modules')) ?></a>
+                    <?php endif; ?>
+                    <?php if ($canManageDomainEmbed): ?>
+                        <a class="nav-link ps-4 <?= $activeMenu === 'domain-embed' ? 'active' : 'link-dark' ?>" href="/panel/domain-embed"><?= e(t('embed.customer_domain', 'Customer domain page')) ?></a>
                     <?php endif; ?>
                     <?php if (in_array('employees', $activeModuleKeys ?? [], true)): ?>
                         <a class="nav-link ps-4 <?= $activeMenu === 'users' ? 'active' : 'link-dark' ?>" href="/panel/users"><?= e(t('panel.employees_permissions', 'Employees & permissions')) ?></a>

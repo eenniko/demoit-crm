@@ -65,6 +65,12 @@ Pärast mooduli aktiveerimist ilmub C-paneli menüüsse **Employees & permission
 - konto olek;
 - muutmise, parooli lähtestamise ja aktiveerimise toimingud.
 
+### Loendi otsing ja leheküljed (1.96)
+
+Nimekirja kohal saab otsida töötaja nimeosa järgi. Otsing hõlmab kõiki kasutajale nähtavaid töötajaid, mitte ainult hetkel avatud lehte. Uus otsing alustab esimeselt lehelt; **Tühjenda otsing** taastab kogu lubatud loendi. Tabeli all olevad leheküljenumbrid säilitavad otsingu.
+
+Vaikimisi kuvatakse 10 töötajat korraga. Ainult kliendiadministraator saab avada **Töötajate loendi seaded**, sisestada **Töötajaid lehel** väärtuse 1–100 ja salvestada. Seade on ühine kõigile sama kliendi kasutajatele, ka otsingutulemustes. Level F näeb endiselt ainult enda kontot; seadistus ei anna täiendavaid vaatamis- ega muutmisõigusi.
+
 ## 6. Uue töötaja lisamine
 
 1. Ava **Employees & permissions**.

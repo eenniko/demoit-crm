@@ -8,14 +8,92 @@ require_once __DIR__ . '/PropertyService.php';
 
 class EmploymentContractService
 {
-    public static function listForClient(int $clientId, ?int $employeeId = null): array
+    public static function listPageSize(int $clientId): int
+    {
+        $statement = db()->prepare('SELECT page_size FROM employment_contract_list_settings WHERE client_id = :client_id');
+        $statement->execute(['client_id' => $clientId]);
+        $value = $statement->fetchColumn();
+        if ($value === false) {
+            return 10;
+        }
+        $pageSize = (int) $value;
+        if ($pageSize < 1 || $pageSize > 100) {
+            throw new RuntimeException('Invalid stored contract list page size.');
+        }
+
+        return $pageSize;
+    }
+
+    public static function saveListPageSize(int $clientId, int $pageSize, int $actorUserId): void
+    {
+        if ($pageSize < 1 || $pageSize > 100) {
+            throw new InvalidArgumentException('Page size must be between 1 and 100.');
+        }
+        $statement = db()->prepare(
+            'INSERT INTO employment_contract_list_settings (client_id, page_size) VALUES (:client_id, :page_size)
+             ON DUPLICATE KEY UPDATE page_size = VALUES(page_size)'
+        );
+        $statement->execute(['client_id' => $clientId, 'page_size' => $pageSize]);
+        AuditLogService::log($actorUserId, $clientId, 'employment.contracts.page_size_updated', 'employment_contract_list_settings', (string) $clientId, null, (string) $pageSize);
+    }
+
+    /** @return array{contracts: array, total: int, page: int, pages: int, pageSize: int} */
+    public static function listPage(int $clientId, ?int $employeeId, string $search, int $page): array
+    {
+        if ($page < 1) {
+            throw new InvalidArgumentException('Page must be positive.');
+        }
+        $pageSize = self::listPageSize($clientId);
+        [$filter, $params] = self::listFilter($clientId, $employeeId, $search);
+        $statement = db()->prepare('SELECT COUNT(*)' . self::listJoins() . ' WHERE c.client_id = :client_id' . $filter);
+        $statement->execute($params);
+        $total = (int) $statement->fetchColumn();
+        $pages = max(1, (int) ceil($total / $pageSize));
+        $page = min($page, $pages);
+
+        return [
+            'contracts' => self::listForClient($clientId, $employeeId, $search, $pageSize, ($page - 1) * $pageSize),
+            'total' => $total,
+            'page' => $page,
+            'pages' => $pages,
+            'pageSize' => $pageSize,
+        ];
+    }
+
+    private static function listFilter(int $clientId, ?int $employeeId, string $search): array
     {
         $params = ['client_id' => $clientId];
-        $employeeFilter = '';
+        $filter = '';
         if ($employeeId !== null) {
-            $employeeFilter = ' AND c.employee_id = :employee_id';
+            $filter .= ' AND c.employee_id = :employee_id';
             $params['employee_id'] = $employeeId;
         }
+        if ($search !== '') {
+            $filter .= " AND employee.full_name LIKE :name_search ESCAPE '!'";
+            $params['name_search'] = '%' . strtr($search, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+        }
+
+        return [$filter, $params];
+    }
+
+    private static function listJoins(): string
+    {
+        return ' FROM employment_contracts c
+             INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
+             INNER JOIN property_nodes property ON property.id = c.property_node_id AND property.client_id = c.client_id
+             INNER JOIN employment_job_titles title ON title.id = c.job_title_id AND title.client_id = c.client_id
+             INNER JOIN employment_workloads workload ON workload.id = c.workload_id AND workload.client_id = c.client_id
+             LEFT JOIN employment_departments department ON department.id = c.department_id AND department.client_id = c.client_id
+             LEFT JOIN system_users manager ON manager.id = c.manager_user_id AND manager.client_id = c.client_id';
+    }
+
+    public static function listForClient(int $clientId, ?int $employeeId = null, string $search = '', ?int $limit = null, int $offset = 0): array
+    {
+        if (($limit !== null && ($limit < 1 || $limit > 100)) || $offset < 0) {
+            throw new InvalidArgumentException('Invalid contract list pagination.');
+        }
+        [$filter, $params] = self::listFilter($clientId, $employeeId, $search);
+        $pagination = $limit !== null ? ' LIMIT ' . $limit . ' OFFSET ' . $offset : '';
         $stmt = db()->prepare(
                 "SELECT c.id, c.employee_id, c.property_node_id, c.contract_type, c.start_date, c.end_date, c.workload_percent, c.archived_at,
                     EXISTS (SELECT 1 FROM employee_schedule_entries e WHERE e.client_id = c.client_id AND e.contract_id = c.id) AS has_schedule_entries,
@@ -29,16 +107,9 @@ class EmploymentContractService
                         WHEN c.start_date > CURRENT_DATE THEN 'scheduled'
                         WHEN c.end_date IS NOT NULL AND c.end_date < CURRENT_DATE THEN 'ended'
                         ELSE 'current'
-                    END AS period_status
-             FROM employment_contracts c
-             INNER JOIN system_users employee ON employee.id = c.employee_id AND employee.client_id = c.client_id
-             INNER JOIN property_nodes property ON property.id = c.property_node_id AND property.client_id = c.client_id
-             INNER JOIN employment_job_titles title ON title.id = c.job_title_id AND title.client_id = c.client_id
-             INNER JOIN employment_workloads workload ON workload.id = c.workload_id AND workload.client_id = c.client_id
-             LEFT JOIN employment_departments department ON department.id = c.department_id AND department.client_id = c.client_id
-             LEFT JOIN system_users manager ON manager.id = c.manager_user_id AND manager.client_id = c.client_id
-             WHERE c.client_id = :client_id" . $employeeFilter . "
-             ORDER BY c.start_date DESC, employee.full_name, c.id DESC"
+                    END AS period_status" . self::listJoins() . "
+             WHERE c.client_id = :client_id" . $filter . "
+             ORDER BY c.start_date DESC, employee.full_name, c.id DESC" . $pagination
         );
         $stmt->execute($params);
 

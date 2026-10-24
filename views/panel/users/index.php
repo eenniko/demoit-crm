@@ -16,6 +16,38 @@
     <div class="alert alert-danger"><?= e($error) ?></div>
 <?php endif; ?>
 
+<form method="get" action="/panel/users" class="row g-2 align-items-end mb-3" role="search">
+    <div class="col-sm-6 col-lg-4">
+        <label class="form-label" for="employee_search"><?= e(t('employees.search_name', 'Search by name')) ?></label>
+        <input class="form-control" type="search" id="employee_search" name="search" maxlength="191" value="<?= e($search) ?>">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" type="submit"><?= e(t('employees.search', 'Search')) ?></button>
+        <?php if ($search !== ''): ?>
+            <a class="btn btn-outline-secondary" href="/panel/users"><?= e(t('employees.clear_search', 'Clear search')) ?></a>
+        <?php endif; ?>
+    </div>
+</form>
+
+<?php if ($canManage): ?>
+    <details class="mb-3">
+        <summary><?= e(t('employees.list_settings', 'Employee list settings')) ?></summary>
+        <form method="post" action="/panel/users/list-settings" class="d-flex flex-wrap align-items-end gap-2 mt-2">
+            <?= Csrf::field() ?>
+            <div>
+                <label class="form-label" for="employee_page_size"><?= e(t('employees.per_page', 'Employees per page')) ?></label>
+                <input class="form-control" type="number" id="employee_page_size" name="page_size"
+                       min="1" max="100" required value="<?= (int) $pagination['pageSize'] ?>">
+            </div>
+            <button class="btn btn-outline-primary" type="submit"><?= e(t('employees.save_settings', 'Save settings')) ?></button>
+            <span class="text-muted small"><?= e(t('employees.shared_settings', 'Applies to all users of this client, including search results.')) ?></span>
+        </form>
+    </details>
+<?php endif; ?>
+
+<p class="text-muted">
+    <?= e(t('employees.results', 'Results')) ?>: <span data-no-translate><?= (int) $pagination['total'] ?></span>
+</p>
 <div class="table-responsive">
     <table class="table table-striped align-middle">
         <thead>
@@ -30,6 +62,9 @@
             </tr>
         </thead>
         <tbody>
+            <?php if (empty($users)): ?>
+                <tr><td colspan="7" class="text-muted"><?= e(t('employees.no_results', 'No employees found.')) ?></td></tr>
+            <?php endif; ?>
             <?php foreach ($users as $user): ?>
                 <tr>
                     <td><?= e($user['username']) ?></td>
@@ -77,3 +112,8 @@
     </table>
 </div>
 
+<?php
+$paginationUrl = '/panel/users';
+$paginationLabel = t('employees.pagination', 'Employee list pages');
+require __DIR__ . '/../pagination.php';
+?>

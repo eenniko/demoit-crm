@@ -96,6 +96,11 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/078_new_job_title_translation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.91' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/079_employment_ui_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.92' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/080_schedule_consecutive_exception_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.93' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/081_client_domain_embed.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.94' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'system_client_domain_embeds') AND EXISTS (SELECT 1 FROM system_modules WHERE module_key = 'client_domain_embed') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/082_client_administrator_management.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.95' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = 'admin.client_admins') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/083_employee_list_pagination.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.96' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_list_settings') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/084_contract_list_pagination.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.97' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contract_list_settings') LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/085_property_tree_collapse.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.98' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void

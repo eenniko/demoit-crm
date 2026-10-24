@@ -1,5 +1,43 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.98 – 24. oktoober 2026
+
+- Kinnistu struktuuri loendi harud on avatavad/suletavad +/− nupuga ning iga lehelaadimise järel vaikimisi suletud. Alguses on nähtavad ainult juurhooned, lehtkirjetel avamisnuppu ei ole.
+- Vanema sulgemine peidab kõik järglased. Taasavamisel säilib samal lehel varem avatud alamtasemete olek. Nupud töötavad ka klaviatuurilt ja annavad `aria-expanded` / `aria-controls` kaudu oleku.
+- Nime muutmine, siseüksuse lisamine, järjestamine, kliendieraldus ja olemasolevad õigused säilivad. Muudatus ei vaja uut skeemi ega tõlkeid; migratsioon 085 lisab versioonikirje. Lisatud PHP-renderduse ja JavaScripti nähtavuse regressioonitestid. Järgmine versioon `1.99`.
+
+## Versioon 1.97 – 24. oktoober 2026
+
+- Töölepingute loend kasutab töötaja nimeosa otsingut ja nummerdatud lehekülgi. Ainult kliendiadministraator saab määrata 1–100 lepingut lehel, vaikimisi 10. Seade on kliendipõhine ning eraldi töötajate loendi seadest.
+- Otsing hõlmab kõiki lubatud lepinguid ja säilib lehekülgede vahel. Loendus ning andmepäring kasutavad samu seoseid ja kliendi/Level F enda konto piiranguid. Arhiveeritud/lõppenud lepingud, asukohateed ja haldustoimingud säilivad.
+- Leheküljenumbrid renderdatakse ühise vaateosaga täpselt üks kord tabeli all, mitte iga lepingu real. Asukohta katab regressioonitest ning see kontrolliti ka veebis.
+- Migratsioon 084 loob `employment_contract_list_settings` tabeli ja viis en/et/ru tõlkevõtit. Üldised otsingu- ja seadistussildid kasutavad olemasolevaid tõlkeid.
+- 50 uut eraldatud SQL-, õiguste-, sisendi-, renderduse- ja migratsioonikontrolli läbisid, samuti töötajate loendi 41 kontrolli ja Level F nähtavuse test. Taastamisjuhendid, SQL-pakett ja inventuur uuendatud. Järgmine versioon `1.98`.
+
+## Versioon 1.96 – 24. oktoober 2026
+
+- Töötajate loendis on serveripoolne nimeosa otsing ja nummerdatud leheküljed. Vaikimisi kuvatakse 10 töötajat lehel; otsing hõlmab kogu lubatud loendit ja säilib lehekülgede vahel.
+- Ainult kliendiadministraator saab loendi seadetes määrata 1–100 töötajat lehel. Valik salvestatakse kliendipõhiselt ning kehtib sama kliendi kõigile kasutajatele, ka otsingutulemustele.
+- Kliendi isolatsioon, Level F ainult enda konto nähtavus ja töötajate haldusõigused säilivad. Teiste vormide töötajavalikud jäävad lehekülgedeks jagamata.
+- Migratsioon 083 loob `employee_list_settings` tabeli ning lisab 12 en/et/ru tõlkevõtit. Lisatud eraldatud SQL-, sisendi-, õiguste-, renderduse- ja migratsioonikontrollid ning uuendatud taastamispakett. Järgmine versioon `1.97`.
+
+## Versioon 1.95 – 24. oktoober 2026
+
+- Käivituse parandus: migratsiooni 082 versioonikirjelduse semikoolon asendati punktiga, sest installeri lihtne SQL-jagaja tükeldas INSERT-i ja põhjustas HTTP 500. Lisatud tegelikku jagajat kasutav regressioonikontroll. Osaliselt lisatud tõlked säilivad ja migratsioon saab korduskäivitamisel lõpuni rakenduda.
+- Kliendi detailvaate kasutajate osa kuvab nüüd ainult valitud kliendi aktiivse `client_admin` rolliseosega kontosid. Klienditöötajate, viewer'i ja teiste rollide read ei ilmu sellesse administraatorite loendisse.
+- Süsteemiadministraator saab lisada aktiivse kliendiadministraatori ja muuta täisnime/e-posti/telefoni; kasutajanimi ja roll on muutmisel lukus. Ajutine parool kuvatakse üks kord sessiooni flash-sõnumi kaudu, mitte URL-is.
+- Muudetud paroolilähtestuse handler kontrollib samuti valitud kliendi administraatori rolliseost; kliendi ja kasutaja ID-sid kontrollitakse kõigis haldusoperatsioonides serveris.
+- Migratsioon 082 lisab adminivaate en/et/ru tõlked; äriskeem ja olemasolevad kliendi kasutaja-/rolliandmed ei muutu. `tests/client-admin-management.php` katab kliendi ulatuse, ainult administraatorite ploki, lisamise/muutmise lingid ning HTML-i escape'i.
+- Mõjutatud: süsteemiadministraatori kliendivaade, kasutajateenus, tõlked ja taastamisdokumendid. Järgmine versioon `1.96`.
+
+## Versioon 1.94 – 27. oktoober 2026
+
+- Lisatud aktiveeritav kliendi domeeni iframe-moodul. Kliendi administraator seadistab oma HTTPS-domeeni ja laadib alla staatilise HTML-lehe; CRM-i rakendus ja andmed jäävad keskserverisse. Süsteemi moodulihaldur aktiveerib mooduli kliendile eraldi.
+- Embed-token on seotud ühe kliendi ja globaalselt unikaalse domeeniga, pöördub iga salvestusega ning ei asenda kasutaja paroolipõhist autentimist. Vastused väljastavad domeenipõhise `frame-ancestors` CSP ja `no-referrer` poliitika. Kolmanda osapoole küpsiste piirangu jaoks on eraldi vahekaardi sisselogimisfallback.
+- Lisatud 081 skeem/mooduli/tõlgete migratsioon ja SchemaInstalleri register; login-vaade, kliendipaneeli seadistus, allalaadimine, eraldi vahekaardi kliendikoodi eeltäide ning embed-logout on seotud.
+- PHP lint läbis muudetud PHP-failidel; `tests/client-domain-embed.php` läbis 23 domeeni valideerimise, HTML-escape'i, tokeni/URL-i, login-vaate, tõlgete, migratsiooniregistri ja SQL-jagamise kontrolli. Taastepakett, tehniline inventuur, taastamisjuhised ja vastuvõtukontrollid uuendatud.
+- Mõjutatud: autentimine, kliendipaneel, moodulihaldus, tõlked, SQL taastamine. Skeemi täpsem kirjeldus migratsioonis 081 ja tehnilistes dokumentides 12–16. Järgmine versioon `1.95`.
+
 ## Versioon 1.93 – 16. oktoober 2026
 
 - Graafiku lahtri erandivalikus saab sisestada järjestikuste päevade arvu (1–366, valitud päev kaasa arvatud). Sama erand salvestatakse valitud kuupäevast alates igale kalendripäevale; ajavahemik võib ületada kuu piiri.

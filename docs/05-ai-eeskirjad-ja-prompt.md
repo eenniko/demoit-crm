@@ -77,7 +77,7 @@ Valmista eraldi SQL-juhend ja vajadusel phpMyAdminis otse käivitatav SQL-skript
 
 ## Versioonireegel
 
-Praegune arendusversioon on `1.93`. Järgmine täiendav uuendus on `1.94`; suurenda seejärel versiooninumbrit iga muudatusega ühe võrra. Iga muudatus peab sisaldama:
+Praegune arendusversioon on `1.98`. Järgmine täiendav uuendus on `1.99`; suurenda seejärel versiooninumbrit iga muudatusega ühe võrra. Iga muudatus peab sisaldama:
 
 - uut versiooninumbrit;
 - kuupäeva;

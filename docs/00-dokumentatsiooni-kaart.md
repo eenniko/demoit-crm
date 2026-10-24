@@ -1,6 +1,12 @@
 # DemoIT CRM: dokumentatsioon ja AI abil taastamine
 
-**Taastamise sihtversioon: 1.93. Kontrollitud lähtekoodi seis: 24.10.2026.**
+**Taastamise sihtversioon: 1.98. Kontrollitud lähtekoodi seis: 24.10.2026.**
+
+Versioon **1.98** muudab kinnistu struktuuri harud avatavaks/suletavaks ja vaikimisi suletuks. Alguses kuvatakse ainult hooned. Migratsioon 085 lisab ainult versioonikirje; käitumine ja testid on dokumentides 08/12/14.
+
+Versioon **1.97** lisab töölepingute loendisse töötaja nimeosa otsingu, leheküljenumbrid ja kliendiadministraatori seadistatava lehesuuruse (1–100, vaikimisi 10). Seade on kliendiülene, kuid eraldi töötajate loendi omast. Leheküljenumbrid peavad paiknema üks kord kogu tabeli all. Migratsioon 084 ja käitumisleping dokumentides 09/12/14 kuuluvad taastamispaketti.
+
+Versioon **1.96** lisab töötajate nimeotsingu, nummerdatud leheküljed ja kliendiadministraatori muudetava kliendiülese lehesuuruse (vaikimisi 10, lubatud 1–100). Otsingutulemused kasutavad sama seadet ning nähtavusõigused säilivad. Migratsioon 083 loob `employee_list_settings` tabeli ja en/et/ru tõlked; käitumisleping on dokumentides 06/07/12 ning kontrollid dokumendis 14.
 
 Käivituse parandusversioon **1.77** eemaldab migratsiooni 063 kirjeldusest SQL-jagajaga vastuolus olnud semikooloni. Taastepakett ja inventuur sisaldavad ka migratsiooni 064. Funktsionaalse taastamise kirjeldus jääb versiooni 1.76 käitumisega samaks.
 
@@ -39,6 +45,10 @@ Versioon **1.91** lisab migratsiooniga 078 „New job title” vormisildi eesti-
 Versioon **1.92** lisab migratsiooniga 079 ülejäänud puuduvad töölepingute mooduli UI fraasid en/et/ru keeles. Sisestusväljade ja navigatsiooni ligipääsetavad nimetused tõlgitakse serveris samast kataloogist. Tõlketabel ning kontrollid on dokumentides 09/14.
 
 Versioon **1.93** lubab erandi valikul rakendada sama malli 1–366 järjestikusele kalendripäevale, sh üle kuu piiri. Salvestus on atomaarne ja kontrollib iga kuu õigusi, lepingu kehtivust ja kattuvusi. Migratsioon 080 lisab uued tõlked; tehnilised piirid ja API on dokumentides 10/12/14.
+
+Versioon **1.94** lisab aktiveeritava kliendi domeeni iframe-mooduli. Kliendi administraator seadistab HTTPS-domeeni ja laeb alla staatilise HTML-i, mis kuvab ainult tema CRM-i tööruumi; rakendus ja andmed jäävad keskserverisse. Token on seotud kliendi ja domeeniga, sisselogimine kasutab tavalist paroolikontrolli ning CSP piirab lubatud frame-omaniku täpsele domeenile. Kolmanda osapoole küpsiste piirangu korral saab CRM-i avada eraldi vahekaardil. Migratsioon 081 lisab skeemi, mooduli ja en/et/ru tõlked; täpne tehniline leping on dokumentides 11/12/13/14.
+
+Versioon **1.95** piirab süsteemiadministraatori kliendi detailvaate kasutajate loendi ainult aktiivse `client_admin` rolliseosega kontodele. Süsteemiadministraator saab luua kliendile uue aktiivse administraatori ajutise parooliga või muuta olemasoleva administraatori nime ja kontaktandmeid. Kasutajanimi jääb muutmisel lukku; muutmise ja paroolilähtestuse route'id kinnitavad kasutaja seose valitud kliendiga. Migratsioon 082 lisab vaate en/et/ru tõlked, skeemi ei muuda.
 
 | Dokument | Mida selle alusel taastada |
 |---|---|

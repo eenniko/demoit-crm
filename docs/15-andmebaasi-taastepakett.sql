@@ -1,4 +1,4 @@
--- DemoIT CRM 1.93: empty-database recovery bundle.
+-- DemoIT CRM 1.98: empty-database recovery bundle.
 -- Generated from the ordered SchemaInstaller registry on 2026-10-24.
 -- Select an EMPTY database first. No CREATE DATABASE/USE or business data included.
 -- NOT a production upgrade or a production data backup. Stop on the first SQL error.
@@ -2371,3 +2371,238 @@ INSERT IGNORE INTO system_version_logs (version, description, affected_modules, 
 VALUES ('1.93', 'Added consecutive multi-day exception assignments from a selected schedule date, with cross-month contract and permission validation.', 'schedule, translations', 'Translation seeds and version registration only.', NOW());
 
 -- END MIGRATION: 080_schedule_consecutive_exception_translations.sql
+
+-- BEGIN MIGRATION: 081_client_domain_embed.sql
+CREATE TABLE IF NOT EXISTS system_client_domain_embeds (
+    client_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    customer_domain VARCHAR(253) NOT NULL,
+    embed_token CHAR(64) NOT NULL,
+    created_by INT UNSIGNED NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_client_domain_embeds_domain (customer_domain),
+    UNIQUE KEY uq_client_domain_embeds_token (embed_token),
+    CONSTRAINT fk_client_domain_embeds_client FOREIGN KEY (client_id) REFERENCES system_clients (id) ON DELETE CASCADE,
+    CONSTRAINT fk_client_domain_embeds_user FOREIGN KEY (created_by) REFERENCES system_users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO system_modules (module_key, name, description, status, is_demo_available)
+VALUES ('client_domain_embed', 'Customer domain embed', 'Download an iframe page that displays this client workspace on its own domain.', 'active', 0);
+
+INSERT IGNORE INTO system_translation_keys (translation_key, module_context)
+VALUES (CONCAT('ui.', SHA2('Customer domain embed', 256)), 'ui'),
+       (CONCAT('ui.', SHA2('Download an iframe page that displays this client workspace on its own domain.', 256)), 'ui');
+
+INSERT IGNORE INTO system_translation_keys (translation_key, module_context)
+VALUES ('embed.company_workspace', 'embed'),
+       ('embed.signin_fallback', 'embed'),
+       ('embed.open_new_tab', 'embed'),
+       ('embed.customer_domain', 'embed'),
+       ('embed.setup_title', 'embed'),
+       ('embed.setup_help', 'embed'),
+       ('embed.domain_label', 'embed'),
+       ('embed.domain_hint', 'embed'),
+       ('embed.save_domain', 'embed'),
+       ('embed.download_page', 'embed'),
+       ('embed.download_hint', 'embed'),
+       ('embed.not_configured', 'embed'),
+       ('embed.domain_saved', 'embed'),
+       ('embed.invalid_domain', 'embed'),
+       ('embed.domain_in_use', 'embed'),
+       ('embed.module_inactive', 'embed');
+
+INSERT IGNORE INTO system_translation_values (translation_key_id, language_id, value, status)
+SELECT k.id, l.id,
+       CASE k.translation_key
+           WHEN 'embed.company_workspace' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi tööruum' WHEN 'ru' THEN 'Рабочая область клиента' ELSE 'Client workspace' END
+           WHEN 'embed.signin_fallback' THEN CASE l.language_code WHEN 'et' THEN 'Kui sisselogimine manustatud aknas ei tööta, ava CRM eraldi vahekaardil.' WHEN 'ru' THEN 'Если вход во встроенном окне не работает, откройте CRM в отдельной вкладке.' ELSE 'If sign-in is blocked in this embedded window, open the CRM in a separate tab.' END
+           WHEN 'embed.open_new_tab' THEN CASE l.language_code WHEN 'et' THEN 'Ava uuel vahekaardil' WHEN 'ru' THEN 'Открыть в новой вкладке' ELSE 'Open in a new tab' END
+           WHEN 'embed.customer_domain' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi domeeni leht' WHEN 'ru' THEN 'Страница на домене клиента' ELSE 'Customer domain page' END
+           WHEN 'embed.setup_title' THEN CASE l.language_code WHEN 'et' THEN 'CRM-i kuvamine kliendi domeenil' WHEN 'ru' THEN 'Отображение CRM на домене клиента' ELSE 'Display CRM on a customer domain' END
+           WHEN 'embed.setup_help' THEN CASE l.language_code WHEN 'et' THEN 'See moodul genereerib staatilise HTML-faili, mis kuvab selle kliendi tööruumi iframe’is. Rakendus ja andmed jäävad DemoIT CRM-i serverisse.' WHEN 'ru' THEN 'Этот модуль создаёт статический HTML-файл, который показывает рабочую область клиента во фрейме. Приложение и данные остаются на сервере DemoIT CRM.' ELSE 'This module generates a static HTML file that displays this client workspace in an iframe. The application and data remain on the DemoIT CRM server.' END
+           WHEN 'embed.domain_label' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi domeen' WHEN 'ru' THEN 'Домен клиента' ELSE 'Customer domain' END
+           WHEN 'embed.domain_hint' THEN CASE l.language_code WHEN 'et' THEN 'Sisesta domeeninimi ilma https://, tee või pordita. Kliendi veebileht peab kasutama HTTPS-i.' WHEN 'ru' THEN 'Введите доменное имя без https://, пути или порта. Сайт клиента должен использовать HTTPS.' ELSE 'Enter the domain without https://, a path or port. The customer website must use HTTPS.' END
+           WHEN 'embed.save_domain' THEN CASE l.language_code WHEN 'et' THEN 'Salvesta domeen' WHEN 'ru' THEN 'Сохранить домен' ELSE 'Save domain' END
+           WHEN 'embed.download_page' THEN CASE l.language_code WHEN 'et' THEN 'Laadi HTML-leht alla' WHEN 'ru' THEN 'Скачать HTML-страницу' ELSE 'Download HTML page' END
+           WHEN 'embed.download_hint' THEN CASE l.language_code WHEN 'et' THEN 'Laadi fail alla ja paigalda see kliendi domeeni veebijuure või sobiva alamlehe index.html-failina. Domeeni või tokeni muutmisel laadi uus fail alla.' WHEN 'ru' THEN 'Скачайте файл и разместите его как index.html в корне сайта клиента или в нужном каталоге. После изменения домена или токена скачайте новый файл.' ELSE 'Download the file and place it as index.html in the customer website root or a suitable directory. Download a new file after changing the domain or token.' END
+           WHEN 'embed.domain_saved' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi domeen salvestati. Muudatuse rakendamiseks laadi uus leht alla.' WHEN 'ru' THEN 'Домен клиента сохранён. Для применения изменений скачайте новую страницу.' ELSE 'Customer domain saved. Download a new page to apply the change.' END
+           WHEN 'embed.invalid_domain' THEN CASE l.language_code WHEN 'et' THEN 'Sisesta korrektne domeeninimi ilma skeemi, tee või pordita.' WHEN 'ru' THEN 'Введите корректное доменное имя без схемы, пути или порта.' ELSE 'Enter a valid domain name without a scheme, path or port.' END
+           WHEN 'embed.domain_in_use' THEN CASE l.language_code WHEN 'et' THEN 'See domeen on juba teise kliendi kasutuses.' WHEN 'ru' THEN 'Этот домен уже настроен для другого клиента.' ELSE 'This domain is already configured for another client.' END
+           WHEN 'embed.module_inactive' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi domeeni moodul ei ole selle kliendi jaoks aktiivne.' WHEN 'ru' THEN 'Модуль домена клиента не активирован для этого клиента.' ELSE 'The customer-domain module is not active for this client.' END
+           ELSE CASE l.language_code WHEN 'et' THEN 'Domeen pole veel seadistatud.' WHEN 'ru' THEN 'Домен ещё не настроен.' ELSE 'No domain has been configured yet.' END
+       END,
+       'active'
+FROM system_translation_keys k
+INNER JOIN system_languages l ON l.language_code IN ('en', 'et', 'ru') AND l.is_active = 1
+WHERE k.translation_key LIKE 'embed.%';
+
+INSERT IGNORE INTO system_translation_values (translation_key_id, language_id, value, status)
+SELECT k.id, l.id,
+       CASE k.translation_key
+           WHEN CONCAT('ui.', SHA2('Customer domain embed', 256)) THEN
+               CASE l.language_code
+                   WHEN 'et' THEN 'Kliendi domeeni embed'
+                   WHEN 'ru' THEN 'Встраивание на домен клиента'
+                   ELSE 'Customer domain embed'
+               END
+           ELSE
+               CASE l.language_code
+                   WHEN 'et' THEN 'Laadi alla iframe-leht, mis kuvab selle kliendi tööruumi tema enda domeenil.'
+                   WHEN 'ru' THEN 'Скачайте страницу iframe, которая отображает рабочую область этого клиента на его домене.'
+                   ELSE 'Download an iframe page that displays this client workspace on its own domain.'
+               END
+       END,
+       'active'
+FROM system_translation_keys k
+INNER JOIN system_languages l ON l.language_code IN ('en', 'et', 'ru') AND l.is_active = 1
+WHERE k.translation_key IN (
+    CONCAT('ui.', SHA2('Customer domain embed', 256)),
+    CONCAT('ui.', SHA2('Download an iframe page that displays this client workspace on its own domain.', 256))
+);
+
+INSERT IGNORE INTO system_version_logs (version, description, affected_modules, database_changes, released_at)
+VALUES ('1.94', 'Added downloadable customer-domain iframe pages with tenant-pinned login.', 'authentication, client domain embed', 'Added system_client_domain_embeds, module catalogue seed and English/Estonian/Russian translations.', NOW());
+
+-- END MIGRATION: 081_client_domain_embed.sql
+
+-- BEGIN MIGRATION: 082_client_administrator_management.sql
+INSERT IGNORE INTO system_translation_keys (translation_key, module_context)
+VALUES ('admin.client_admins', 'admin'),
+       ('admin.client_admin_add', 'admin'),
+       ('admin.client_admin_temp_password', 'admin'),
+       ('admin.client_admin_none', 'admin'),
+       ('admin.client_admin_username', 'admin'),
+       ('admin.client_admin_name', 'admin'),
+       ('admin.client_admin_contact', 'admin'),
+       ('admin.client_admin_status', 'admin'),
+       ('admin.client_admin_edit', 'admin'),
+       ('admin.client_admin_reset', 'admin'),
+       ('admin.client_admin_back', 'admin'),
+       ('admin.client_admin_email', 'admin'),
+       ('admin.client_admin_phone', 'admin'),
+       ('admin.client_admin_temp_password_note', 'admin'),
+       ('admin.client_admin_create', 'admin'),
+       ('admin.client_admin_edit_title', 'admin'),
+       ('admin.client_admin_save', 'admin');
+
+INSERT IGNORE INTO system_translation_values (translation_key_id, language_id, value, status)
+SELECT k.id, l.id,
+       CASE k.translation_key
+           WHEN 'admin.client_admins' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi administraatorid' WHEN 'ru' THEN 'Администраторы клиента' ELSE 'Client administrators' END
+           WHEN 'admin.client_admin_add' THEN CASE l.language_code WHEN 'et' THEN 'Lisa administraator' WHEN 'ru' THEN 'Добавить администратора' ELSE 'Add administrator' END
+           WHEN 'admin.client_admin_temp_password' THEN CASE l.language_code WHEN 'et' THEN 'Ajutine parool (kuvatakse ainult üks kord):' WHEN 'ru' THEN 'Временный пароль (показывается только один раз):' ELSE 'Temporary password (shown only once):' END
+           WHEN 'admin.client_admin_none' THEN CASE l.language_code WHEN 'et' THEN 'Kliendi administraatoreid pole veel lisatud.' WHEN 'ru' THEN 'Администраторы клиента ещё не добавлены.' ELSE 'No client administrators yet.' END
+           WHEN 'admin.client_admin_username' THEN CASE l.language_code WHEN 'et' THEN 'Kasutajanimi' WHEN 'ru' THEN 'Имя пользователя' ELSE 'Username' END
+           WHEN 'admin.client_admin_name' THEN CASE l.language_code WHEN 'et' THEN 'Täisnimi' WHEN 'ru' THEN 'Полное имя' ELSE 'Full name' END
+           WHEN 'admin.client_admin_contact' THEN CASE l.language_code WHEN 'et' THEN 'Kontakt' WHEN 'ru' THEN 'Контакт' ELSE 'Contact' END
+           WHEN 'admin.client_admin_status' THEN CASE l.language_code WHEN 'et' THEN 'Olek' WHEN 'ru' THEN 'Статус' ELSE 'Status' END
+           WHEN 'admin.client_admin_edit' THEN CASE l.language_code WHEN 'et' THEN 'Muuda' WHEN 'ru' THEN 'Изменить' ELSE 'Edit' END
+           WHEN 'admin.client_admin_reset' THEN CASE l.language_code WHEN 'et' THEN 'Lähtesta parool' WHEN 'ru' THEN 'Сбросить пароль' ELSE 'Reset password' END
+           WHEN 'admin.client_admin_back' THEN CASE l.language_code WHEN 'et' THEN 'Tagasi kliendi juurde' WHEN 'ru' THEN 'Назад к клиенту' ELSE 'Back to client' END
+           WHEN 'admin.client_admin_email' THEN CASE l.language_code WHEN 'et' THEN 'E-post' WHEN 'ru' THEN 'Электронная почта' ELSE 'E-mail' END
+           WHEN 'admin.client_admin_phone' THEN CASE l.language_code WHEN 'et' THEN 'Telefon' WHEN 'ru' THEN 'Телефон' ELSE 'Phone' END
+           WHEN 'admin.client_admin_temp_password_note' THEN CASE l.language_code WHEN 'et' THEN 'Ajutine parool luuakse automaatselt ja kuvatakse pärast loomist ühe korra.' WHEN 'ru' THEN 'Временный пароль будет создан автоматически и показан один раз после создания.' ELSE 'A temporary password will be generated and shown once after creation.' END
+           WHEN 'admin.client_admin_create' THEN CASE l.language_code WHEN 'et' THEN 'Loo administraator' WHEN 'ru' THEN 'Создать администратора' ELSE 'Create administrator' END
+           WHEN 'admin.client_admin_edit_title' THEN CASE l.language_code WHEN 'et' THEN 'Muuda kliendi administraatorit' WHEN 'ru' THEN 'Изменить администратора клиента' ELSE 'Edit client administrator' END
+           ELSE CASE l.language_code WHEN 'et' THEN 'Salvesta muudatused' WHEN 'ru' THEN 'Сохранить изменения' ELSE 'Save changes' END
+       END,
+       'active'
+FROM system_translation_keys k
+INNER JOIN system_languages l ON l.language_code IN ('en', 'et', 'ru') AND l.is_active = 1
+WHERE k.translation_key LIKE 'admin.client_admin_%';
+
+INSERT IGNORE INTO system_version_logs (version, description, affected_modules, database_changes, released_at)
+VALUES ('1.95', 'Added client administrator-only management to client details.', 'clients, users, translations', 'Added English, Estonian and Russian translations for client administrator management. Existing user and role schema is reused.', NOW());
+
+-- END MIGRATION: 082_client_administrator_management.sql
+
+-- BEGIN MIGRATION: 083_employee_list_pagination.sql
+CREATE TABLE IF NOT EXISTS employee_list_settings (
+    client_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    page_size SMALLINT UNSIGNED NOT NULL DEFAULT 10,
+    CONSTRAINT fk_employee_list_settings_client FOREIGN KEY (client_id) REFERENCES system_clients (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO system_translation_keys (translation_key, module_context)
+VALUES ('employees.search_name', 'employees'),
+       ('employees.search', 'employees'),
+       ('employees.clear_search', 'employees'),
+       ('employees.list_settings', 'employees'),
+       ('employees.per_page', 'employees'),
+       ('employees.save_settings', 'employees'),
+       ('employees.shared_settings', 'employees'),
+       ('employees.results', 'employees'),
+       ('employees.no_results', 'employees'),
+       ('employees.pagination', 'employees'),
+       ('employees.page_size_invalid', 'employees'),
+       ('employees.page_size_saved', 'employees');
+
+INSERT IGNORE INTO system_translation_values (translation_key_id, language_id, value, status)
+SELECT k.id, l.id,
+       CASE k.translation_key
+           WHEN 'employees.search_name' THEN CASE l.language_code WHEN 'et' THEN 'Otsi nime järgi' WHEN 'ru' THEN 'Поиск по имени' ELSE 'Search by name' END
+           WHEN 'employees.search' THEN CASE l.language_code WHEN 'et' THEN 'Otsi' WHEN 'ru' THEN 'Найти' ELSE 'Search' END
+           WHEN 'employees.clear_search' THEN CASE l.language_code WHEN 'et' THEN 'Tühjenda otsing' WHEN 'ru' THEN 'Сбросить поиск' ELSE 'Clear search' END
+           WHEN 'employees.list_settings' THEN CASE l.language_code WHEN 'et' THEN 'Töötajate loendi seaded' WHEN 'ru' THEN 'Настройки списка сотрудников' ELSE 'Employee list settings' END
+           WHEN 'employees.per_page' THEN CASE l.language_code WHEN 'et' THEN 'Töötajaid lehel' WHEN 'ru' THEN 'Сотрудников на странице' ELSE 'Employees per page' END
+           WHEN 'employees.save_settings' THEN CASE l.language_code WHEN 'et' THEN 'Salvesta seaded' WHEN 'ru' THEN 'Сохранить настройки' ELSE 'Save settings' END
+           WHEN 'employees.shared_settings' THEN CASE l.language_code WHEN 'et' THEN 'Kehtib kõigile selle kliendi kasutajatele, ka otsingutulemustele.' WHEN 'ru' THEN 'Применяется ко всем пользователям клиента, включая результаты поиска.' ELSE 'Applies to all users of this client, including search results.' END
+           WHEN 'employees.results' THEN CASE l.language_code WHEN 'et' THEN 'Tulemusi' WHEN 'ru' THEN 'Результатов' ELSE 'Results' END
+           WHEN 'employees.no_results' THEN CASE l.language_code WHEN 'et' THEN 'Töötajaid ei leitud.' WHEN 'ru' THEN 'Сотрудники не найдены.' ELSE 'No employees found.' END
+           WHEN 'employees.pagination' THEN CASE l.language_code WHEN 'et' THEN 'Töötajate loendi leheküljed' WHEN 'ru' THEN 'Страницы списка сотрудников' ELSE 'Employee list pages' END
+           WHEN 'employees.page_size_invalid' THEN CASE l.language_code WHEN 'et' THEN 'Sisesta lehe suurus vahemikus 1 kuni 100.' WHEN 'ru' THEN 'Укажите размер страницы от 1 до 100.' ELSE 'Enter a page size between 1 and 100.' END
+           ELSE CASE l.language_code WHEN 'et' THEN 'Töötajate loendi seaded on kliendile salvestatud.' WHEN 'ru' THEN 'Настройки списка сотрудников сохранены для клиента.' ELSE 'Employee list settings saved for this client.' END
+       END, 'active'
+FROM system_translation_keys k
+INNER JOIN system_languages l ON l.language_code IN ('en', 'et', 'ru') AND l.is_active = 1
+WHERE k.module_context = 'employees' AND k.translation_key IN (
+    'employees.search_name', 'employees.search', 'employees.clear_search', 'employees.list_settings',
+    'employees.per_page', 'employees.save_settings', 'employees.shared_settings', 'employees.results',
+    'employees.no_results', 'employees.pagination', 'employees.page_size_invalid', 'employees.page_size_saved'
+);
+
+INSERT IGNORE INTO system_version_logs (version, description, affected_modules, database_changes, released_at)
+VALUES ('1.96', 'Added employee name search and numbered pagination with client administrator-managed shared page size.', 'employees, translations', 'Added employee_list_settings and English, Estonian and Russian translations.', NOW());
+
+-- END MIGRATION: 083_employee_list_pagination.sql
+
+-- BEGIN MIGRATION: 084_contract_list_pagination.sql
+CREATE TABLE IF NOT EXISTS employment_contract_list_settings (
+    client_id INT UNSIGNED NOT NULL PRIMARY KEY,
+    page_size SMALLINT UNSIGNED NOT NULL DEFAULT 10,
+    CONSTRAINT fk_contract_list_settings_client FOREIGN KEY (client_id) REFERENCES system_clients (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT IGNORE INTO system_translation_keys (translation_key, module_context)
+VALUES ('employment.list_settings', 'employment'),
+       ('employment.per_page', 'employment'),
+       ('employment.no_results', 'employment'),
+       ('employment.pagination', 'employment'),
+       ('employment.page_size_saved', 'employment');
+
+INSERT IGNORE INTO system_translation_values (translation_key_id, language_id, value, status)
+SELECT k.id, l.id,
+       CASE k.translation_key
+           WHEN 'employment.list_settings' THEN CASE l.language_code WHEN 'et' THEN 'Töölepingute loendi seaded' WHEN 'ru' THEN 'Настройки списка трудовых договоров' ELSE 'Contract list settings' END
+           WHEN 'employment.per_page' THEN CASE l.language_code WHEN 'et' THEN 'Töölepinguid lehel' WHEN 'ru' THEN 'Договоров на странице' ELSE 'Contracts per page' END
+           WHEN 'employment.no_results' THEN CASE l.language_code WHEN 'et' THEN 'Töölepinguid ei leitud.' WHEN 'ru' THEN 'Трудовые договоры не найдены.' ELSE 'No contracts found.' END
+           WHEN 'employment.pagination' THEN CASE l.language_code WHEN 'et' THEN 'Töölepingute loendi leheküljed' WHEN 'ru' THEN 'Страницы списка трудовых договоров' ELSE 'Contract list pages' END
+           ELSE CASE l.language_code WHEN 'et' THEN 'Töölepingute loendi seaded on kliendile salvestatud.' WHEN 'ru' THEN 'Настройки списка трудовых договоров сохранены для клиента.' ELSE 'Contract list settings saved for this client.' END
+       END, 'active'
+FROM system_translation_keys k
+INNER JOIN system_languages l ON l.language_code IN ('en', 'et', 'ru') AND l.is_active = 1
+WHERE k.translation_key IN (
+    'employment.list_settings', 'employment.per_page', 'employment.no_results',
+    'employment.pagination', 'employment.page_size_saved'
+);
+
+INSERT IGNORE INTO system_version_logs (version, description, affected_modules, database_changes, released_at)
+VALUES ('1.97', 'Added contract employee-name search and numbered pagination with client administrator-managed shared page size.', 'employment, translations', 'Added employment_contract_list_settings and English, Estonian and Russian translations.', NOW());
+
+-- END MIGRATION: 084_contract_list_pagination.sql
+
+-- BEGIN MIGRATION: 085_property_tree_collapse.sql
+INSERT IGNORE INTO system_version_logs (version, description, affected_modules, database_changes, released_at)
+VALUES ('1.98', 'Property hierarchy branches can be expanded and collapsed and start collapsed on each page load.', 'property', 'No schema changes.', NOW());
+
+-- END MIGRATION: 085_property_tree_collapse.sql

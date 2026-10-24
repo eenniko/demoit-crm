@@ -1,10 +1,10 @@
 # Tehniline inventuur
 
-**Sihtversioon: 1.93. Genereeritud kontrollitud tööpuust 24.10.2026.**
+**Sihtversioon: 1.98. Genereeritud kontrollitud tööpuust 24.10.2026.**
 
 See register täiendab [taastamisspetsifikatsiooni](12-tehniline-taastamisspetsifikatsioon.md) ja [baasfunktsioonide juhendit](11-baasfunktsioonid-ja-teostuse-piirid.md). Faililingid on originaalallikate tuvastamiseks; iseseisva taastamise käitumine on dokumentides 11–14 ja skeem paketis 15. Saladustega konfiguratsiooni, isiklikke IDE seadeid ega andmebaasi sisu ei inventeerita.
 
-Inventuur katab 79 switch-marsruuti + enne switch'i käsitletava `/language` marsruudi, 37 loodavat tabelit ja 80 registreeritud migratsiooni. Meetodid tähistavad kavandatud vormikasutust; praegune router ei keela kõiki muid HTTP meetodeid ühtse 405-ga.
+Inventuur katab 86 switch-marsruuti + enne switch'i käsitletava `/language` marsruudi, 40 loodavat tabelit ja 85 registreeritud migratsiooni. Meetodid tähistavad kavandatud vormikasutust; praegune router ei keela kõiki muid HTTP meetodeid ühtse 405-ga.
 
 ## 1. Kõik marsruudid ja sisendid
 
@@ -13,14 +13,18 @@ Sisendid loetakse handler'ist ja selle kohalike helper'ite kaudu; kogu POST-i te
 | Route | Handler / erijuht | Kasutus | Otsene värav | Handler'i sisendid |
 |---|---|---|---|---|
 | `/setup` | `handle_setup` | GET/POST (vt 11/12) |  | POST:csrf_token, POST:full_name, POST:email, POST:username, POST:password |
-| `/login` | `handle_login` | GET/POST (vt 11/12) | ClientContext::isLoggedIn | POST:csrf_token, POST:client_code, POST:username, POST:password |
+| `/login` | `handle_login` | GET/POST (vt 11/12) | ClientContext::isLoggedIn | GET:client_code, POST:csrf_token, POST:client_code, POST:username, POST:password |
+| `/embed` | `handle_client_domain_embed` | GET/POST (vt 11/12) | ClientContext::isLoggedIn | GET:token, POST:csrf_token, POST:username, POST:password |
 | `/logout` | `AuthService::logout + redirect` | GET |  |  |
 | `/admin` | `handle_admin_dashboard` | GET | require_system_role |  |
 | `/admin/clients` | `handle_admin_clients_index` | GET | require_system_role |  |
 | `/admin/clients/create` | `handle_admin_clients_create` | GET/POST (vt 11/12) | require_system_role | POST:csrf_token |
-| `/admin/clients/view` | `handle_admin_clients_view` | GET | require_system_role | GET:id, GET:temp_password, GET:message, GET:error |
+| `/admin/clients/view` | `handle_admin_clients_view` | GET | require_system_role | GET:id, GET:message, GET:error |
+| `/admin/clients/users/create` | `handle_admin_client_admin_create` | GET/POST (vt 11/12) | require_system_role | POST:client_id, GET:client_id, POST:csrf_token |
+| `/admin/clients/users/edit` | `handle_admin_client_admin_edit` | GET/POST (vt 11/12) | require_system_role | POST:client_id, GET:client_id, POST:user_id, GET:user_id, POST:csrf_token, POST:full_name, POST:email, POST:phone |
+| `/panel/users/list-settings` | `handle_panel_users_list_settings` | GET/POST (vt 11/12) | require_panel_manager | POST:csrf_token, POST:page_size |
 | `/admin/clients/modules/toggle` | `handle_admin_clients_modules_toggle` | POST | require_system_role | POST:client_id, POST:csrf_token, POST:module_id |
-| `/admin/clients/users/reset-password` | `handle_admin_clients_reset_password` | POST | require_system_role | POST:client_id, POST:csrf_token, POST:user_id |
+| `/admin/clients/users/reset-password` | `handle_admin_clients_reset_password` | POST | require_system_role | POST:client_id, POST:user_id, POST:csrf_token |
 | `/admin/modules` | `handle_admin_modules_index` | GET | require_system_role |  |
 | `/admin/modules/create` | `handle_admin_modules_create` | GET/POST (vt 11/12) | require_system_role | POST:csrf_token |
 | `/admin/modules/toggle` | `handle_admin_modules_toggle` | POST | require_system_role | POST:csrf_token, POST:id |
@@ -44,7 +48,7 @@ Sisendid loetakse handler'ist ja selle kohalike helper'ite kaudu; kogu POST-i te
 | `/admin/support/close` | `handle_support_ticket` | GET/POST (vt 11/12) | require_system_role | GET:id, POST:id, POST:csrf_token, GET:message |
 | `/panel` | `handle_panel_dashboard` | GET | ClientContext::isLoggedIn |  |
 | `/panel/modules` | `handle_panel_modules` | GET | ClientContext::isLoggedIn |  |
-| `/panel/users` | `handle_panel_users` | GET | require_employee_module | GET:message, GET:error |
+| `/panel/users` | `handle_panel_users` | GET | require_employee_module | GET:search, GET:page, GET:message, GET:error |
 | `/panel/users/create` | `handle_panel_users_create` | GET/POST (vt 11/12) | require_panel_manager | POST:csrf_token |
 | `/panel/users/edit` | `handle_panel_users_edit` | GET/POST (vt 11/12) | require_panel_manager | GET:id, POST:user_id, POST:csrf_token |
 | `/panel/users/import` | `handle_panel_users_import` | GET/POST (vt 11/12) | require_panel_manager | POST:csrf_token, FILES:legacy_sql |
@@ -59,6 +63,8 @@ Sisendid loetakse handler'ist ja selle kohalike helper'ite kaudu; kogu POST-i te
 | `/panel/substitutes/approve` | `handle_panel_substitutes_decision` | POST | require_organisation_manager | POST:csrf_token, POST:id |
 | `/panel/substitutes/reject` | `handle_panel_substitutes_decision` | POST | require_organisation_manager | POST:csrf_token, POST:id |
 | `/panel/client` | `handle_panel_client` | GET/POST (vt 11/12) | ClientContext::isLoggedIn | POST:csrf_token |
+| `/panel/domain-embed` | `handle_panel_domain_embed` | GET/POST (vt 11/12) | require_client_domain_embed_manager | POST:csrf_token, POST:customer_domain, GET:saved |
+| `/panel/domain-embed/download` | `handle_panel_domain_embed_download` | GET | require_client_domain_embed_manager |  |
 | `/panel/notifications` | `handle_panel_notifications` | GET | ClientContext::isLoggedIn | GET:archive, GET:page |
 | `/panel/notifications/read` | `handle_panel_notifications_read` | POST | ClientContext::isLoggedIn | POST:csrf_token, POST:archive, POST:page, POST:id |
 | `/panel/reports` | `handle_panel_reports` | GET | ClientContext::isLoggedIn |  |
@@ -83,7 +89,8 @@ Sisendid loetakse handler'ist ja selle kohalike helper'ite kaudu; kogu POST-i te
 | `/panel/schedule/templates` | `handle_panel_schedule_templates` | GET/POST (vt 11/12) | require_schedule_modules | GET:message, POST:csrf_token, POST:action, POST:id |
 | `/panel/schedule/holidays` | `handle_panel_schedule_holidays` | GET | require_schedule_admin | GET:message, GET:error |
 | `/panel/employment` | `redirect` | GET |  |  |
-| `/panel/employment/contracts` | `handle_panel_employment_contracts` | GET | require_employment_module | GET:message, GET:error |
+| `/panel/employment/contracts` | `handle_panel_employment_contracts` | GET | require_employment_module | GET:search, GET:page, GET:message, GET:error |
+| `/panel/employment/contracts/list-settings` | `handle_panel_employment_contracts_list_settings` | GET/POST (vt 11/12) | require_employment_manager | POST:csrf_token, POST:page_size |
 | `/panel/employment/contracts/archive` | `handle_panel_employment_contract_archive` | POST | require_employment_manager | POST:csrf_token, POST:id |
 | `/panel/employment/contracts/create` | `handle_panel_employment_contract_form` | GET/POST (vt 11/12) | require_employment_manager | POST:csrf_token |
 | `/panel/employment/contracts/edit` | `handle_panel_employment_contract_form` | GET/POST (vt 11/12) | require_employment_manager | GET:id, POST:id, POST:csrf_token |
@@ -194,6 +201,28 @@ function require_organisation_manager(): bool
         http_response_code(403);
         render_page('Forbidden', 'errors/403.php');
 
+        return false;
+    }
+
+    return true;
+}
+```
+
+### `require_client_domain_embed_manager`
+
+```php
+function require_client_domain_embed_manager(): bool
+{
+    if (!ClientContext::isLoggedIn()) {
+        header('Location: /login');
+        return false;
+    }
+
+    $clientId = ClientContext::clientId();
+    if (!ModuleService::isActiveForClient($clientId, 'client_domain_embed')
+        || !RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin'])) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
         return false;
     }
 
@@ -367,6 +396,17 @@ public static function attemptLogin(string $clientCode, string $username, string
 public static function logout(): void;
 ```
 
+### [ClientDomainEmbedService.php](../src/Services/ClientDomainEmbedService.php)
+
+```php
+public static function normalizeDomain(string $domain): ?string;
+public static function findForClient(int $clientId): ?array;
+public static function findActiveByToken(string $token): ?array;
+public static function save(int $clientId, string $domain, int $actorUserId): array;
+public static function downloadHtml(array $config): string;
+public static function applyFramePolicy(?string $domain): void;
+```
+
 ### [ClientService.php](../src/Services/ClientService.php)
 
 ```php
@@ -393,7 +433,10 @@ public static function toggleStatus(int $clientId, string $catalog, int $id, int
 ### [EmploymentContractService.php](../src/Services/EmploymentContractService.php)
 
 ```php
-public static function listForClient(int $clientId, ?int $employeeId = null): array;
+public static function listPageSize(int $clientId): int;
+public static function saveListPageSize(int $clientId, int $pageSize, int $actorUserId): void;
+public static function listPage(int $clientId, ?int $employeeId, string $search, int $page): array;
+public static function listForClient(int $clientId, ?int $employeeId = null, string $search = '', ?int $limit = null, int $offset = 0): array;
 public static function addPropertyPaths(array $contracts, array $propertyNodes): array;
 public static function toggleTemporaryArchive(int $clientId, int $contractId, int $actorUserId): array;
 public static function findForClient(int $clientId, int $contractId): ?array;
@@ -596,7 +639,14 @@ public static function upsertValue(int $keyId, int $languageId, string $value, i
 ### [UserService.php](../src/Services/UserService.php)
 
 ```php
-public static function listForClient(int $clientId, ?int $userId = null): array;
+public static function listClientAdministrators(int $clientId): array;
+public static function findClientAdministrator(int $clientId, int $userId): ?array;
+public static function createClientAdministrator(int $clientId, array $data, int $actorUserId): array;
+public static function updateClientAdministrator(int $clientId, int $userId, array $data, int $actorUserId): array;
+public static function employeeListPageSize(int $clientId): int;
+public static function saveEmployeeListPageSize(int $clientId, int $pageSize, int $actorUserId): void;
+public static function employeeListPage(int $clientId, ?int $userId, string $search, int $page): array;
+public static function listForClient(int $clientId, ?int $userId = null, string $search = '', ?int $limit = null, int $offset = 0): array;
 public static function createForClient(int $clientId, array $data, int $actorUserId): array;
 public static function findForClient(int $clientId, int $userId): ?array;
 public static function updateForClient(int $clientId, int $userId, array $data, int $actorUserId): array;
@@ -645,11 +695,13 @@ Kutse on teenuse/handler'i lähtekujul; interpolatsiooniga võtmed tuleb asendad
 | `src/Services/AuthService.php` | `AuditLogService::log((int) $user['id'], (int) $user['client_id'], 'auth.login_blocked', 'system_users', (string) $user['id']);` |
 | `src/Services/AuthService.php` | `AuditLogService::log((int) $user['id'], (int) $user['client_id'], 'auth.login_success', 'system_users', (string) $user['id']);` |
 | `src/Services/AuthService.php` | `AuditLogService::log(ClientContext::userId(), ClientContext::clientId(), 'auth.logout');` |
+| `src/Services/ClientDomainEmbedService.php` | `AuditLogService::log($actorUserId, $clientId, 'client_domain_embed.configured', 'system_client_domain_embeds', (string) $clientId, null, $domain);` |
 | `src/Services/ClientService.php` | `AuditLogService::log($actorUserId, $clientId, 'client.details_updated', 'system_clients', (string) $clientId);` |
 | `src/Services/ClientService.php` | `AuditLogService::log($createdByUserId, $clientId, 'client.created', 'system_clients', (string) $clientId);` |
 | `src/Services/ClientService.php` | `AuditLogService::log($createdByUserId, $clientId, 'client.first_user_created', 'system_users', (string) $userId);` |
 | `src/Services/EmploymentCatalogService.php` | `AuditLogService::log($actorUserId, $clientId, "employment.{$catalog}.{$action}", $table, (string) $id);` |
 | `src/Services/EmploymentCatalogService.php` | `AuditLogService::log($actorUserId, $clientId, "employment.{$catalog}.status_changed", $table, (string) $id, (string) $status, $newStatus);` |
+| `src/Services/EmploymentContractService.php` | `AuditLogService::log($actorUserId, $clientId, 'employment.contracts.page_size_updated', 'employment_contract_list_settings', (string) $clientId, null, (string) $pageSize);` |
 | `src/Services/EmploymentContractService.php` | `AuditLogService::log($actorUserId, $clientId, "employment.contract.{$action}", 'employment_contracts', (string) $contractId);` |
 | `src/Services/EmploymentContractService.php` | `AuditLogService::log($actorUserId, $clientId, "employment.contract.{$action}", 'employment_contracts', (string) $contractId);` |
 | `src/Services/InitialSetupService.php` | `AuditLogService::log($userId, $clientId, 'initial_setup.completed', 'system_users', (string) $userId);` |
@@ -681,6 +733,9 @@ Kutse on teenuse/handler'i lähtekujul; interpolatsiooniga võtmed tuleb asendad
 | `src/Services/SupportService.php` | `AuditLogService::log($userId, (int) $ticket['client_id'], 'support_ticket.' . $action,                 'system_support_tickets', (string) $ticketId, null, $action === 'invite' ? (string) $invitee : null);` |
 | `src/Services/TranslationService.php` | `AuditLogService::log($actorUserId, null, 'translation.key_created', 'system_translation_keys', (string) $keyId);` |
 | `src/Services/TranslationService.php` | `AuditLogService::log($actorUserId, null, 'translation.value_updated', 'system_translation_values', $keyId . ':' . $languageId, null, $value);` |
+| `src/Services/UserService.php` | `AuditLogService::log($actorUserId, $clientId, 'client_admin.created', 'system_users', (string) $userId);` |
+| `src/Services/UserService.php` | `AuditLogService::log($actorUserId, $clientId, 'client_admin.updated', 'system_users', (string) $userId);` |
+| `src/Services/UserService.php` | `AuditLogService::log($actorUserId, $clientId, 'employees.page_size_updated', 'employee_list_settings', (string) $clientId, null, (string) $pageSize);` |
 | `src/Services/UserService.php` | `AuditLogService::log($actorUserId, $clientId, 'user.created', 'system_users', (string) $userId);` |
 | `src/Services/UserService.php` | `AuditLogService::log($actorUserId, $clientId, 'user.updated', 'system_users', (string) $userId);` |
 | `src/Services/UserService.php` | `AuditLogService::log($actorUserId, $clientId, 'user.status_changed', 'system_users', (string) $userId, $user['status'], $newStatus);` |
@@ -695,6 +750,8 @@ Kõik vaated on loetletud, ka need, millel pole vormi. PHP-ga dünaamilised atri
 |---|---|---|
 | [views/admin/clients/create.php](../views/admin/clients/create.php) | post /admin/clients/create | client_code, company_name, registry_code, address, phone, email, contact_person_name, contact_person_id_code, contact_person_phone, contact_person_email, username, csrf_token |
 | [views/admin/clients/index.php](../views/admin/clients/index.php) |  |  |
+| [views/admin/clients/user-create.php](../views/admin/clients/user-create.php) | post /admin/clients/users/create | client_id, username, full_name, email, phone, csrf_token |
+| [views/admin/clients/user-edit.php](../views/admin/clients/user-edit.php) | post /admin/clients/users/edit | client_id, user_id, full_name, email, phone, csrf_token |
 | [views/admin/clients/view.php](../views/admin/clients/view.php) | post /admin/clients/users/reset-password; post /admin/clients/modules/toggle | client_id, user_id, module_id, csrf_token |
 | [views/admin/dashboard.php](../views/admin/dashboard.php) |  |  |
 | [views/admin/languages/create.php](../views/admin/languages/create.php) | post /admin/languages/create | language_code, name, csrf_token |
@@ -712,7 +769,8 @@ Kõik vaated on loetletud, ka need, millel pole vormi. PHP-ga dünaamilised atri
 | [views/admin/translations/create.php](../views/admin/translations/create.php) | post /admin/translations/create | translation_key, module_context, english_value, csrf_token |
 | [views/admin/translations/index.php](../views/admin/translations/index.php) | get /admin/translations; post /admin/translations/update | language, key_id, language_id, value, csrf_token |
 | [views/admin/translations/missing.php](../views/admin/translations/missing.php) | post /admin/translations/update | key_id, language_id, value, csrf_token |
-| [views/auth/login.php](../views/auth/login.php) | post /login | client_code, username, password, csrf_token |
+| [views/auth/login.php](../views/auth/login.php) | post (sama URL) | client_code, username, password, csrf_token |
+| [views/errors/400.php](../views/errors/400.php) |  |  |
 | [views/errors/403.php](../views/errors/403.php) |  |  |
 | [views/errors/404.php](../views/errors/404.php) |  |  |
 | [views/errors/500.php](../views/errors/500.php) |  |  |
@@ -722,14 +780,16 @@ Kõik vaated on loetletud, ka need, millel pole vormi. PHP-ga dünaamilised atri
 | [views/panel/account/index.php](../views/panel/account/index.php) | post /panel/account/password | current_password, new_password, new_password_confirm, csrf_token |
 | [views/panel/client/index.php](../views/panel/client/index.php) | post /panel/client | company_name, address, phone, email, contact_person_name, contact_person_phone, contact_person_email, csrf_token |
 | [views/panel/dashboard.php](../views/panel/dashboard.php) |  |  |
+| [views/panel/domain-embed/index.php](../views/panel/domain-embed/index.php) | post /panel/domain-embed | customer_domain, csrf_token |
 | [views/panel/employment/catalog.php](../views/panel/employment/catalog.php) | post (sama URL); GET (sama URL) | name, workload_percent, id, action, csrf_token |
 | [views/panel/employment/contract-form.php](../views/panel/employment/contract-form.php) | post (sama URL) | id, employee_id, contract_type, property_node_id, job_title_id, workload_id, department_id, manager_user_id, start_date, end_date, csrf_token |
-| [views/panel/employment/contracts.php](../views/panel/employment/contracts.php) | post /panel/employment/contracts/archive | id, csrf_token |
+| [views/panel/employment/contracts.php](../views/panel/employment/contracts.php) | get /panel/employment/contracts; post /panel/employment/contracts/list-settings; post /panel/employment/contracts/archive | search, page_size, id, csrf_token |
 | [views/panel/employment/nav.php](../views/panel/employment/nav.php) |  |  |
 | [views/panel/modules/index.php](../views/panel/modules/index.php) |  |  |
 | [views/panel/notifications/index.php](../views/panel/notifications/index.php) | post /panel/notifications/read | id, archive, page, csrf_token |
 | [views/panel/org/create.php](../views/panel/org/create.php) | post /panel/org/create | org_level, name, parent_org_unit_id, manager_user_id, csrf_token |
 | [views/panel/org/index.php](../views/panel/org/index.php) |  |  |
+| [views/panel/pagination.php](../views/panel/pagination.php) |  |  |
 | [views/panel/patients/create.php](../views/panel/patients/create.php) | post /panel/patients/create | full_name, personal_code, birth_date, phone, email, notes, csrf_token |
 | [views/panel/patients/index.php](../views/panel/patients/index.php) | post /panel/patients/toggle | id, csrf_token |
 | [views/panel/property/create.php](../views/panel/property/create.php) | post /panel/property/create | parent_id, node_type, name, csrf_token |
@@ -752,7 +812,7 @@ Kõik vaated on loetletud, ka need, millel pole vormi. PHP-ga dünaamilised atri
 | [views/panel/users/create.php](../views/panel/users/create.php) | post /panel/users/create | username, full_name, email, phone, role_key, csrf_token |
 | [views/panel/users/edit.php](../views/panel/users/edit.php) | post (sama URL) | user_id, full_name, email, phone, role_key, csrf_token |
 | [views/panel/users/import.php](../views/panel/users/import.php) | post /panel/users/import | MAX_FILE_SIZE, legacy_sql, csrf_token |
-| [views/panel/users/index.php](../views/panel/users/index.php) | post /panel/users/reset-password; post /panel/users/toggle | user_id, csrf_token |
+| [views/panel/users/index.php](../views/panel/users/index.php) | get /panel/users; post /panel/users/list-settings; post /panel/users/reset-password; post /panel/users/toggle | search, page_size, user_id, csrf_token |
 | [views/render.php](../views/render.php) |  |  |
 | [views/setup/create_admin.php](../views/setup/create_admin.php) | post /setup | full_name, email, username, password, csrf_token |
 | [views/support/index.php](../views/support/index.php) |  |  |
@@ -801,6 +861,9 @@ CREATE tabeliallikas ei ole lõplik skeem: järgnevad ALTER-id ja PHP parandus-h
 | `system_notification_reads` | `073_notification_archive.sql` |
 | `system_support_reads` | `074_support_unopened_count.sql` |
 | `system_support_reply_reads` | `075_support_reply_unread.sql` |
+| `system_client_domain_embeds` | `081_client_domain_embed.sql` |
+| `employee_list_settings` | `083_employee_list_pagination.sql` |
+| `employment_contract_list_settings` | `084_contract_list_pagination.sql` |
 
 ### Täpne installeri register
 
@@ -885,6 +948,11 @@ CREATE tabeliallikas ei ole lõplik skeem: järgnevad ALTER-id ja PHP parandus-h
 ['file' => __DIR__ . '/../../sql/078_new_job_title_translation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.91' LIMIT 1"],
 ['file' => __DIR__ . '/../../sql/079_employment_ui_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.92' LIMIT 1"],
 ['file' => __DIR__ . '/../../sql/080_schedule_consecutive_exception_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.93' LIMIT 1"],
+['file' => __DIR__ . '/../../sql/081_client_domain_embed.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.94' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'system_client_domain_embeds') AND EXISTS (SELECT 1 FROM system_modules WHERE module_key = 'client_domain_embed') LIMIT 1"],
+['file' => __DIR__ . '/../../sql/082_client_administrator_management.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.95' AND EXISTS (SELECT 1 FROM system_translation_keys WHERE translation_key = 'admin.client_admins') LIMIT 1"],
+['file' => __DIR__ . '/../../sql/083_employee_list_pagination.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.96' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employee_list_settings') LIMIT 1"],
+['file' => __DIR__ . '/../../sql/084_contract_list_pagination.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.97' AND EXISTS (SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employment_contract_list_settings') LIMIT 1"],
+['file' => __DIR__ . '/../../sql/085_property_tree_collapse.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.98' LIMIT 1"],
 ```
 
 ## 6. Käivitusfailide kontrollsummad
@@ -900,7 +968,7 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [config/env.php](../config/env.php) | `83e93c36295f31e41d406c3e4a361b298417242529aa0ee075c3dbeade0b00fe` |
 | [index.php](../index.php) | `207fcdd589d2388abc7f275127c7f141906f25af0968f9ae83c2c108865ed972` |
 | [public/assets/css/app.css](../public/assets/css/app.css) | `284f388de6f317d91155283884096a2ae4880a5a03127d5fd1f5e7721e2825ea` |
-| [public/index.php](../public/index.php) | `52be8dbad56685f2bd784cfe99b948f2bec85d2629b94cfcaa3dfbac39fe022e` |
+| [public/index.php](../public/index.php) | `330f6ccecacd20c0fb1eddc77637b11c149b0edb03c28973a4ae9c154b6abbaf` |
 | [sql/001_core_schema.sql](../sql/001_core_schema.sql) | `8649d0c9edc42cdec495ffa9d05e19cc2705ad2fe97e6262bb001630147fb17a` |
 | [sql/002_client_modules.sql](../sql/002_client_modules.sql) | `47a7a2a0f14e2cf7841542abfa5ecc99ee5d20fd845761348a181e2396794da1` |
 | [sql/003_notifications_support.sql](../sql/003_notifications_support.sql) | `141cd5ae46803b3601310f91c46318fac5d1b85f3d12d5f92c7e3e53f03bc96e` |
@@ -981,12 +1049,18 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [sql/078_new_job_title_translation.sql](../sql/078_new_job_title_translation.sql) | `1b067e89c9a82a2eb59a639210ec99fd611b23e9f67657a74773d2c5d0427ed9` |
 | [sql/079_employment_ui_translations.sql](../sql/079_employment_ui_translations.sql) | `4adbf7831e5a09ea24187fb79a7d12df618af46901f5083a2ed8c6f7c25c4c17` |
 | [sql/080_schedule_consecutive_exception_translations.sql](../sql/080_schedule_consecutive_exception_translations.sql) | `a65f484f5347445b94419ceaf64d9fa47f9507ae4a974c3e8232019d4fb6339f` |
+| [sql/081_client_domain_embed.sql](../sql/081_client_domain_embed.sql) | `f5eff144566409d90ff3e8041b4d0bc171c56b738462fbf18b37ba125b241072` |
+| [sql/082_client_administrator_management.sql](../sql/082_client_administrator_management.sql) | `d0a92130bec64f057d29ad76313d55700e48aea8f95f639d50f54425775f8ba0` |
+| [sql/083_employee_list_pagination.sql](../sql/083_employee_list_pagination.sql) | `4d67fb6935efb7b7c8440fb11de2df0f8d20a8ff84ef176dd5724e48345822b1` |
+| [sql/084_contract_list_pagination.sql](../sql/084_contract_list_pagination.sql) | `7f5ef56d396b8358fc2b1bf914cb4e14e62403d9f4fc79f58f120cf5ac1d64b2` |
+| [sql/085_property_tree_collapse.sql](../sql/085_property_tree_collapse.sql) | `5b4d62af2336c3b6d3eee992aec8b787d74d1e2af68ddea5b5ca5e2e186f294a` |
 | [src/Services/AuditLogService.php](../src/Services/AuditLogService.php) | `fe57d5c474bce7adf8c120887ad1065c6e33666b9f558cdfc64b8ac3bbcb737a` |
 | [src/Services/AuthService.php](../src/Services/AuthService.php) | `44e30c47e47d5b5d4e740c296ba0a22bcafaf256879a20f754b986499b424455` |
+| [src/Services/ClientDomainEmbedService.php](../src/Services/ClientDomainEmbedService.php) | `5fdddb11d729d86e4a9e6bf4bbe1acf40a54235c0e86eeb482cf2f2511a589ff` |
 | [src/Services/ClientService.php](../src/Services/ClientService.php) | `c725843bb6e2d31eb133c0ff3c928f26f6306074ee110e9fd2fc98f30dde06fc` |
 | [src/Services/EmailService.php](../src/Services/EmailService.php) | `24299a694bb7cf9abacc1bcfb17ffb8a9787e2b3a743185dc2b981b540543295` |
 | [src/Services/EmploymentCatalogService.php](../src/Services/EmploymentCatalogService.php) | `b4394bc29af3f4d857ad047ff3b93833b81c9b32bdc529f1936ab6617f497ec6` |
-| [src/Services/EmploymentContractService.php](../src/Services/EmploymentContractService.php) | `c0292caea7f776f011d61e9045b392f4eb6f7e6fceabee90fa9ba52cb8e60e84` |
+| [src/Services/EmploymentContractService.php](../src/Services/EmploymentContractService.php) | `5c1facc7dd97768090a16e8dcc453d811e6c7c79ed13ad5569df02a02b061c62` |
 | [src/Services/InitialSetupService.php](../src/Services/InitialSetupService.php) | `0359068c82f7d5226cc22af595f2f61e1373cfee0697e9fba110a09a17c046b8` |
 | [src/Services/LanguageService.php](../src/Services/LanguageService.php) | `a3860e2ef724b177db48a025305ff0bc786d2a4441026a1295644c4d8494d3f5` |
 | [src/Services/LegacyEmployeeImportService.php](../src/Services/LegacyEmployeeImportService.php) | `940a7c5c71cce54b91c14ad553da5229a0a94430efc7506b31f96bf84336f0f8` |
@@ -1000,27 +1074,35 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [src/Services/ReportService.php](../src/Services/ReportService.php) | `a9c40089db595b491e3d100898d3e636be1eed414548d26ff0ca43edb5f35e04` |
 | [src/Services/RoleService.php](../src/Services/RoleService.php) | `8df34a5880502201727a1c85c31982e434dbf462b754474d32c9766e5bf022c5` |
 | [src/Services/ScheduleService.php](../src/Services/ScheduleService.php) | `074bf7112f88d00dfa67067f1787a1d2083f33f910aaaf612dc4c8ea3079ed29` |
-| [src/Services/SchemaInstaller.php](../src/Services/SchemaInstaller.php) | `c295e17e5241b40692a9602fc7e8c960eb0daf9a4f48461e7e328cac92e69896` |
+| [src/Services/SchemaInstaller.php](../src/Services/SchemaInstaller.php) | `8503e9d5df48510f71a61c94ac73cffc0f8cfd58eb121e4429d5474a523f2c10` |
 | [src/Services/SettingsService.php](../src/Services/SettingsService.php) | `152b9ce88ee95d6d9769bc7a317dbacf5d38da9585b6505f2eb34ed5c5874f88` |
 | [src/Services/SubstituteService.php](../src/Services/SubstituteService.php) | `6b8b8d8ade0496ef8f53810e025c183596a4fda1de0849c139c40a49bdee2060` |
 | [src/Services/SupportService.php](../src/Services/SupportService.php) | `85b0cd8bb8e62e8b69b32dce9d01eb452b6886e0f23b555b6d35cbcb9b572f74` |
 | [src/Services/TranslationService.php](../src/Services/TranslationService.php) | `46b427baa32b28554c38dc00b430ba215d89c9a276115442c70d478dbc8c948f` |
-| [src/Services/UserService.php](../src/Services/UserService.php) | `502bd68abcc8b5f1e86345b52a8b6af6d71871b292b111fe0f54d91727488d40` |
+| [src/Services/UserService.php](../src/Services/UserService.php) | `7782becabbe176e65e7c95416c38e884c9c5e3a56b31407921b7d911e355863f` |
 | [src/Support/ApplicationTime.php](../src/Support/ApplicationTime.php) | `99bf8db33c7e367dd1ad0aa2e659567edd1736cbd0709d4c9fd30b0a9628663f` |
 | [src/Support/ClientContext.php](../src/Support/ClientContext.php) | `19019bf515942ba7ade02384b067afe93728900cb026a3c1df25219e87edecf6` |
 | [src/Support/Csrf.php](../src/Support/Csrf.php) | `96bc139dd57801fd9a1da1e842fd7aa177b20f93d193f36a27fb37110d27e0f2` |
 | [tests/application-time.php](../tests/application-time.php) | `089726d6628c70e6ddb96df3a604fe92455157eac56893e2f54afe6ed18e6ecc` |
+| [tests/client-admin-management.php](../tests/client-admin-management.php) | `a77ea2b0b2779b45755e15550c331da16c98e93af45a626f0d509475d3c12dfb` |
+| [tests/client-domain-embed.php](../tests/client-domain-embed.php) | `032cb7573e240b4632497778d8dd16d78ac49ab9072bf1a6b7a5d846a55da3b5` |
 | [tests/client-management.php](../tests/client-management.php) | `2171fb43728562a9201239c4c04b7a136629bc7b674b329b7072d7e6eebc844b` |
-| [tests/level-f-scope.php](../tests/level-f-scope.php) | `8d0ed533df07852afff66556fa59aa6380325d750d8c70f92460cc071a2e1a3c` |
+| [tests/contract-list-pagination.php](../tests/contract-list-pagination.php) | `1c9fe6d47148ce2edf038f4a44f88159cd506aa63cc1bff20077bebb8ce1f0d4` |
+| [tests/employee-list-pagination.php](../tests/employee-list-pagination.php) | `3463bb24a14bf7fb176a28d23c7717947206dafeb5d03d2d2409562a867e629e` |
+| [tests/level-f-scope.php](../tests/level-f-scope.php) | `2435d325c400a81572d1818d2c30ac9c6387a4714f8b344f33d18a8d1230d555` |
 | [tests/manager-schedule.php](../tests/manager-schedule.php) | `8f26b5f4df2220797274e5946b2a8eac856f2da15b4ea71f3e1e9cde9a98210f` |
 | [tests/notifications.php](../tests/notifications.php) | `7990282293c0ef1a3910b96e3e9e9fb93b7bda4a5edee08ebd13eb5281f1fc11` |
 | [tests/property-translations.php](../tests/property-translations.php) | `dad031046a20d50effe545eb0d5b988cf659f0c6ff4e8af39577b9260ded5863` |
+| [tests/property-tree-collapse.js](../tests/property-tree-collapse.js) | `ef6c79747c458ae7339891105505b3744facbfca0cefe93138a54802be5112f5` |
+| [tests/property-tree-collapse.php](../tests/property-tree-collapse.php) | `8fa1b64a383460d8fcdc5f522c376b0366f74eba47abe34f57d74656d2e54c01` |
 | [tests/schedule-print-scope.php](../tests/schedule-print-scope.php) | `6e58778727cda377d25e498c8212bb360236a91dd35842882fb26f198075e4bf` |
 | [tests/schedule-substitutes.php](../tests/schedule-substitutes.php) | `746683bff2bb2640e45a0282b0f4fedae3ff07e746fe3df699224cd936630bda` |
 | [tests/support-tickets.php](../tests/support-tickets.php) | `97457a9287a7b47e26b939c74b7331bca03836f250d624f481d4fecd92047ef0` |
 | [views/admin/clients/create.php](../views/admin/clients/create.php) | `90991d4a53ea174fe583e2425d5bb69f21c0c89ff5704f6e95516176318a27e4` |
 | [views/admin/clients/index.php](../views/admin/clients/index.php) | `8fa836ae3718c66c0c93049650aa21cc2f714156339280932d9f5effd59b8f24` |
-| [views/admin/clients/view.php](../views/admin/clients/view.php) | `b8cb1ccf10713f76bed0a1401fb805638e0ae9cecb0da37e868ecfa90206f186` |
+| [views/admin/clients/user-create.php](../views/admin/clients/user-create.php) | `71c3264e8c240af110ad92fbf24c493ea58e6acdfec253307106c1b089fcad89` |
+| [views/admin/clients/user-edit.php](../views/admin/clients/user-edit.php) | `57bbec65ca078149e39c01337bbef0ae130ad4d83be8e953ed57f4b28f41205c` |
+| [views/admin/clients/view.php](../views/admin/clients/view.php) | `23f90f2f7cac351803e6ebc5cb0bcb1a1d02ba223325499cab1add00826cb547` |
 | [views/admin/dashboard.php](../views/admin/dashboard.php) | `7e23599ea530aaaaffab59aaf5f5242fa4746361666a33c7bba66079fc6ab383` |
 | [views/admin/languages/create.php](../views/admin/languages/create.php) | `608b17beb765ceb78931835923f1e3dbedb72f6bef8ab2b94600422164d51edc` |
 | [views/admin/languages/index.php](../views/admin/languages/index.php) | `66da4a542aa0511043ed49c52cd411bde967390caf8f594cd763cdd254b6f468` |
@@ -1037,7 +1119,8 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [views/admin/translations/create.php](../views/admin/translations/create.php) | `580520b564a14813737c6fb2a3393a9aa683c76d49a1f4778b6f80827cf3db74` |
 | [views/admin/translations/index.php](../views/admin/translations/index.php) | `a5ab43547b947af835674a806ef94ca6f1a1b8a522e140f55bc74c62899dc126` |
 | [views/admin/translations/missing.php](../views/admin/translations/missing.php) | `2ea154eaf7538ae94152f98bf7dcb3ad3397df42e10d297052256813323b026e` |
-| [views/auth/login.php](../views/auth/login.php) | `8b8f5fc5b744756569ad84da771adee2d187cfd50fdfe2d15ac20151d90c5904` |
+| [views/auth/login.php](../views/auth/login.php) | `11e36b13e81577c370757f275a9fffb4b09bf1968f4d71ab6f1c06aa727e3c36` |
+| [views/errors/400.php](../views/errors/400.php) | `0e24b98a832cdd97d5d79154bc9fb3ecb16813c780be2d7925f21415c53f1f57` |
 | [views/errors/403.php](../views/errors/403.php) | `d5c2a20cb2af74f69889f0b63a3b4309adb3b8ede190c62f417ed6b4ecc96440` |
 | [views/errors/404.php](../views/errors/404.php) | `6c93121432c4241b34b42e16531ec11ff5d18292c29cf4c515e330aba7f7302e` |
 | [views/errors/500.php](../views/errors/500.php) | `ae088fbda552e5a0da05515ce14869905ff9798590e20bb25b12b8031f309c41` |
@@ -1047,19 +1130,21 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [views/panel/account/index.php](../views/panel/account/index.php) | `2eb32486e4240af4635d5b3fa3511d15859888b752eaa16871fcf9dfaaa95c3c` |
 | [views/panel/client/index.php](../views/panel/client/index.php) | `2f8dadef3c476e88add842c7a9110a7bf3efc2278a91098b68f87cc78dbb8af1` |
 | [views/panel/dashboard.php](../views/panel/dashboard.php) | `ab10afb76a90944704a9c312c7ecb030d51abea3b60df9c18742e7f984f407bc` |
+| [views/panel/domain-embed/index.php](../views/panel/domain-embed/index.php) | `7a9a5c24aef937ef4782abe135bba0d1c7dc30b35c2ee1eb4e8e8b6e90f96707` |
 | [views/panel/employment/catalog.php](../views/panel/employment/catalog.php) | `8b54c4235837ccc97f9c7d09d8c6e5190d43e45e3c7edd75157088362d13857d` |
 | [views/panel/employment/contract-form.php](../views/panel/employment/contract-form.php) | `fc90f87c611d20c1423c3419a84aa0a1a6b41e96ff5ffa5f19831104c13b6eba` |
-| [views/panel/employment/contracts.php](../views/panel/employment/contracts.php) | `b1d4d4bb104d847929e79b4dc893974b3b0ac7afb4df6774e76114cd0f086b70` |
+| [views/panel/employment/contracts.php](../views/panel/employment/contracts.php) | `20573c99c8bcbf344cd1366f17977f53c4b99546c711d478c6ac6feb40e1ddcf` |
 | [views/panel/employment/nav.php](../views/panel/employment/nav.php) | `36f7c29c74b22fef002f530bccbc70ca96e7ba0c29ff149d97d953f73d24229f` |
 | [views/panel/modules/index.php](../views/panel/modules/index.php) | `5b9b35b88e52658b87ef8c7736a9d5e6168e9c624ba1749f0c8c8507e312efce` |
 | [views/panel/notifications/index.php](../views/panel/notifications/index.php) | `a6f450a1df3c57bcd779dd3a8a23954196b05fd6ebb31dbd21e7c660a7f18989` |
 | [views/panel/org/create.php](../views/panel/org/create.php) | `a4fd0d3339a299098cf6cbb95be2b3749753b08d5bb5f1463f7b8b28c1d1a776` |
 | [views/panel/org/index.php](../views/panel/org/index.php) | `ceaab5e18aeb3ddd460b51444c81db3efcfcadf5a2c6dbebf0c69ec2f6d15158` |
+| [views/panel/pagination.php](../views/panel/pagination.php) | `2cbedc37d5abfe822a854fb21f8627cde96ccd1c09c86baa4d0a6fb4308902a3` |
 | [views/panel/patients/create.php](../views/panel/patients/create.php) | `d87aeecd15bb40e8a39e01fd4e0bdae6a8b09a18dcd5cbce194f7b359663e025` |
 | [views/panel/patients/index.php](../views/panel/patients/index.php) | `9069d23b040f07eec08223801cc22475268d58f40c43f25ac5407ef407e93dc1` |
 | [views/panel/property/create.php](../views/panel/property/create.php) | `666ab0fe5b5a163ea8a346578270cbaea943c8b32ae313b9a181821d73d3986d` |
 | [views/panel/property/edit.php](../views/panel/property/edit.php) | `928b047bc6a27332dd104250231892bc750e54e1acdf2f32ced4e79fa10d6712` |
-| [views/panel/property/index.php](../views/panel/property/index.php) | `09a5a38a9711b33e056514acc5a349f4cfd085939c3e9ad325e9e1956a8d31c3` |
+| [views/panel/property/index.php](../views/panel/property/index.php) | `1ead2e51b1c335868d74737c302b1a25a33d372de9661321cdefb68c5c85f8ee` |
 | [views/panel/render.php](../views/panel/render.php) | `27f823d5498f9b3eb1a34e04d172a31947242dc89af7bef2d19f9a5caaab1a2d` |
 | [views/panel/reports/index.php](../views/panel/reports/index.php) | `59035f3f5650ff7baecb64749903a6655a0c1b441a58056d2d5207101c13d13e` |
 | [views/panel/schedule/holidays.php](../views/panel/schedule/holidays.php) | `1ffb4c509d7b017be5018c9fcc00fa8cede17133f7696d4d2024950d7091bf11` |
@@ -1068,7 +1153,7 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [views/panel/schedule/print.php](../views/panel/schedule/print.php) | `89bdbf665ed2a4797df4190ab3aed82b622233ebc79225a2b6b8a991aa76358e` |
 | [views/panel/schedule/substitutes.php](../views/panel/schedule/substitutes.php) | `9917112346131cb5fc992e03c15b7f337dfaae4096d786c1c896b79d8eee8065` |
 | [views/panel/schedule/templates.php](../views/panel/schedule/templates.php) | `0ba8cff0dde57b509a9d7cb63ff461d5f6ad088f0f67a417f2aacab05d1843b6` |
-| [views/panel/shell.php](../views/panel/shell.php) | `a1ab0e2a61b44da0324665c88bf084d763a1fc2d8af4e86f33e574197d929164` |
+| [views/panel/shell.php](../views/panel/shell.php) | `39de3193b75874ca61b5dcd54ef48873426e0ecf36d13d6de759d16101529e21` |
 | [views/panel/substitutes/create.php](../views/panel/substitutes/create.php) | `8e0e689f49503be9b7d2bf269f81e1943f3dd4b10917b2d735239bb00ad192e0` |
 | [views/panel/substitutes/index.php](../views/panel/substitutes/index.php) | `e798b9893b42d02d6f82b1f655400b8f14afc97e56367ce3c8b25e17831dc559` |
 | [views/panel/support/create.php](../views/panel/support/create.php) | `212d9bb5a0b20394a7f32c753aafadcef9297035f410f859873b30a422d0841b` |
@@ -1077,7 +1162,7 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [views/panel/users/create.php](../views/panel/users/create.php) | `3cf9f707ac7192161c7508d1d643ffeec11d10a7ed002bd600158145f8f63911` |
 | [views/panel/users/edit.php](../views/panel/users/edit.php) | `ee9cbf98d8f52f11c5f839939a7eea26a979ff431e029b68e904b74d0d0db0e5` |
 | [views/panel/users/import.php](../views/panel/users/import.php) | `0b59ad849639dfbff34fc31a7b0932b11612ad07ecdc0b30a3a21b94a8832e09` |
-| [views/panel/users/index.php](../views/panel/users/index.php) | `f3f01ddcd1a6e78a5452b3398380cb74788287f665dc8412b8a597923bef2bde` |
+| [views/panel/users/index.php](../views/panel/users/index.php) | `b41d9e86b6df3efd770581c71dc0f1b209a08addbdbe5eccec4c414b6bca4b68` |
 | [views/render.php](../views/render.php) | `13f143f7f37c753f7cd034ca70b8b43975f0ab2e34d6e7871b4f9fa93c4f5d89` |
 | [views/setup/create_admin.php](../views/setup/create_admin.php) | `4f19ccdc31dc43d1aa83bc53a9a837f0c19b2676f09e804503ae86146339290d` |
 | [views/support/index.php](../views/support/index.php) | `8506c4a467af718052fba202fa409bba9dd0eccd23f87dc7dc6901b9add5c76d` |

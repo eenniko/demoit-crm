@@ -1,6 +1,10 @@
 # Baasfunktsioonid ja tegeliku teostuse piirid
 
-**Sihtversioon: 1.93.** See dokument täiendab moodulijuhendeid ning eristab olemasolevat teostust algsetest sihtnõuetest.
+**Sihtversioon: 1.98.** See dokument täiendab moodulijuhendeid ning eristab olemasolevat teostust algsetest sihtnõuetest.
+
+Versioon 1.98: kinnistu struktuuri juurhooned on alguses nähtavad, kõik alamtasemed suletud. Lastega real on +/− nupp. Vanema sulgemine peidab kogu alampuu, taasavamine säilitab samal lehel alamtasemete oleku; lehelaadimine lähtestab kõik suletuks. Muutub ainult loendi kuvamine, mitte teenuse täielik asukohapuu, lepingute valikud, õigused või andmed.
+
+Versioon 1.97: töölepingute loendis on töötaja nimeosa otsing ja leheküljed. Ainult `client_admin` saab salvestada kliendile 1–100 lepingut lehel (vaikimisi 10), sõltumatult töötajate nimekirja seadest. Otsing kasutab sama lehesuurust, loendus järgib samu nähtavusfiltreid ning numbrid renderdatakse üks kord tabeli all. Kliendi ja enda konto piirangud, arhiivikirjed ning haldustoimingud säilivad.
 
 **Versiooni 1.78 täpsustus:** kliendihalduse GET jääb kõigile sisseloginutele nähtavaks. Ilma aktiivse `client_admin` rollita kuvatakse andmed tavalise tekstina, mitte vormina: sisestusväljad ja salvestusnupp puuduvad. Ainult `client_admin` saab kasutada muutmisvormi; mitteadministraatori POST annab 403 enne salvestust. Sama täisnimi võib kuuluda eri kontodele ja rollidele, seega päise nimi ei tõenda konto rolli. Olemasolev autoriseerimine arvestab kõiki aktiivseid rolle, mitte pelgalt F-rolli olemasolu.
 
@@ -36,6 +40,7 @@ Ebaõnnestunud katsete piirang on **sessioonipõhine**, võtmega kliendikood + k
 | Graafik ja print, kuukoormuse muutmine | `schedule` + `employment` + `property`; Level F ilma `client_admin` rollita ainult print enda kuu lepingute asukoha/osakonna gruppidest, muudatused 403; teistel senine lepingupõhine ulatus |
 | Graafiku mallid ja pühade import/loend | Eelmised moodulid + `client_admin` |
 | Graafikuasenduse määramine/lõpetamine | Graafiku moodulid; manager määrab ainult enda asendaja, admin päris manageri asendaja; eraldi leht, mitte organisation taotlus |
+| Kliendi domeeni embed-seadistus/allalaadimine | `client_domain_embed` + `client_admin`; kliendi ID võetakse sessioonist |
 
 Versioon 1.82: manageri enda graafiku vaatamise/muutmise õigus lisandub ainult siis, kui tal on valitud kuul samas kliendis vähemalt üks aktiivne teine töötaja kehtiva arhiveerimata põhi-/ajutise lepinguga, millel ta on manager. Alluvate puhul jääb õigus konkreetse lepingu manager ID järgi; F print-only ja administraatori erand säilivad.
 
@@ -43,9 +48,11 @@ Versioon 1.83 erand: aktiivse `schedule_manager` asenduse ajal saab ka F sama ma
 
 Versioon 1.93: erandi lisamisel saab rakendada sama erandimalli 1–366 järjestikusele kalendripäevale, valitud päev kaasa arvatud; vahemik võib ületada kuu piiri. Iga mõjutatud kuu kontrollib eraldi muutmisõigust ning iga kuupäev lepingu kehtivust ja kattuvust. Ühe päeva või kuu kontrolli ebaõnnestumine tühistab kogu salvestuse. Päevavahemikku toetavad erandid; vahetuse- ja Block-valikud jäävad ühepäevaseks. Täielik sisendi- ja HTTP-leping on dokumentides 10/12, regressioonikontrollid dokumendis 14.
 
+Versioon 1.94: `client_domain_embed` moodul aktiveeritakse kliendile süsteemi moodulihaldusest. Ainult aktiivse mooduliga kliendi `client_admin` näeb `/panel/domain-embed` seadistusvaadet ja saab salvestada ühe avaliku hostinime ning laadida alla vastava HTML-i. Domeen peab olema täielik DNS hostinimi ilma skeemi, tee, pordi või IP-aadressita; kliendi domeenile paigaldatud leht peab kasutama HTTPS-i. Allalaaditud failis pole andmebaasi ega rakenduse saladusi, kuid avalik token on seal embed-URL-i osana. Token määrab kliendi, mitte kasutaja õigused: login kontrollib tavalist kliendikoodi, kasutajanime, parooli ja konto aktiivsust. Teenuse CSP lubab manustada ainult seadistatud HTTPS-domeenilt. Kolmanda osapoole sessiooniküpsiste blokeerimisel kasutatakse eraldi vahekaardi fallback'i. Detailne käitumine ja paigaldus on dokumentides 12/13.
+
 Süsteemikasutajate rollidel ei ole praegu üksteisest eristatud admini tegevusõigusi. `system_permissions` ja `system_role_permissions` on skeemis, kuid üldist õiguste mootorit ega A–F õiguste pärandumist handler'ites ei ole. Rollide haldus muudab ainult kuvatavat nime; tehniline `role_key`, scope ja tasand jäävad samaks.
 
-Mooduli värav kontrollib aktiivset kataloogikirjet ja aktiivset kliendi seost. Menüü nähtavus on abistav, mitte autoriseerimine. Baaspaneeli funktsioonid ei ole eraldi aktiveeritavad moodulid. Kliendi seadete menüüelement on keelatud link, mitte toimiv seadistusleht.
+Mooduli värav kontrollib aktiivset kataloogikirjet ja aktiivset kliendi seost. Menüü nähtavus on abistav, mitte autoriseerimine. Baaspaneeli funktsioonid ei ole eraldi aktiveeritavad moodulid. Kliendi üldine seadete menüüelement on keelatud link; domeeni embed-seadistus on eraldi aktiivse mooduli all.
 
 ## 3. Süsteemiadministraatori ja kliendi haldus
 
@@ -57,6 +64,8 @@ Kliendipaneeli `/panel/client` lubab kõigil sisseloginutel andmeid vaadata; ain
 
 Admini moodulikataloogis saab lisada võtme (2–100 väiketähte/numbrit/alakriipsu), nime, kirjelduse ja demotunnuse ning muuta aktiivsust. See ei loo automaatselt mooduli PHP-koodi, marsruute ega sõltuvusgraafi.
 
+Admini kliendi detailvaate kasutajate plokk kuvab alates versioonist 1.95 ainult valitud kliendi aktiivse `client_admin` rolliseosega kasutajakontosid (konto võib ise olla active või inactive, selle olek kuvatakse eraldi). Süsteemiadministraator saab luua täiendava aktiivse kliendiadministraatori; ajutine parool genereeritakse ning kuvatakse üks kord pärast loomist. Muutmine võimaldab muuta täisnime, e-posti ja telefoni; kasutajanimi on lukus. Parooli lähtestamine jääb eraldi toiminguks. Otsing/muutmine kontrollib nii kliendi ID-d kui kasutaja aktiivset `client_admin` rolliseost; teiste kasutajate ID ei ole nende marsruutidega muudetav. Migratsioon 082 lisab ainult en/et/ru UI tõlkeid, äriskeemi ei muuda.
+
 Kliendi aktivatsioon toimub transaktsioonis: lukustatud moodulikirje, kliendiseose loomine/uuendamine, provisioneerimine, valmisoleku kirje, commit, audit. Mitteaktiivset kataloogimoodulit aktiveerida ei saa. Sulgemine säilitab kõik andmed ja märgib provisiooni mitteaktiivseks. `employees` provisioneerimine loob vaikimisi F-rolli seadistuse; teiste moodulite puhul registreeritakse valmisolek. Moodulite sõltuvusi kontrollivad kasutusmarsruudid, mitte aktivatsiooni üldteenus.
 
 **Algandmete eripära:** koormuse 100% valik ja graafiku vaikemallid lisatakse migratsiooni käivitamise ajal olemasolevatele klientidele. Hiljem loodud kliendile nende loomist provisioneerimisteenus ei tee. Uue kliendi korral tuleb koormused ja mallid lisada kasutajaliideses; dokumentatsiooni põhjal taastamisel ei tohi lubada automaatset lisamist olemasoleva funktsioonina.
@@ -64,6 +73,8 @@ Kliendi aktivatsioon toimub transaktsioonis: lukustatud moodulikirje, kliendiseo
 Süsteemiseadete leht on globaalne võtme-väärtuse register. Teenus teeb upsert'i ja auditkirje; üldseade ei muuda rakenduse käitumist, kui ükski komponent seda ei loe. Tööruumide juhtpaneelid ei kasuta automaatselt kõiki statistikateenuse mõõdikuid.
 
 ## 4. Töötajad ja e-post
+
+Alates 1.96 kasutab `/panel/users` serveripoolset nimeosa otsingut ja nummerdatud lehekülgi. Vaikimisi on lehel 10 kontot. Ainult aktiivne `client_admin` saab loendi seadetes salvestada 1–100 kontot lehel; seade on kliendiülene ning kehtib filtreerimata ja otsingutulemustele. Koguarv ja päring järgivad samu nähtavusõigusi, sh Level F enda konto piirangut. Tühjale tulemusele kuvatakse teade. Teiste vormide töötajavalikud jäävad täielikuks.
 
 Detailne mudel ja SQL-dumpi parser on dokumentides [06](06-tootajate-mooduli-kasutusjuhend.md) ja [07](07-tootajate-mooduli-ai-arendusjuhend.md).
 

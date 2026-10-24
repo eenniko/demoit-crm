@@ -143,6 +143,17 @@ Seadistuse puudumine aktiivse mooduli korral on vigane olek. Teenus peab sellise
 
 ## 5. Teenuste vastutus
 
+### Loendi leheküljed ja otsing (1.96)
+
+- `employee_list_settings`: `client_id` primaarvõti ja kliendi FK `ON DELETE CASCADE`, `page_size` vaikimisi 10. Rida luuakse esimesel salvestusel, puuduv rida tähendab 10; provisioneerimise muutmist pole vaja.
+- `UserService::employeeListPage()` annab `users`, `total`, `page`, `pages`, `pageSize`. Loendus ja andmepäring kasutavad sama kliendi, võimaliku enda konto ID ja nimeosa filtrit. Järjestus on username/id.
+- `employeeListPageSize()` / `saveEmployeeListPageSize()` kasutavad ainult usaldatud kliendikonteksti. Salvestusel ja lugemisel peab väärtus olema 1–100; vigane püsiväärtus on viga, mitte vaikimisi parandus.
+- GET `/panel/users`: `search` on trimmitud kuni 191 märgi pikkune string, `page` positiivne täisarv. Vigane sisend annab 400, üle viimase lehe küsitud number piiratakse viimasele lehele. Nimeotsingu `%`, `_` ja `!` on literaalid, mitte metamärgid.
+- POST `/panel/users/list-settings`: employees moodul + aktiivne client_admin + CSRF, `page_size` täisarv 1–100. Salvestus on kliendipõhine upsert ja audit `employees.page_size_updated`. Teised meetodid 405, mitteadmin ja vigane CSRF 403.
+- Otsing ja filtreerimata loend kasutavad sama kliendiseadet. Kõik leheküljenumbrid kuvatakse, lingid säilitavad otsingu; uus otsing alustab lehelt 1.
+- Ära muuda teiste vormide töötajavalikuid kogemata lehekülgedeks: `listForClient()` ilma lisaparameetriteta peab jätkuvalt tagastama kogu lubatud loendi.
+- Taastamisel lisa migratsioon 083 installeri registrisse, laadi en/et/ru tõlked ja käivita `php -d extension=pdo_sqlite tests\employee-list-pagination.php` ning `php tests\level-f-scope.php`.
+
 ### `ModuleService`
 
 - moodulikataloogi ja kliendi aktivatsioonide lugemine;

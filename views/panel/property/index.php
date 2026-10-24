@@ -12,9 +12,17 @@
 <?php if (empty($nodes)): ?>
     <p class="text-muted">No buildings yet.</p>
 <?php else: ?>
-    <?php $typeLabels = ['building' => 'Building', 'wing' => 'Wing', 'floor' => 'Floor', 'room' => 'Room']; ?>
+    <?php
+    $typeLabels = ['building' => 'Building', 'wing' => 'Wing', 'floor' => 'Floor', 'room' => 'Room'];
+    $childIds = [];
+    foreach ($nodes as $node) {
+        if ($node['parent_id'] !== null) {
+            $childIds[(int) $node['parent_id']][] = 'property-node-' . (int) $node['id'];
+        }
+    }
+    ?>
     <div class="table-responsive">
-        <table class="table table-hover align-middle">
+        <table class="table table-hover align-middle" id="property-tree">
             <thead>
                 <tr>
                     <th>Location</th>
@@ -24,8 +32,16 @@
             </thead>
             <tbody>
                 <?php foreach ($nodes as $node): ?>
-                    <tr>
-                        <td class="ps-<?= min((int) $node['depth'] + 2, 5) ?>"><?= e($node['name']) ?></td>
+                    <tr id="property-node-<?= (int) $node['id'] ?>" data-parent="<?= (int) $node['parent_id'] ?>"
+                        <?= $node['parent_id'] !== null ? 'hidden' : '' ?>>
+                        <td class="ps-<?= min((int) $node['depth'] + 2, 5) ?>">
+                            <?php if (isset($childIds[(int) $node['id']])): ?>
+                                <button type="button" class="btn btn-outline-secondary btn-sm me-2" data-property-toggle
+                                        aria-expanded="false" aria-controls="<?= e(implode(' ', $childIds[(int) $node['id']])) ?>"
+                                        aria-label="<?= e($node['name']) ?>"><span data-no-translate>+</span></button>
+                            <?php endif; ?>
+                            <?= e($node['name']) ?>
+                        </td>
                         <td><?= e($typeLabels[$node['node_type']]) ?></td>
                         <?php if ($canManage): ?>
                             <td class="text-end text-nowrap">
@@ -46,4 +62,23 @@
             </tbody>
         </table>
     </div>
+    <script>
+        (() => {
+            const table = document.getElementById('property-tree');
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const rowsById = new Map(rows.map(row => [row.id, row]));
+            table.addEventListener('click', event => {
+                const button = event.target.closest('[data-property-toggle]');
+                if (!button) return;
+                const expanded = button.getAttribute('aria-expanded') !== 'true';
+                button.setAttribute('aria-expanded', String(expanded));
+                button.querySelector('span').textContent = expanded ? '-' : '+';
+                rows.forEach(row => {
+                    const parent = rowsById.get('property-node-' + row.dataset.parent);
+                    if (!parent) return;
+                    row.hidden = parent.hidden || parent.querySelector('[data-property-toggle]').getAttribute('aria-expanded') !== 'true';
+                });
+            });
+        })();
+    </script>
 <?php endif; ?>

@@ -48,6 +48,15 @@ class ScopeStatement extends PDOStatement
             && (!isset($this->params[$filterKey]) || $row[$contracts ? 'employee_id' : 'id'] === $this->params[$filterKey])
         ));
     }
+
+    public function fetchColumn(int $column = 0): mixed
+    {
+        if (str_contains($this->sql, 'FROM employee_list_settings') || str_contains($this->sql, 'FROM employment_contract_list_settings')) {
+            return false;
+        }
+
+        return count($this->fetchAll());
+    }
 }
 
 class ScopeDatabase extends PDO

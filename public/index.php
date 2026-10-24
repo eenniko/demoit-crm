@@ -28,6 +28,7 @@ require_once __DIR__ . '/../src/Services/EmploymentCatalogService.php';
 require_once __DIR__ . '/../src/Services/EmploymentContractService.php';
 require_once __DIR__ . '/../src/Services/ScheduleService.php';
 require_once __DIR__ . '/../src/Services/PublicHolidayService.php';
+require_once __DIR__ . '/../src/Services/ClientDomainEmbedService.php';
 require_once __DIR__ . '/../views/render.php';
 require_once __DIR__ . '/../views/admin/render.php';
 require_once __DIR__ . '/../views/panel/render.php';
@@ -46,6 +47,7 @@ try {
         $path = '/';
     }
     $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    ClientDomainEmbedService::applyFramePolicy($_SESSION['client_embed_domain'] ?? null);
 
     if ($path === '/language') {
         handle_language_change($method);
@@ -71,8 +73,21 @@ switch (true) {
         handle_login($method);
         break;
 
+    case $path === '/embed':
+        handle_client_domain_embed($method);
+        break;
+
     case $path === '/logout':
+        $embedToken = is_string($_SESSION['client_embed_token'] ?? null) ? $_SESSION['client_embed_token'] : null;
+        $embedConfig = $embedToken !== null ? ClientDomainEmbedService::findActiveByToken($embedToken) : null;
         AuthService::logout();
+        if ($embedConfig !== null) {
+            $_SESSION['client_embed_token'] = $embedToken;
+            $_SESSION['client_embed_domain'] = $embedConfig['customer_domain'];
+            ClientDomainEmbedService::applyFramePolicy($embedConfig['customer_domain']);
+            header('Location: /embed?token=' . rawurlencode($embedToken));
+            exit;
+        }
         header('Location: /');
         break;
 
@@ -90,6 +105,18 @@ switch (true) {
 
     case $path === '/admin/clients/view':
         handle_admin_clients_view();
+        break;
+
+    case $path === '/admin/clients/users/create':
+        handle_admin_client_admin_create($method);
+        break;
+
+    case $path === '/admin/clients/users/edit':
+        handle_admin_client_admin_edit($method);
+        break;
+
+    case $path === '/panel/users/list-settings':
+        handle_panel_users_list_settings($method);
         break;
 
     case $path === '/admin/clients/modules/toggle':
@@ -252,6 +279,14 @@ switch (true) {
         handle_panel_client($method);
         break;
 
+    case $path === '/panel/domain-embed':
+        handle_panel_domain_embed($method);
+        break;
+
+    case $path === '/panel/domain-embed/download':
+        handle_panel_domain_embed_download();
+        break;
+
     case $path === '/panel/notifications':
         handle_panel_notifications();
         break;
@@ -350,6 +385,10 @@ switch (true) {
 
     case $path === '/panel/employment/contracts':
         handle_panel_employment_contracts();
+        break;
+
+    case $path === '/panel/employment/contracts/list-settings':
+        handle_panel_employment_contracts_list_settings($method);
         break;
 
     case $path === '/panel/employment/contracts/archive':
@@ -484,11 +523,114 @@ function handle_admin_clients_view(): void
 
     render_admin_page('Client details', 'clients/view.php', [
         'client' => $client,
-        'users' => UserService::listForClient($clientId),
+        'users' => UserService::listClientAdministrators($clientId),
         'modules' => ModuleService::listForClient($clientId),
-        'tempPassword' => $_GET['temp_password'] ?? null,
-        'message' => $_GET['message'] ?? null,
-        'error' => $_GET['error'] ?? null,
+        'tempPassword' => ($_SESSION['client_admin_flash']['client_id'] ?? null) === $clientId
+            ? ($_SESSION['client_admin_flash']['temp_password'] ?? null)
+            : null,
+        'message' => ($_SESSION['client_admin_flash']['client_id'] ?? null) === $clientId
+            ? ($_SESSION['client_admin_flash']['message'] ?? ($_GET['message'] ?? null))
+            : ($_GET['message'] ?? null),
+        'error' => ($_SESSION['client_admin_flash']['client_id'] ?? null) === $clientId
+            ? ($_SESSION['client_admin_flash']['error'] ?? ($_GET['error'] ?? null))
+            : ($_GET['error'] ?? null),
+    ], 'clients');
+    if (($_SESSION['client_admin_flash']['client_id'] ?? null) === $clientId) {
+        unset($_SESSION['client_admin_flash']);
+    }
+}
+
+function handle_admin_client_admin_create(string $method): void
+{
+    if (!require_system_role()) {
+        return;
+    }
+
+    $clientId = (int) ($_POST['client_id'] ?? $_GET['client_id'] ?? 0);
+    $client = ClientService::find($clientId);
+    if ($client === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    $error = null;
+    $old = [];
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            $old = $_POST;
+            [$success, $message, $temporaryPassword] = UserService::createClientAdministrator(
+                $clientId,
+                $_POST,
+                ClientContext::userId()
+            );
+            if ($success) {
+                $_SESSION['client_admin_flash'] = [
+                    'client_id' => $clientId,
+                    'message' => $message,
+                    'temp_password' => $temporaryPassword,
+                ];
+                header('Location: /admin/clients/view?id=' . $clientId);
+                exit;
+            }
+            $error = $message;
+        }
+    }
+
+    render_admin_page('Add client administrator', 'clients/user-create.php', [
+        'client' => $client,
+        'error' => $error,
+        'old' => $old,
+    ], 'clients');
+}
+
+function handle_admin_client_admin_edit(string $method): void
+{
+    if (!require_system_role()) {
+        return;
+    }
+
+    $clientId = (int) ($_POST['client_id'] ?? $_GET['client_id'] ?? 0);
+    $userId = (int) ($_POST['user_id'] ?? $_GET['user_id'] ?? 0);
+    $client = ClientService::find($clientId);
+    $user = $client !== null ? UserService::findClientAdministrator($clientId, $userId) : null;
+    if ($client === null || $user === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    $error = null;
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            [$success, $message] = UserService::updateClientAdministrator(
+                $clientId,
+                $userId,
+                $_POST,
+                ClientContext::userId()
+            );
+            if ($success) {
+                $_SESSION['client_admin_flash'] = ['client_id' => $clientId, 'message' => $message];
+                header('Location: /admin/clients/view?id=' . $clientId);
+                exit;
+            }
+            $error = $message;
+            $user = array_merge($user, [
+                'full_name' => is_string($_POST['full_name'] ?? null) ? $_POST['full_name'] : $user['full_name'],
+                'email' => is_string($_POST['email'] ?? null) ? $_POST['email'] : $user['email'],
+                'phone' => is_string($_POST['phone'] ?? null) ? $_POST['phone'] : $user['phone'],
+            ]);
+        }
+    }
+
+    render_admin_page('Edit client administrator', 'clients/user-edit.php', [
+        'client' => $client,
+        'user' => $user,
+        'error' => $error,
     ], 'clients');
 }
 
@@ -499,14 +641,21 @@ function handle_admin_clients_reset_password(string $method): void
     }
 
     $clientId = (int) ($_POST['client_id'] ?? 0);
-    $tempPassword = null;
-
-    if ($method === 'POST' && Csrf::validate($_POST['csrf_token'] ?? null)) {
-        [, , $tempPassword] = UserService::resetPassword($clientId, (int) ($_POST['user_id'] ?? 0), ClientContext::userId());
+    $userId = (int) ($_POST['user_id'] ?? 0);
+    $flash = ['client_id' => $clientId];
+    if ($method !== 'POST' || !Csrf::validate($_POST['csrf_token'] ?? null)) {
+        $flash['error'] = 'Invalid session token, please try again.';
+    } elseif (UserService::findClientAdministrator($clientId, $userId) === null) {
+        $flash['error'] = 'Client administrator not found.';
+    } else {
+        [$success, $message, $tempPassword] = UserService::resetPassword($clientId, $userId, ClientContext::userId());
+        $flash[$success ? 'message' : 'error'] = $message;
+        if ($success) {
+            $flash['temp_password'] = $tempPassword;
+        }
     }
-
-    $query = $tempPassword !== null ? '&temp_password=' . rawurlencode((string) $tempPassword) : '';
-    header('Location: /admin/clients/view?id=' . $clientId . $query);
+    $_SESSION['client_admin_flash'] = $flash;
+    header('Location: /admin/clients/view?id=' . $clientId);
 }
 
 function handle_admin_clients_modules_toggle(string $method): void
@@ -623,14 +772,52 @@ function handle_panel_users(): void
     $clientId = ClientContext::clientId();
     $userId = ClientContext::userId();
     $selfOnly = RoleService::isSelfServiceUser($userId, $clientId);
+    $search = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
+    $page = filter_var($_GET['page'] ?? '1', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($page === false || mb_strlen($search) > 191 || (isset($_GET['search']) && !is_string($_GET['search']))) {
+        http_response_code(400);
+        render_page('Invalid request', 'errors/400.php');
+        return;
+    }
+    $pagination = UserService::employeeListPage($clientId, $selfOnly ? $userId : null, $search, $page);
 
     render_panel_page('Users & permissions', 'users/index.php', [
-        'users' => UserService::listForClient($clientId, $selfOnly ? $userId : null),
+        'users' => $pagination['users'],
+        'pagination' => $pagination,
+        'search' => $search,
         'canManage' => RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']),
         'currentUserId' => ClientContext::userId(),
         'message' => $_GET['message'] ?? null,
         'error' => $_GET['error'] ?? null,
     ], 'users');
+}
+
+function handle_panel_users_list_settings(string $method): void
+{
+    if (!require_panel_manager()) {
+        return;
+    }
+    if ($method !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        render_page('Invalid request', 'errors/403.php');
+        return;
+    }
+    $csrfToken = $_POST['csrf_token'] ?? null;
+    if (!is_string($csrfToken) || !Csrf::validate($csrfToken)) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
+    $pageSize = filter_var($_POST['page_size'] ?? '', FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1, 'max_range' => 100],
+    ]);
+    if ($pageSize === false) {
+        header('Location: /panel/users?error=' . rawurlencode(t('employees.page_size_invalid', 'Enter a page size between 1 and 100.')));
+        return;
+    }
+    UserService::saveEmployeeListPageSize(ClientContext::clientId(), $pageSize, ClientContext::userId());
+    header('Location: /panel/users?message=' . rawurlencode(t('employees.page_size_saved', 'Employee list settings saved for this client.')));
 }
 
 function require_employee_module(): bool
@@ -1358,6 +1545,137 @@ function handle_panel_client(string $method): void
     ], 'client');
 }
 
+function handle_panel_domain_embed(string $method): void
+{
+    if (!require_client_domain_embed_manager()) {
+        return;
+    }
+
+    $clientId = ClientContext::clientId();
+    $config = ClientDomainEmbedService::findForClient($clientId);
+    $error = null;
+    $domain = (string) ($config['customer_domain'] ?? '');
+
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again.';
+        } else {
+            $domain = is_string($_POST['customer_domain'] ?? null) ? $_POST['customer_domain'] : '';
+            [$success, $result] = ClientDomainEmbedService::save($clientId, $domain, ClientContext::userId());
+            if ($success) {
+                header('Location: /panel/domain-embed?saved=1');
+                exit;
+            }
+            $error = match ($result) {
+                'Enter a valid domain name without a scheme, path or port.' => t('embed.invalid_domain', $result),
+                'This domain is already configured for another client.' => t('embed.domain_in_use', $result),
+                'The customer-domain module is not active for this client.' => t('embed.module_inactive', $result),
+                default => $result,
+            };
+        }
+    }
+
+    render_panel_page(t('embed.customer_domain', 'Customer domain page'), 'domain-embed/index.php', [
+        'config' => ClientDomainEmbedService::findForClient($clientId),
+        'domain' => $domain,
+        'error' => $error,
+        'message' => isset($_GET['saved']) ? t('embed.domain_saved', 'Customer domain saved. Download a new page to apply the change.') : null,
+    ], 'domain-embed');
+}
+
+function handle_panel_domain_embed_download(): void
+{
+    if (!require_client_domain_embed_manager()) {
+        return;
+    }
+
+    $config = ClientDomainEmbedService::findForClient(ClientContext::clientId());
+    if ($config === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    header('Content-Type: text/html; charset=utf-8');
+    header('Content-Disposition: attachment; filename="demoit-crm-' . preg_replace('/[^a-z0-9.-]+/i', '-', $config['customer_domain']) . '.html"');
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: private, no-store');
+    echo ClientDomainEmbedService::downloadHtml($config);
+    exit;
+}
+
+function require_client_domain_embed_manager(): bool
+{
+    if (!ClientContext::isLoggedIn()) {
+        header('Location: /login');
+        return false;
+    }
+
+    $clientId = ClientContext::clientId();
+    if (!ModuleService::isActiveForClient($clientId, 'client_domain_embed')
+        || !RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin'])) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return false;
+    }
+
+    return true;
+}
+
+function handle_client_domain_embed(string $method): void
+{
+    $token = is_string($_GET['token'] ?? null) ? $_GET['token'] : '';
+    $config = ClientDomainEmbedService::findActiveByToken($token);
+    if ($config === null) {
+        http_response_code(404);
+        render_page('Not found', 'errors/404.php');
+        return;
+    }
+
+    $_SESSION['client_embed_token'] = $token;
+    $_SESSION['client_embed_domain'] = $config['customer_domain'];
+    ClientDomainEmbedService::applyFramePolicy($config['customer_domain']);
+
+    if (ClientContext::isLoggedIn()) {
+        if (ClientContext::clientId() !== (int) $config['client_id']) {
+            http_response_code(403);
+            render_page('Forbidden', 'errors/403.php');
+            return;
+        }
+        header('Location: /panel');
+        exit;
+    }
+
+    $error = null;
+    $old = ['client_code' => $config['client_code']];
+    if ($method === 'POST') {
+        if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
+            $error = 'Invalid session token, please try again. If embedded sign-in is unavailable in this browser, use the standalone sign-in link below.';
+        } else {
+            $old['username'] = is_string($_POST['username'] ?? null) ? trim($_POST['username']) : '';
+            [$success, $message] = AuthService::attemptLogin(
+                (string) $config['client_code'],
+                $old['username'],
+                is_string($_POST['password'] ?? null) ? $_POST['password'] : ''
+            );
+            if ($success) {
+                header('Location: /panel');
+                exit;
+            }
+            $error = $message;
+        }
+    }
+
+    render_page('Client login', 'auth/login.php', [
+        'error' => $error,
+        'old' => $old,
+        'pinnedClientCode' => $config['client_code'],
+        'companyName' => $config['company_name'],
+        'formAction' => '/embed?token=' . rawurlencode($token),
+        'embedFallbackUrl' => 'https://crm.demoit.eu/login?client_code=' . rawurlencode((string) $config['client_code']),
+    ]);
+}
+
 function handle_admin_notifications(string $method): void
 {
     if (!require_system_role()) {
@@ -1781,12 +2099,50 @@ function handle_panel_employment_contracts(): void
     $clientId = ClientContext::clientId();
     $userId = ClientContext::userId();
     $selfOnly = RoleService::isSelfServiceUser($userId, $clientId);
+    $search = is_string($_GET['search'] ?? null) ? trim($_GET['search']) : '';
+    $page = filter_var($_GET['page'] ?? '1', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($page === false || mb_strlen($search) > 191 || (isset($_GET['search']) && !is_string($_GET['search']))) {
+        http_response_code(400);
+        render_page('Invalid request', 'errors/400.php');
+        return;
+    }
+    $pagination = EmploymentContractService::listPage($clientId, $selfOnly ? $userId : null, $search, $page);
     render_panel_page('Employment contracts', 'employment/contracts.php', [
-        'contracts' => EmploymentContractService::listForClient($clientId, $selfOnly ? $userId : null),
+        'contracts' => $pagination['contracts'],
+        'pagination' => $pagination,
+        'search' => $search,
         'canManage' => RoleService::hasAnyRole(ClientContext::userId(), $clientId, ['client_admin']),
         'message' => $_GET['message'] ?? null,
         'error' => $_GET['error'] ?? null,
     ], 'employment');
+}
+
+function handle_panel_employment_contracts_list_settings(string $method): void
+{
+    if (!require_employment_manager()) {
+        return;
+    }
+    if ($method !== 'POST') {
+        http_response_code(405);
+        header('Allow: POST');
+        render_page('Invalid request', 'errors/400.php');
+        return;
+    }
+    $csrfToken = $_POST['csrf_token'] ?? null;
+    if (!is_string($csrfToken) || !Csrf::validate($csrfToken)) {
+        http_response_code(403);
+        render_page('Forbidden', 'errors/403.php');
+        return;
+    }
+    $pageSize = filter_var($_POST['page_size'] ?? '', FILTER_VALIDATE_INT, [
+        'options' => ['min_range' => 1, 'max_range' => 100],
+    ]);
+    if ($pageSize === false) {
+        header('Location: /panel/employment/contracts?error=' . rawurlencode(t('employees.page_size_invalid', 'Enter a page size between 1 and 100.')));
+        return;
+    }
+    EmploymentContractService::saveListPageSize(ClientContext::clientId(), $pageSize, ClientContext::userId());
+    header('Location: /panel/employment/contracts?message=' . rawurlencode(t('employment.page_size_saved', 'Contract list settings saved for this client.')));
 }
 
 function handle_panel_employment_contract_archive(string $method): void
@@ -2470,14 +2826,17 @@ function handle_login(string $method): void
     }
 
     $error = null;
-    $old = [];
+    $pinnedClientCode = is_string($_GET['client_code'] ?? null) ? trim($_GET['client_code']) : '';
+    $old = $pinnedClientCode !== '' ? ['client_code' => $pinnedClientCode] : [];
 
     if ($method === 'POST') {
         if (!Csrf::validate($_POST['csrf_token'] ?? null)) {
             $error = 'Invalid session token, please try again.';
         } else {
             $old = [
-                'client_code' => trim((string) ($_POST['client_code'] ?? '')),
+                'client_code' => $pinnedClientCode !== ''
+                    ? $pinnedClientCode
+                    : trim((string) ($_POST['client_code'] ?? '')),
                 'username' => trim((string) ($_POST['username'] ?? '')),
             ];
 
@@ -2492,5 +2851,17 @@ function handle_login(string $method): void
         }
     }
 
-    render_page('Client login', 'auth/login.php', ['error' => $error, 'old' => $old]);
+    $companyName = null;
+    if ($pinnedClientCode !== '') {
+        $clientLookup = db()->prepare('SELECT company_name FROM system_clients WHERE client_code = :client_code LIMIT 1');
+        $clientLookup->execute(['client_code' => $pinnedClientCode]);
+        $companyName = $clientLookup->fetchColumn() ?: null;
+    }
+
+    render_page('Client login', 'auth/login.php', [
+        'error' => $error,
+        'old' => $old,
+        'pinnedClientCode' => $pinnedClientCode !== '' ? $pinnedClientCode : null,
+        'companyName' => $companyName,
+    ]);
 }

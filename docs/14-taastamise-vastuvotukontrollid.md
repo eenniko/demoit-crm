@@ -1,8 +1,30 @@
 # Taastamise vastuvõtukontrollid
 
-**Sihtversioon: 1.93.** See on testimise spetsifikatsioon; jooksutatud kontrollide tõendid lisatakse iga väljalaske alla. Testi eraldatud keskkonnas sünteetiliste isikuandmetega.
+**Sihtversioon: 1.98.** See on testimise spetsifikatsioon; jooksutatud kontrollide tõendid lisatakse iga väljalaske alla. Testi eraldatud keskkonnas sünteetiliste isikuandmetega.
+
+## Versiooni 1.98 avaldamise kontroll (24.10.2026)
+
+Enne GitHubi avaldamist läbisid eraldatud kontrollid `client-domain-embed.php`, `client-admin-management.php`, `employee-list-pagination.php`, `contract-list-pagination.php`, `property-tree-collapse.php`, `level-f-scope.php`, `property-translations.php`, `client-management.php` ja `application-time.php`. PHP-testid käivitati käsuga `php -d extension=pdo_sqlite tests\<test>.php`, globaalset PHP seadistust muutmata. Kinnistu JavaScripti test läbis samuti.
+
+Kui Windowsis pole `node` PATH-is, saab olemasoleva VS Code'i kaasatud runtime'iga käivitada sama testi PowerShellis:
+
+```powershell
+$env:ELECTRON_RUN_AS_NODE = '1'
+& "$env:LOCALAPPDATA\Programs\Microsoft VS Code\Code.exe" tests\property-tree-collapse.js
+Remove-Item Env:\ELECTRON_RUN_AS_NODE
+```
+
+Taastamispaketi ja inventuuri kontroll katab 85 järjestatud migratsiooni, 87 marsruuti, 40 tabelit ning 206 lähtefaili räsi. Dokumentatsiooni suitsutest katab 53 kontrolli. Need kontrollid ei tõenda tootmisandmete varukoopia taastatavust ega asenda tühja MySQL/MariaDB täielikku paigalduskatset. Kohalikud `.env` ja `.env-test` ei kuulu lähtekoodiväljalaskesse.
 
 ## Testandmed ja tulemuste registreerimine
+
+### Kinnistu harude sulgemise regressioon (1.98)
+
+Käivita `php tests\property-tree-collapse.php`, `node tests\property-tree-collapse.js` ja `php tests\level-f-scope.php`. PHP-test kontrollib tegelikku vaadet teenuse koostatud sünteetilise puuga: nähtavad juured, hidden-järglased, ainult vanemate avamisnupud, aria-seosed, HTML escape, administraatori ja viewer'i tegevused ning tühi loend ja migratsioonijagaja. JS-test käivitab vaate tegeliku skripti eraldatud DOM-fixtuuriga: vanema/lapse avamine-sulgemine, kõigi järglaste peitmine, taasavamine, sõltumatud juured, haldusnupu klikk ja uue lehe vaikeolek. 24.10.2026 PHP-test läbis 22 kontrolli; õiguste test ja 148 olemasolevat tõlkekontrolli läbisid. Live-lehe laadimisel kinnitati ainult juurhoonete nähtavus ja suletud avamisnupp.
+
+### Töölepingute lehekülgede regressioon (1.97)
+
+Käivita `php -d extension=pdo_sqlite tests\contract-list-pagination.php`, töötajate loendi test ja `php tests\level-f-scope.php`. 24.10.2026 läbis uus test 50 kontrolli: päris SQL-i count/list, mitu lepingut töötaja kohta, kliendieraldus, enda konto piirang, nimeotsing/LIKE literaalid, 1–100 lehesuuruse salvestus, vigane sisend/CSRF, mooduli/rolli väravad, arhiivikirjed/asukohateed, tõlgete idempotentsus ning tegelik migratsioonijagaja. Renderdustest nõuab täpselt üht lehekülgede plokki pärast tabeli sulgemist. Samuti läbis töötajate loendi 41 kontrolli ja Level F test. Live-lehel kinnitati: üks lehekülgede plokk, tabeli sees null plokki, numbrid tabeli all. See ei asenda puhta MySQL/MariaDB taastamise katset.
 
 Loo kaks tavaklienti A/B, mõlemale aktiivne `client_admin`, tavakasutaja ja juht, eri ID-dega asukohad, ametid, osakonnad, koormused, mallid ja patsiendid. A töötaja põhileping on 2026-01-01 kuni 2026-12-31, 50%, juht M1; ajutine töökoht teisel korrusel. Ära kasuta tootmis-DB-d.
 
@@ -12,7 +34,7 @@ Iga katse kohta säilita keskkond/versioon, eeltingimus, sisend, HTTP staatus/va
 
 | ID | Katse | Oodatud tulemus |
 |---|---|---|
-| I01 | Puhas DB + kõik migratsioonid | Kõik inventuuri tabelid/indeksid, versioon 1.93 ja lõpetamata seadistus |
+| I01 | Puhas DB + kõik migratsioonid | Kõik inventuuri tabelid/indeksid, versioon 1.98 ja lõpetamata seadistus |
 | I02 | Sama koodiga teine HTTP päring | Ei teki korduvaid seemneid, uut skeemi ega uut kasutajat |
 | I03 | Ainult dokumendi 15 SQL uude DB-sse | Samaväärne skeem, sh archive/color/audit/index parandused ja tõlked |
 | I04 | Kehtetu setup ja siis korrektne | Vigase korral kasutajat/lukustust pole; korrektne üks aktiivne admin kliendil 13666 |
@@ -27,6 +49,10 @@ Iga katse kohta säilita keskkond/versioon, eeltingimus, sisend, HTTP staatus/va
 | A06 | Ajutise parooliga login | Tunnus salvestub; automaatset kogu süsteemi sundväravat praegu ei eeldata |
 | A07 | POST ilma/võltsitud CSRF-ga | Muutust ei tehta; konkreetne vastus vastab handler'ile, mitte üldisele oletatud staatusele |
 | A08 | Tundmatu URL / puuduva rolliga admin URL | 404 / 403; sisselogimata kaitstud URL suunab login'i |
+| A09 | Embed-token puudu, vigane, domeeni muutmisel asendatud või moodul deaktiveeritud | 404; tokeni olemasolu ei võimalda ilma tavalise kliendikonto paroolita sisselogimist |
+| A10 | Embed-login sama ja teise kliendi aktiivse sessiooniga | Sama klient saab tavapärase tööruumi; teise kliendi sessioonile 403 |
+| A11 | Embed-vastuse CSP ja kliendi staatiline leht | `frame-ancestors` sisaldab ainult `self` ja seadistatud HTTPS-domeeni; HTML-i kliendinimi escape'itud ja referrer keelatud |
+| A12 | Brauser blokeerib kolmanda osapoole küpsised | Embed-sisselogimise võimalik piirang kuvatakse; eraldi vahekaardi fallback eeltäidab kliendikoodi |
 
 ## 2. Kliendid, moodulid ja töötajad
 
@@ -36,12 +62,18 @@ Iga katse kohta säilita keskkond/versioon, eeltingimus, sisend, HTTP staatus/va
 | C02 | Tavaline kliendi loomine | Klient + aktiivne client_admin ühe transaktsiooniga; parool ainult räsina DB-s |
 | C03 | Kliendi detaili muutmine admini/tavakasutajana | Ainult client_admin saab paneelis muuta lubatud välju |
 | C04 | Level F või viewer kliendihalduse GET/POST, versioon 1.78 | GET: nähtavad andmed, 0 vormi/sisestusvälja/salvestusnuppu; POST: 403, 0 teenuse kirjutust |
+| C05 | Süsteemiadmini kliendivaade A/B kahe kliendi kasutajatega | Nähtavad on ainult A aktiivse `client_admin` rolliseosega kasutajad; B admin ja A tavakasutaja ei leki loendisse |
+| C06 | Kliendi administraatori lisamine korrektse/vale CSRF-i ja e-postiga | Edu korral aktiivne konto, `client_admin` roll, parooliräsi ja must_change_password; ajutine parool ainult ühekordses sessiooni flash-is; vigastel sisenditel ei teki kasutajat |
+| C07 | Kliendi administraatori muutmine oma ja teise kliendi `user_id` abil | Ainult valitud kliendi aktiivse admin-rolliseosega kasutaja nimi/e-post/telefon uuenevad; võõras kasutaja 404/keeldumine ja andmed ei muutu; username/role ei muutu |
+| C08 | Parooli lähtestamine kliendi detailvaatest | Tavakasutaja ID tagastatakse/keeldutakse; kliendi administraator saab uue ajutise parooli ühekordselt, aadressiribal parooli pole |
 | M01 | Moodul aktiivne kataloogis, aga kliendil puudub | Menüü puudub ja otsene mooduli route annab 403 |
 | M02 | Aktiveerimine ja uuesti aktiveerimine | Kliendiseos + ready provisioon; employees vaikimisi roll level_f, kordusteta |
 | M03 | Provisioneerimise kontrollitud tõrge | Aktivatsioon rollback; ei jää aktiivset poolikut seadistust |
 | M04 | Kataloogi või kliendi mooduli sulgemine | Ligipääs kaob, olemasolevad andmed säilivad |
 | M05 | Schedule ilma employment/property moodulita | Otsene ligipääs keelatud, sõltuvus ei teki automaatselt |
 | M06 | Klient loodud pärast vaikemallide migratsiooni | Ei eeldata automaatseid malle ega 100% koormust; UI-s lisamine töötab |
+| M07 | `client_domain_embed` aktiveeritud/mitteaktiivne kliendile | Ainult aktiivne kliendiseos avab seadistusvaate ja allalaadimise; otse URL-i 403 muul juhul |
+| M08 | Embed-domeeni salvestus ja teine klient sama domeeniga | Admin saab ainult enda kliendi domeeni salvestada; domeenikonflikt annab vea, kliendiseos ei muutu |
 | U01 | Töötaja loomine, e-post vigane/kood korduv | Viga; korrektne konto inactive + provisioneeritud roll |
 | U02 | Muutmine | Username säilib, lubatud kontaktid/roll muutuvad, vana org seos säilib |
 | U03 | Viimase aktiivse admini deaktiveerimine/rolli eemaldamine | Mõlemad keelatud; teise aktiivse admini olemasolul lubatud |
@@ -49,6 +81,15 @@ Iga katse kohta säilita keskkond/versioon, eeltingimus, sisend, HTTP staatus/va
 | U05 | SQL-import 5 MiB piiri ümber või vale laiend | Piiri ületus/vale fail lükatakse tagasi; sobiv fail läbib parseri |
 | U06 | `db_user_data` kaks korrektset + duplikaat + tühi nimi | found=4, imported=2, skipped=2; uued inactive, vana parool ei imporditu |
 | U07 | Dump sisaldab DROP/DELETE või muud tabelit | Üleslaaditud SQL-i ei täideta; ainult lubatud INSERT-ridadest saab töötaja |
+| U08 | 26 konto loend ja puuduv lehesuuruse seadistus | Lehel 10 rida, 3 lehekülge, viimasel 6; teise kliendi konto ei mõjuta koguarvu |
+| U09 | Nimeosa otsing, millele vastab 11 kontot | Vaikesuurusega kaks lehte; otsing säilib lingis ja hõlmab kogu lubatud loendit |
+| U10 | Admin salvestab suuruse 1 / 100 / 10 | Väärtus säilib sama kliendi kõigil kasutajatel ja otsingus; teise kliendi seade ei muutu |
+| U11 | Viewer/F proovib seadistuse POST-i või puudub CSRF | 403 ja ei salvestu; seadistusvorm puudub, F otsing ja COUNT jäävad enda kontole |
+| U12 | Tühi otsingutulemus, vigane page/search ja HTML/LIKE metamärgid | Selge tühja loendi teade, vigane sisend 400, HTML escape ja literaalne LIKE |
+
+1.96 regressioonikontroll: `php -d extension=pdo_sqlite tests\employee-list-pagination.php` ja `php tests\level-f-scope.php`. Esimene kasutab päris teenust ja handler'eid eraldatud SQLite'is, teisendades ainult MySQL GROUP_CONCAT/upsert/INSERT IGNORE süntaksi. Test katab ka tõlgete idempotentsuse ja tegeliku SQL-jagaja. See ei asenda puhta MySQL/MariaDB paigalduse taastamiskatset.
+
+24.10.2026 kontroll: 41 pagination/otsingu/seadistuse/tõlke kontrolli läbisid, samuti Level F nähtavuse, kliendihalduse, administraatorite halduse ja domeeni embed'i regressioonitestid. Taastedokumentide kontroll kinnitas 83 täpset migratsiooni, 86 marsruuti, 39 tabelit ja 200 lähtefaili räsi; dokumentatsiooni suitsutest läbis 53 kontrolli. Live-loendis olid nähtavad eestikeelne otsing, tulemuste arv, kliendile salvestatud lehesuurus ja vastav lehekülgede arv. Tootmisseadet testimiseks ei muudetud.
 
 ## 3. Isolatsioon ja tugifunktsioonid
 

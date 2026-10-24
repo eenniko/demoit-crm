@@ -21,33 +21,53 @@
             <tr><th>E-mail</th><td><?= e($client['email']) ?></td></tr>
         </table>
 
-        <h2 class="h6 mt-4">Users</h2>
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+            <h2 class="h6 mb-0"><?= e(t('admin.client_admins', 'Client administrators')) ?></h2>
+            <a class="btn btn-primary btn-sm" href="/admin/clients/users/create?client_id=<?= (int) $client['id'] ?>">
+                <?= e(t('admin.client_admin_add', 'Add administrator')) ?>
+            </a>
+        </div>
 
         <?php if (!empty($tempPassword)): ?>
             <div class="alert alert-success">
-                Password reset. New temporary password (shown only once): <code><?= e($tempPassword) ?></code>
+                <?= e(t('admin.client_admin_temp_password', 'Temporary password (shown only once):')) ?>
+                <code><?= e($tempPassword) ?></code>
             </div>
         <?php endif; ?>
 
         <?php if (empty($users)): ?>
-            <p class="text-muted">No users yet.</p>
+            <p class="text-muted"><?= e(t('admin.client_admin_none', 'No client administrators yet.')) ?></p>
         <?php else: ?>
             <table class="table table-sm table-striped">
-                <thead><tr><th>Username</th><th>Full name</th><th>Roles</th><th>Status</th><th></th></tr></thead>
+                <thead><tr>
+                    <th><?= e(t('admin.client_admin_username', 'Username')) ?></th>
+                    <th><?= e(t('admin.client_admin_name', 'Full name')) ?></th>
+                    <th><?= e(t('admin.client_admin_contact', 'Contact')) ?></th>
+                    <th><?= e(t('admin.client_admin_status', 'Status')) ?></th>
+                    <th></th>
+                </tr></thead>
                 <tbody>
                     <?php foreach ($users as $user): ?>
                         <tr>
                             <td><?= e($user['username']) ?></td>
                             <td><?= e($user['full_name']) ?></td>
-                            <td><?= e($user['roles']) ?></td>
+                            <td>
+                                <div><?= e($user['email']) ?></div>
+                                <small class="text-body-secondary"><?= e($user['phone']) ?></small>
+                            </td>
                             <td><?= e($user['status']) ?></td>
-                            <td class="text-end">
-                                <form method="post" action="/admin/clients/users/reset-password" class="d-inline"
-                                      onsubmit="return confirm('Reset password for this user?');">
+                            <td class="text-end text-nowrap">
+                                <a class="btn btn-outline-primary btn-sm"
+                                   href="/admin/clients/users/edit?client_id=<?= (int) $client['id'] ?>&amp;user_id=<?= (int) $user['id'] ?>">
+                                    <?= e(t('admin.client_admin_edit', 'Edit')) ?>
+                                </a>
+                                <form method="post" action="/admin/clients/users/reset-password" class="d-inline">
                                     <?= Csrf::field() ?>
                                     <input type="hidden" name="client_id" value="<?= (int) $client['id'] ?>">
                                     <input type="hidden" name="user_id" value="<?= (int) $user['id'] ?>">
-                                    <button class="btn btn-outline-secondary btn-sm" type="submit">Reset password</button>
+                                    <button class="btn btn-outline-secondary btn-sm" type="submit">
+                                        <?= e(t('admin.client_admin_reset', 'Reset password')) ?>
+                                    </button>
                                 </form>
                             </td>
                         </tr>
