@@ -18,6 +18,7 @@ Employment module: [usage guide](docs/09-toolepingute-moodul.md).
 
 | Versioon | Kuupäev | Olulisemad muudatused |
 | --- | --- | --- |
+| 1.93 | 16.10.2026 | Erandi valimisel saab rakendada sama väärtust järjestikusele päevade arvule, sh üle kuu piiri. |
 | 1.92 | 14.10.2026 | Töölepingute mooduli puuduvad vormi-, tegevus- ja ligipääsetavad nimetused tõlgitud eesti ning vene keelde. |
 | 1.91 | 14.10.2026 | New job title vormisilt tõlgitud andmebaasis eesti ja vene keelde. |
 | 1.90 | 14.10.2026 | Kinnistu tüübid Hoone, Korpus, Korrus ja Ruum tõlgitud andmebaasis eesti ning vene keelde. |
@@ -117,6 +118,7 @@ Kõigi versioonide muudatused, mõjutatud moodulid, andmebaasimuudatused ja test
 
 | Version | Date | Highlights |
 | --- | --- | --- |
+| 1.93 | 16.10.2026 | Apply an exception to a consecutive day count, including across month boundaries. |
 | 1.92 | 14.10.2026 | Completed missing employment form, action and accessible label translations in Estonian and Russian. |
 | 1.91 | 14.10.2026 | Database-backed Estonian and Russian translations for the New job title form label. |
 | 1.90 | 14.10.2026 | Database-backed Estonian and Russian translations for Building, Wing, Floor and Room. |

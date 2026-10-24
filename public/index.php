@@ -1981,7 +1981,8 @@ function handle_panel_schedule(string $method): void
                 $userId,
                 $isClientAdmin,
                 $month['month'],
-                $_POST['assignments'] ?? []
+                $_POST['assignments'] ?? [],
+                filter_var($_POST['repeat_days'] ?? 1, FILTER_VALIDATE_INT) ?: 0
             );
             if ($success) {
                 $message = $result;

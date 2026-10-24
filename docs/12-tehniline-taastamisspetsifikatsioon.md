@@ -1,6 +1,6 @@
 # Tehniline taastamisspetsifikatsioon
 
-**Sihtversioon: 1.92.** HTTP marsruutide ja avalike teenuseliideste täielik register asub [inventuuris](16-tehniline-inventuur.md); SQL väljade tüübid, NULL/default väärtused, ENUM-id, indeksid ja seosed [SQL-taastepaketis](15-andmebaasi-taastepakett.sql).
+**Sihtversioon: 1.93.** HTTP marsruutide ja avalike teenuseliideste täielik register asub [inventuuris](16-tehniline-inventuur.md); SQL väljade tüübid, NULL/default väärtused, ENUM-id, indeksid ja seosed [SQL-taastepaketis](15-andmebaasi-taastepakett.sql).
 
 ## 1. Käivitus ja failivastutused
 
@@ -114,9 +114,10 @@ Kliendi/admini renderdused arvutavad `unreadSupportCount` enne kesta renderdust,
 csrf_token=<sessiooni token>
 month=2026-10
 assignments[<contract_id>][2026-10-14]=<template_id>
+repeat_days=7
 ```
 
-Tühi string või string `"0"` eemaldab selle lahtri kande. Puuduvad lahtrid **säilivad**: sisend on osaline muudatus, mitte terve kuu asendus. Kaasas võib olla mitu lahtrit, kuid automaatsalvestus saadab ainult valitud lahtri. Teenus lükkab tagasi mittelubatud lepingu, kuust väljuva kuupäeva, lepinguperioodist väljuva päeva ja teise kliendi/mitteaktiivse uue malli.
+Tühi string või string `"0"` eemaldab selle lahtri kande. Puuduvad lahtrid **säilivad**: sisend on osaline muudatus, mitte terve kuu asendus. Tavaline automaatsalvestus saadab ainult valitud lahtri. Valikulise `repeat_days` (vaikimisi 1, lubatud 1–366) korral aktsepteeritakse ainult üht contract/date/template kirjet; ankur peab olema valitud kuus ja mall peab olema selle kliendi `exception`-tüüpi mall. Teenus laiendab selle järjestikusteks kuupäevadeks kaasa arvatud ankurpäev. Iga kuust väljuva päeva jaoks laaditakse sama lepingu autoriseeritud skoop eraldi kuus uuesti; kuutaseme ligipääsu puudumisel lükatakse kogu transaktsioon tagasi. Lepinguperioodi kuupäevad kontrollitakse iga päeva kohta; konfliktipäring katab laiendatud vahemiku ning ühe päeva kummaltki poolt, et tuvastada üleöö ulatuvaid vahetusi. Teise kliendi/mitteaktiivse malli kontroll ning atomic rollback säilivad. POST vastuse vorm ei muutu; kuu tunnikokkuvõte kajastab avatud kuu osa.
 
 Edu 200:
 

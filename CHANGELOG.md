@@ -1,5 +1,11 @@
 # DemoIT CRM – muudatuste logi
 
+## Versioon 1.93 – 16. oktoober 2026
+
+- Graafiku lahtri erandivalikus saab sisestada järjestikuste päevade arvu (1–366, valitud päev kaasa arvatud). Sama erand salvestatakse valitud kuupäevast alates igale kalendripäevale; ajavahemik võib ületada kuu piiri.
+- Ülekirjutus salvestub ühe transaktsioonina. Kõik päevad kontrollitakse lepingu kehtivuse, iga mõjutatud kuu manager/asendaja õiguste, malli aktiivsuse ja kattuvuste vastu; üks vigane päev tühistab kogu muudatuse. Vahetused ja Block ei saa mitmepäevaseks muuta.
+- Migratsioon 080 lisab päevade arvu ja lepingu piiri veateate eesti/inglise/vene tõlked. Testid hõlmavad kuu piiri, lepingu lõppu, järgmise kuu õigusi ja kattuvaid vahetusi. Taastamispakett uuendatud. Järgmine versioon `1.94`.
+
 ## Versioon 1.92 – 14. oktoober 2026
 
 - Kontrollitud lepingute loendi/lisamis-/muutmisvormi ning ametinimetuste, osakondade ja koormuste vaadete fraase olemasoleva tõlkekataloogi vastu. Migratsioon 079 lisab kümme puuduvat en/et/ru fraasi: New department, New workload, Job title name, Department name, Workload name, Hide, Activate, Edit contract, Open-ended ja Restore.
@@ -786,6 +792,12 @@
 Iga täiendav funktsionaalne, tehniline või dokumenteeritud uuendus suurendab viimast versiooninumbrit ühe võrra. Iga versioonikirje peab sisaldama kuupäeva, muudatuse kirjeldust, mõjutatud faile või mooduleid, andmebaasimuudatusi ja testimistulemust.
 
 # DemoIT CRM - Changelog (English)
+
+## Version 1.93 - October 16, 2026
+
+- The schedule exception picker accepts 1–366 consecutive calendar days, including the selected day, and applies the same exception from that date forward, including across month boundaries.
+- The entire range saves atomically. Every date is checked against contract validity, manager/substitute permissions for each affected month, active template status and shift overlaps; any invalid date rolls back the entire change. Shift and Block templates cannot be repeated.
+- Migration 080 adds Estonian/English/Russian translations for the day count and contract-boundary error. Tests cover month crossing, contract end, next-month permissions and adjacent-month shift conflicts. Reconstruction bundle updated. Next version `1.94`.
 
 ## Version 1.92 - October 14, 2026
 

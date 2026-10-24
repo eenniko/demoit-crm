@@ -1,6 +1,6 @@
 # Paigaldamine, varundamine ja taastamine
 
-**Sihtversioon: 1.85.** Juhend ei sisalda tegelikke ligipääsuandmeid. Taastamine tehakse esmalt eraldatud testikeskkonda.
+**Sihtversioon: 1.93.** Juhend ei sisalda tegelikke ligipääsuandmeid. Taastamine tehakse esmalt eraldatud testikeskkonda. Koodi- ja andmebaasitaaste on eraldi: SQL-taastepakett loob tühja skeemi, kuid ei taasta tootmisandmeid ega asenda kinnitatud 1.93 lähtekoodiväljalaset.
 
 ## 1. Keskkonna eeldused
 
@@ -91,7 +91,7 @@ Upload'iga peab kaasas olema `.htaccess` ja kõik rakenduse/SQL failid. Ära kas
 
 1. Kopeeri kogu `docs/` pakett, mitte üks prompt. Kontrolli sihtversiooni, dokumentide linke ja SQL-paketi olemasolu.
 2. Loo eraldatud keskkond ja tühi DB. Käivita [15-andmebaasi-taastepakett.sql](15-andmebaasi-taastepakett.sql) SQL-kliendi või phpMyAdmini kaudu **valitud tühjas andmebaasis**. See ei sisalda CREATE DATABASE/USE käsku, päris kasutajaid ega tootmisandmeid.
-3. Pakett sisaldab järjestatud algmigratsioone, kogu tõlkeseemne ning PHP-installeris olnud nelja skeemiparanduse SQL-ekvivalenti. Seetõttu ei pea SQL-only taastamisel originaalset `sql/` ega installerit enne olemas olema.
+3. Pakett sisaldab järjestatud algmigratsioone, kogu tõlkeseemne ning PHP-installeris olnud viie skeemiparanduse SQL-ekvivalenti. Seetõttu ei pea SQL-only taastamisel originaalset `sql/` ega installerit enne olemas olema.
 4. Peata SQL vea korral. Ära kasuta `--force`, ära jätka pimesi ega kirjuta puuduva skeemi asemel versioonilogi edumärget.
 5. Taasta failivastutused, teenuseliidesed, handler'id, vormiväljad ja käitumine dokumentide 11/12/16 järgi. Kui soovid ka tulevasi automigratsioone, taasta järjestatud register ja parandus-handler'id dokumendi 12 järgi; puhta süsteemi SQL-paketti ei käivitata igal HTTP päringul.
 6. Taasta serveri ligipääsupiirangud ja keskkonnasaladused, seejärel käivita algseadistus ning moodulite põhivood.

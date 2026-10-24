@@ -1,6 +1,6 @@
 # Töölepingute moodul / Employment module
 
-**Süsteemi arendusversioon:** 1.92
+**Süsteemi arendusversioon:** 1.93
 
 Täielik andmeskeem asub [SQL-taastepaketis](15-andmebaasi-taastepakett.sql), tehnilised piirijuhud ja testid [taastamisspetsifikatsioonis](12-tehniline-taastamisspetsifikatsioon.md) ning [vastuvõtukontrollides](14-taastamise-vastuvotukontrollid.md).
 

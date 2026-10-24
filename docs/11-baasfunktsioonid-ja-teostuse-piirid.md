@@ -1,6 +1,6 @@
 # Baasfunktsioonid ja tegeliku teostuse piirid
 
-**Sihtversioon: 1.76.** See dokument täiendab moodulijuhendeid ning eristab olemasolevat teostust algsetest sihtnõuetest.
+**Sihtversioon: 1.93.** See dokument täiendab moodulijuhendeid ning eristab olemasolevat teostust algsetest sihtnõuetest.
 
 **Versiooni 1.78 täpsustus:** kliendihalduse GET jääb kõigile sisseloginutele nähtavaks. Ilma aktiivse `client_admin` rollita kuvatakse andmed tavalise tekstina, mitte vormina: sisestusväljad ja salvestusnupp puuduvad. Ainult `client_admin` saab kasutada muutmisvormi; mitteadministraatori POST annab 403 enne salvestust. Sama täisnimi võib kuuluda eri kontodele ja rollidele, seega päise nimi ei tõenda konto rolli. Olemasolev autoriseerimine arvestab kõiki aktiivseid rolle, mitte pelgalt F-rolli olemasolu.
 
@@ -40,6 +40,8 @@ Ebaõnnestunud katsete piirang on **sessioonipõhine**, võtmega kliendikood + k
 Versioon 1.82: manageri enda graafiku vaatamise/muutmise õigus lisandub ainult siis, kui tal on valitud kuul samas kliendis vähemalt üks aktiivne teine töötaja kehtiva arhiveerimata põhi-/ajutise lepinguga, millel ta on manager. Alluvate puhul jääb õigus konkreetse lepingu manager ID järgi; F print-only ja administraatori erand säilivad.
 
 Versioon 1.83 erand: aktiivse `schedule_manager` asenduse ajal saab ka F sama manageri jooksva/tulevase kuu lepinguridade vahetusi muuta, kuid mitte koormusi ega seadeid/pühi. Asendajalt ei nõuta töölepingut, ainult aktiivset sama kliendi kontot. Enda kontorollid ja muu keskkonna nähtavus ei muutu. Õigus lõpeb automaatselt lõppajal või ennetähtaegsel lõpetamisel; vaata dokumente 10/12.
+
+Versioon 1.93: erandi lisamisel saab rakendada sama erandimalli 1–366 järjestikusele kalendripäevale, valitud päev kaasa arvatud; vahemik võib ületada kuu piiri. Iga mõjutatud kuu kontrollib eraldi muutmisõigust ning iga kuupäev lepingu kehtivust ja kattuvust. Ühe päeva või kuu kontrolli ebaõnnestumine tühistab kogu salvestuse. Päevavahemikku toetavad erandid; vahetuse- ja Block-valikud jäävad ühepäevaseks. Täielik sisendi- ja HTTP-leping on dokumentides 10/12, regressioonikontrollid dokumendis 14.
 
 Süsteemikasutajate rollidel ei ole praegu üksteisest eristatud admini tegevusõigusi. `system_permissions` ja `system_role_permissions` on skeemis, kuid üldist õiguste mootorit ega A–F õiguste pärandumist handler'ites ei ole. Rollide haldus muudab ainult kuvatavat nime; tehniline `role_key`, scope ja tasand jäävad samaks.
 

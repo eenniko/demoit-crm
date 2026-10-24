@@ -1,6 +1,6 @@
 # DemoIT CRM: dokumentatsioon ja AI abil taastamine
 
-**Taastamise sihtversioon: 1.92. Kontrollitud lähtekoodi seis: 14.10.2026.**
+**Taastamise sihtversioon: 1.93. Kontrollitud lähtekoodi seis: 24.10.2026.**
 
 Käivituse parandusversioon **1.77** eemaldab migratsiooni 063 kirjeldusest SQL-jagajaga vastuolus olnud semikooloni. Taastepakett ja inventuur sisaldavad ka migratsiooni 064. Funktsionaalse taastamise kirjeldus jääb versiooni 1.76 käitumisega samaks.
 
@@ -37,6 +37,8 @@ Versioon **1.90** lisab migratsiooniga 077 kinnistu nelja tüübi inglise/eesti/
 Versioon **1.91** lisab migratsiooniga 078 „New job title” vormisildi eesti- ja venekeelsed tõlked. Täielik dünaamiliselt koostatud fraas peab olema UI kataloogis; andmeskeem ja õigused ei muutu.
 
 Versioon **1.92** lisab migratsiooniga 079 ülejäänud puuduvad töölepingute mooduli UI fraasid en/et/ru keeles. Sisestusväljade ja navigatsiooni ligipääsetavad nimetused tõlgitakse serveris samast kataloogist. Tõlketabel ning kontrollid on dokumentides 09/14.
+
+Versioon **1.93** lubab erandi valikul rakendada sama malli 1–366 järjestikusele kalendripäevale, sh üle kuu piiri. Salvestus on atomaarne ja kontrollib iga kuu õigusi, lepingu kehtivust ja kattuvusi. Migratsioon 080 lisab uued tõlked; tehnilised piirid ja API on dokumentides 10/12/14.
 
 | Dokument | Mida selle alusel taastada |
 |---|---|
@@ -78,11 +80,12 @@ Vastuolu korral kirjeldavad 11–16 kontrollitud teostust; 01–04 sisaldavad ka
 
 ## Taastamisprompt
 
-> Taasta DemoIT CRM versiooni 1.76 funktsionaalne käitumine ainult selle dokumentatsioonipaketi alusel. Loe kõigepealt dokumente 00, 11, 12, 13 ja 14, seejärel kõiki moodulijuhendeid, SQL-paketti 15 ja inventuuri 16. Kasuta vanilla PHP 8+, PDO/MySQL, PHP sessioone ja Bootstrap 5.3.3. Ühine andmebaas eraldab kliendid `client_id` järgi; klienti ei võeta vormist. Ära eelda, et algsetes nõuetes nimetatud demo, õiguste pärandumine, asendaja automaatne volitamine või paroolivahetuse sundsuunamine on juba teostatud. Taasta esmalt skeem ja käivitus, siis konto/admin, baasfunktsioonid ja moodulid sõltuvusjärjekorras. Säilita marsruudid, väljade nimed, JSON-vastused, kuupäeva- ja tundide reeglid. Lisa vastuvõtutestid dokumendi 14 järgi. Kirjelda iga kõrvalekalle ja küsi otsust enne käitumise muutmist. Ära kasuta päris isikuandmeid ega saladusi. Ära kuuluta taastamist lõpetatuks enne puhta paigalduse, kahe kliendi isolatsiooni, graafiku arvutuste ja varukoopiast taastamise kontrolli.
+> Taasta DemoIT CRM-i dokumenteeritud versiooni 1.93 funktsionaalne käitumine. Loe kõigepealt dokumente 00, 11, 12, 13 ja 14, seejärel kõiki moodulijuhendeid, SQL-paketti 15 ja inventuuri 16. Baittäpse taastamise jaoks hangi kinnitatud 1.93 lähtekoodiväljalase; dokumentatsioon üksi ei sisalda kogu lähtekoodi, tootmisandmeid, saladusi ega hostingu seadistust. Kui täpset lähtekoodi pole, rekonstrueeri käitumine dokumentide järgi ja märgi see funktsionaalseks, mitte baittäpseks taastamiseks. Kasuta vanilla PHP 8+, PDO/MySQL, PHP sessioone ja Bootstrap 5.3.3. Ühine andmebaas eraldab kliendid `client_id` järgi; klienti ei võeta vormist. Ära eelda, et algsetes nõuetes nimetatud demo, õiguste pärandumine, asendaja automaatne volitamine või paroolivahetuse sundsuunamine on juba teostatud. Taasta esmalt tühi skeem SQL-paketi järgi või impordi andmebaasivarukoopia koos sobiva koodiväljalaskega; seejärel kontrolli installerit ja migratsioonide registrit, seadista saladused turvaliselt ning taasta konto/admin, baasfunktsioonid ja moodulid sõltuvusjärjekorras. Säilita marsruudid, väljade nimed, JSON-vastused, kuupäeva- ja tundide reeglid. Lisa vastuvõtutestid dokumendi 14 järgi. Kirjelda iga kõrvalekalle ja küsi otsust enne käitumise muutmist. Ära kasuta päris isikuandmeid ega saladusi. Ära kuuluta taastamist lõpetatuks enne puhta paigalduse, kahe kliendi isolatsiooni, graafiku arvutuste ja varukoopiast taastamise kontrolli.
 
 ## Mida tuleb eraldi säilitada
 
 - Git-repositooriumi või väljalaske lähtekood: vajalik baittäpseks taastamiseks, sh kujundus ja JavaScript.
+- Enne lähtekoodi kasutamist kontrolli, et valitud Git viide sisaldaks dokumenteeritud sihtversiooni; käesolev dokumentatsioon ja inventuur ei tõenda, et sama versioon oleks juba kaug-repositooriumisse salvestatud.
 - Täielik andmebaasivarukoopia: dokumentatsioon ei taasta töötajaid, patsiente, graafikukandeid, kohandatud tõlkeid ega auditajalugu.
 - Saladused ja keskkonna/hostingu seaded: turvalises saladuste hoidlas, mitte `docs/` all.
 - Domeeni/DNS-i, TLS-i, meilitranspordi, ajavööndi, PHP/MySQL versiooni ja õiguste tegelikud väärtused.

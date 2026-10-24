@@ -129,7 +129,8 @@ $pdo->exec("
     INSERT INTO property_nodes VALUES (1,1,'Location'), (2,2,'Other client');
     INSERT INTO employee_schedule_templates VALUES
         (1,1,'shift','D','Day','08:00:00',480,'#008000','active'),
-        (2,1,'shift','E','Evening','16:00:00',480,'#0000FF','active');
+        (2,1,'shift','E','Evening','16:00:00',480,'#0000FF','active'),
+        (3,1,'exception','HP','Vacation','08:00:00',480,'#FF0000','active');
     INSERT INTO system_users VALUES (5,1,'manager','Manager','active'), (6,1,'staff','Staff','active'),
         (7,1,'unassigned','Unassigned','active'), (8,1,'ordinary','Ordinary','active'),
         (9,1,'inactive','Inactive','inactive'), (10,1,'futuremanager','Future manager','active'),
@@ -153,6 +154,7 @@ $contracts = [
     [54,1,6,1,null,'primary','2026-01-01',null,1,100,'2026-10-01',11],
     [55,1,12,1,null,'primary','2026-01-01',null,1,100,null,99],
     [56,1,9,1,null,'primary','2026-01-01',null,1,100,null,12],
+    [60,1,6,1,null,'temporary','2026-11-01',null,1,100,null,5],
 ];
 foreach ($contracts as $row) {
     $insert->execute($row);
@@ -182,6 +184,45 @@ foreach ([10,11,20,22] as $id) {
     check($success, 'Allowed schedule did not save: ' . $message);
 }
 check((int) $pdo->query("SELECT COUNT(*) FROM employee_schedule_entries WHERE updated_by=5")->fetchColumn() === 4, 'Allowed writes not persisted.');
+$pdo->exec("DELETE FROM employee_schedule_entries WHERE contract_id = 10 AND schedule_date BETWEEN '2026-10-30' AND '2026-11-01'");
+[$success, $message] = ScheduleService::saveMonth(1,5,false,'2026-10',[10 => ['2026-10-30' => 3]],3);
+check($success, 'Consecutive exception spanning a month was not saved: ' . $message);
+$repeatedDates = $pdo->query("SELECT schedule_date,template_id FROM employee_schedule_entries WHERE contract_id=10 AND schedule_date BETWEEN '2026-10-30' AND '2026-11-01' ORDER BY schedule_date")->fetchAll();
+check($repeatedDates === [
+    ['schedule_date' => '2026-10-30', 'template_id' => 3],
+    ['schedule_date' => '2026-10-31', 'template_id' => 3],
+    ['schedule_date' => '2026-11-01', 'template_id' => 3],
+], 'Repeated exception did not create identical consecutive daily values across months.');
+$beforeRepeatFailure = $pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll();
+[$success] = ScheduleService::saveMonth(1,5,false,'2026-10',[10 => ['2026-10-30' => 1]],3);
+check(!$success, 'A shift template was accepted for repeat days.');
+check($pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll() === $beforeRepeatFailure, 'Invalid repeated shift modified schedule entries.');
+[$success] = ScheduleService::saveMonth(1,5,false,'2026-10',[10 => ['2026-10-30' => 3]],367);
+check(!$success, 'An exception range longer than 366 days was accepted.');
+check($pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll() === $beforeRepeatFailure, 'Invalid repeat day count modified schedule entries.');
+[$success] = ScheduleService::saveMonth(1,5,false,'2026-10',[20 => ['2026-10-31' => 3]],2);
+check(!$success, 'Repeated exception was allowed beyond contract end.');
+check($pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll() === $beforeRepeatFailure, 'Out-of-contract repeated exception was partially saved.');
+$pdo->exec("INSERT INTO employee_schedule_entries VALUES (1,5,11,'2026-11-02',1,99,99)");
+$beforeOverlapFailure = $pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll();
+[$success] = ScheduleService::saveMonth(1,5,false,'2026-10',[10 => ['2026-10-31' => 3]],3);
+check(!$success, 'Cross-month repeated exception ignored an adjacent-month overlap.');
+check($pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll() === $beforeOverlapFailure, 'Overlapping repeated exception was partially persisted.');
+$pdo->exec("DELETE FROM employee_schedule_entries WHERE contract_id=11 AND schedule_date='2026-11-02'");
+$pdo->exec("UPDATE employment_contracts SET manager_user_id=99 WHERE id=22");
+$pdo->exec("UPDATE employment_contracts SET manager_user_id=99 WHERE id=60");
+[$success] = ScheduleService::saveMonth(1,5,false,'2026-10',[10 => ['2026-10-31' => 3]],2);
+check(!$success, 'Cross-month repeated exception bypassed next-month manager authorization.');
+$pdo->exec("UPDATE employment_contracts SET manager_user_id=5 WHERE id=60");
+$pdo->exec("UPDATE employment_contracts SET manager_user_id=5 WHERE id=22");
+$scheduleView = file_get_contents(__DIR__ . '/../views/panel/schedule/index.php');
+check(is_string($scheduleView)
+    && str_contains($scheduleView, 'id="scheduleExceptionDays"')
+    && str_contains($scheduleView, 'max="366"')
+    && str_contains($scheduleView, 'repeatDays')
+    && str_contains($scheduleView, 'data-schedule-type="<?= e($type) ?>"')
+    && str_contains($scheduleView, 'assignmentToSave.repeatDays || 1'),
+    'Exception picker must expose validated consecutive-day input and pass the selected count.');
 $before = $pdo->query('SELECT * FROM employee_schedule_entries ORDER BY client_id,contract_id,schedule_date')->fetchAll();
 foreach ([21,30,40,41,50,54,56] as $id) {
     [$success] = ScheduleService::saveMonth(1,5,false,'2026-10',[10 => ['2026-10-17' => 1], $id => ['2026-10-17' => 1]]);

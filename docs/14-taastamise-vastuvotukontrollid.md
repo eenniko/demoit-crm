@@ -1,6 +1,6 @@
 # Taastamise vastuvõtukontrollid
 
-**Sihtversioon: 1.76.** See on testimise spetsifikatsioon, mitte väide, et kõik testid on jooksutatud. Testi eraldatud keskkonnas sünteetiliste isikuandmetega.
+**Sihtversioon: 1.93.** See on testimise spetsifikatsioon; jooksutatud kontrollide tõendid lisatakse iga väljalaske alla. Testi eraldatud keskkonnas sünteetiliste isikuandmetega.
 
 ## Testandmed ja tulemuste registreerimine
 
@@ -12,7 +12,7 @@ Iga katse kohta säilita keskkond/versioon, eeltingimus, sisend, HTTP staatus/va
 
 | ID | Katse | Oodatud tulemus |
 |---|---|---|
-| I01 | Puhas DB + kõik migratsioonid | Kõik inventuuri tabelid/indeksid, versioon 1.76 ja lõpetamata seadistus |
+| I01 | Puhas DB + kõik migratsioonid | Kõik inventuuri tabelid/indeksid, versioon 1.93 ja lõpetamata seadistus |
 | I02 | Sama koodiga teine HTTP päring | Ei teki korduvaid seemneid, uut skeemi ega uut kasutajat |
 | I03 | Ainult dokumendi 15 SQL uude DB-sse | Samaväärne skeem, sh archive/color/audit/index parandused ja tõlked |
 | I04 | Kehtetu setup ja siis korrektne | Vigase korral kasutajat/lukustust pole; korrektne üks aktiivne admin kliendil 13666 |
@@ -53,6 +53,14 @@ Iga katse kohta säilita keskkond/versioon, eeltingimus, sisend, HTTP staatus/va
 ## 3. Isolatsioon ja tugifunktsioonid
 
 Muuda kliendi A sessioonis URL-i/POST-i ID-d B objekti ID-ks iga mooduli loomise/muutmise/oleku toimingus. Edukaks isolatsiooniks peab B andmestik jääma muutumatuks ja selle sisu ei tohi tagastada. Vanemate süsteemitabelite üksik FK ei tõenda sama klienti.
+
+### Graafiku järjestikuste erandite regressioon (1.93)
+
+- `php -d extension=pdo_sqlite tests\manager-schedule.php` kontrollib manageri lubatud kuu piiri ületavat exception'it (nt 30.10–01.11), et kõigil päevadel säilib sama malli ID; vahetuse kordus lükatakse tagasi; lepinguga seotud kuupäevast üle ulatuv vahemik rollback'ib; naaberlepingul samal töötajal olev järgmise kuu kattuv vahetus rollback'ib; kaob õigus kui manager ei ole järgmises kuus enam autoriseeritud.
+- Täiendavad olemasolevad graafiku F/manager/asendaja õiguste ja kattuvuse regressioonid tuleb käivitada samas kontrollikomplektis. `php -d extension=pdo_sqlite tests\property-translations.php` kontrollib migratsiooni 080 korduskäivitamist ning päevade arvu/lepingu piiri en/et/ru väärtusi.
+- Brauseris: erandi valik kuvab 1–366 päeva välja, vaikeväärtus on 1 ning valitud kuupäev loetakse päevaks 1. Testi ainult kuni töölepingu lõpu ja kuu viimase kuupäevani vaate uuendust; kuupiiri ületav salvestus ilmub järgmise kuu vaates. Kogu katse peab olema sünteetilisel kliendil, mitte tootmisgraafikus.
+
+**Kontrollitud tööpuu tõendid (24.10.2026):** PASS `manager-schedule.php`, `schedule-substitutes.php` ja `property-translations.php`; need kontrollisid eraldatud SQLite andmetel manageri kuupiiri ületavat kirjutusõigust, asendaja õigusi/keelde, rollback'i, lepingupiiri ning migratsiooni 080 tõlkeid ja korduskäivitamist. PASS taastetööriista `verify`: 80 marsruuti, 37 tabelit, 80 migratsiooni, 189 lähtefaili kontrollsummat ja dokumentide kohalikud lingid. Need on lokaalse tööpuu tõendid; need ei tõenda MySQL-taastepaketi importi, täielikku varukoopiast taastamist ega tootmise käitumist.
 
 | ID | Katse | Oodatud tulemus |
 |---|---|---|

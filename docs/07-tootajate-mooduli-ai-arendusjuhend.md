@@ -1,7 +1,7 @@
 # DemoIT CRM - töötajate mooduli AI ja arendusjuhend
 
 **Juhendi versioon:** 1.0  
-**Süsteemi arendusversioon:** 1.22  
+**Juhendi lähteversioon:** 1.22
 **Staatus:** normatiivne tehniline juhend
 
 Kogu süsteemi taastamisel loe esmalt [dokumentatsioonikaarti](00-dokumentatsiooni-kaart.md). See juhend määrab arenduse invariandid; [baasfunktsioonide juhend](11-baasfunktsioonid-ja-teostuse-piirid.md) toob eraldi välja praeguse koodi kõrvalekalded, sh parooli URL-i sattumise ja sundparoolivahetuse puudumise. Organisatsiooniüksuse valik eemaldati töötaja loomise ja muutmise vormidest versioonides 1.25/1.26; muutmisel olemasolev seos säilib.

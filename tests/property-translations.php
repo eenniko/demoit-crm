@@ -127,6 +127,34 @@ foreach ($employmentLabels as $english => [$estonian, $russian]) {
     $expected['et'][$english] = $estonian;
     $expected['ru'][$english] = $russian;
 }
+$exceptionSql = file_get_contents($root . '\\sql\\080_schedule_consecutive_exception_translations.sql');
+$exceptionStatements = array_values(array_filter($splitter->invoke(null, $exceptionSql)));
+check(count($exceptionStatements) === 3, 'Schedule exception translation migration has three complete statements.');
+for ($run = 0; $run < 2; $run++) {
+    foreach ($exceptionStatements as $statement) {
+        $pdo->exec(str_replace('INSERT IGNORE', 'INSERT OR IGNORE', $statement));
+    }
+    check((int) $pdo->query('SELECT COUNT(*) FROM system_translation_keys')->fetchColumn() === 17, 'Schedule exception labels registered without duplicates.');
+    check((int) $pdo->query('SELECT COUNT(*) FROM system_translation_values')->fetchColumn() === 51, 'Schedule exception labels have all three translations.');
+    check((int) $pdo->query("SELECT COUNT(*) FROM system_version_logs WHERE version = '1.93'")->fetchColumn() === 1, 'Schedule exception release registered once.');
+}
+$exceptionLabels = [
+    'Consecutive days (including selected day)' => [
+        'Consecutive days (including selected day)',
+        'Päevade arv (koos valitud päevaga)',
+        'Количество дней (включая выбранный день)',
+    ],
+    'The exception cannot extend beyond this contract.' => [
+        'The exception cannot extend beyond this contract.',
+        'Erand ei saa ulatuda töölepingu kehtivusajast kaugemale.',
+        'Исключение не может выходить за пределы срока договора.',
+    ],
+];
+foreach ($exceptionLabels as $english => [$englishValue, $estonian, $russian]) {
+    $expected['en'][$english] = $englishValue;
+    $expected['et'][$english] = $estonian;
+    $expected['ru'][$english] = $russian;
+}
 foreach ($expected as $language => $labels) {
     LanguageService::$code = $language;
     $textMap = TranslationService::textMap();
@@ -145,4 +173,4 @@ foreach ($expected as $language => $labels) {
     }
 }
 
-echo "PASS: {$checks} property and employment translation, catalogue, idempotency and migration splitter checks.\n";
+echo "PASS: {$checks} property, employment and schedule exception translation, catalogue, idempotency and migration splitter checks.\n";

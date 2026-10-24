@@ -712,11 +712,40 @@ class ScheduleService
     }
 
     /** @return array{0: bool, 1: string} */
-    public static function saveMonth(int $clientId, int $actorUserId, bool $isClientAdmin, string $managerMonth, mixed $assignments): array
+    public static function saveMonth(int $clientId, int $actorUserId, bool $isClientAdmin, string $managerMonth, mixed $assignments, int $repeatDays = 1): array
     {
         $month = self::monthInfo($managerMonth);
-        if ($month === null || !is_array($assignments)) {
+        if ($month === null || !is_array($assignments) || $repeatDays < 1 || $repeatDays > 366) {
             return [false, 'Choose a valid month and schedule values.'];
+        }
+
+        $rangeEnd = $month['end'];
+        $repeatTemplateValue = null;
+        if ($repeatDays > 1) {
+            if (count($assignments) !== 1) {
+                return [false, 'Choose one exception to repeat.'];
+            }
+            $contractKey = array_key_first($assignments);
+            $days = is_array($assignments[$contractKey] ?? null) ? $assignments[$contractKey] : [];
+            if (count($days) !== 1) {
+                return [false, 'Choose one exception to repeat.'];
+            }
+            $startDate = array_key_first($days);
+            $templateValue = reset($days);
+            if (!is_string($startDate) || !self::isDateInMonth($startDate, $month['month'])
+                || (!is_string($templateValue) && !is_int($templateValue))
+                || !ctype_digit((string) $contractKey)) {
+                return [false, 'Choose a valid exception and start date.'];
+            }
+            $repeatTemplateValue = $templateValue;
+            $lastDate = (new DateTimeImmutable($startDate))->modify('+' . ($repeatDays - 1) . ' days');
+            $rangeEnd = $lastDate->format('Y-m-d');
+            $expandedDays = [];
+            for ($offset = 0; $offset < $repeatDays; $offset++) {
+                $date = (new DateTimeImmutable($startDate))->modify('+' . $offset . ' days')->format('Y-m-d');
+                $expandedDays[$date] = $templateValue;
+            }
+            $assignments = [$contractKey => $expandedDays];
         }
 
         $pdo = db();
@@ -731,7 +760,7 @@ class ScheduleService
             $existingByDay = [];
             if ($employeeIds !== []) {
                 $employeePlaceholders = [];
-                $entryParams = ['client_id' => $clientId, 'month_start' => $month['start'], 'month_end' => $month['end']];
+                $entryParams = ['client_id' => $clientId, 'month_start' => $month['start'], 'month_end' => $rangeEnd];
                 foreach ($employeeIds as $index => $employeeId) {
                     $key = 'employee_' . $index;
                     $employeePlaceholders[] = ':' . $key;
@@ -750,11 +779,22 @@ class ScheduleService
                 }
             }
             $templateStatus = [];
-            $templates = $pdo->prepare('SELECT id, status FROM employee_schedule_templates WHERE client_id = :client_id FOR UPDATE');
+            $templateTypes = [];
+            $templates = $pdo->prepare('SELECT id, status, template_type FROM employee_schedule_templates WHERE client_id = :client_id FOR UPDATE');
             $templates->execute(['client_id' => $clientId]);
             foreach ($templates->fetchAll() as $template) {
                 $templateStatus[(int) $template['id']] = $template['status'];
+                $templateTypes[(int) $template['id']] = $template['template_type'];
             }
+            if ($repeatDays > 1) {
+                $selectedTemplateId = filter_var($repeatTemplateValue, FILTER_VALIDATE_INT);
+                if ($selectedTemplateId === false || ($templateTypes[$selectedTemplateId] ?? null) !== 'exception') {
+                    $pdo->rollBack();
+                    return [false, 'Only exceptions can be applied to consecutive days.'];
+                }
+            }
+
+            $authorizedMonths = [];
             $delete = $pdo->prepare(
                 'DELETE FROM employee_schedule_entries
                  WHERE client_id = :client_id AND contract_id = :contract_id AND schedule_date = :schedule_date'
@@ -768,9 +808,24 @@ class ScheduleService
                 }
                 $contract = $contractById[$contractKey];
                 foreach ($days as $date => $templateValue) {
-                    if (!is_string($date) || !self::isDateInMonth($date, $month['month'])) {
+                    if (!is_string($date) || !self::isValidDate($date) || $date < $month['start'] || $date > $rangeEnd) {
                         $pdo->rollBack();
                         return [false, 'Schedule contains an invalid day.'];
+                    }
+                    $assignmentMonth = substr($date, 0, 7);
+                    if ($assignmentMonth !== $month['month'] && !isset($authorizedMonths[$assignmentMonth])) {
+                        $assignmentMonthInfo = self::monthInfo($assignmentMonth);
+                        $monthlyContracts = $assignmentMonthInfo === null
+                            ? []
+                            : self::listScheduleContracts($clientId, $actorUserId, $isClientAdmin, $assignmentMonthInfo, true);
+                        $authorizedMonths[$assignmentMonth] = array_key_exists(
+                            $contractKey,
+                            array_column($monthlyContracts, null, 'contract_id')
+                        );
+                        if (!$authorizedMonths[$assignmentMonth]) {
+                            $pdo->rollBack();
+                            return [false, 'Schedule contains an employee or contract outside your assignments.'];
+                        }
                     }
                     if ($date < $contract['start_date'] || ($contract['end_date'] !== null && $date > $contract['end_date'])) {
                         $pdo->rollBack();
@@ -824,7 +879,9 @@ class ScheduleService
                     ];
                 }
             }
-            $overlapDate = self::findOverlappingShiftDate($pdo, $clientId, $employeeIds, $month);
+            $validationRange = $month;
+            $validationRange['end'] = $rangeEnd;
+            $overlapDate = self::findOverlappingShiftDate($pdo, $clientId, $employeeIds, $validationRange);
             if ($overlapDate !== null) {
                 $pdo->rollBack();
                 return [false, 'This employee already has another shift during that time on ' . $overlapDate . '.'];
@@ -962,9 +1019,17 @@ class ScheduleService
 
     private static function isDateInMonth(string $date, string $month): bool
     {
-        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1
-            && substr($date, 0, 7) === $month
-            && DateTimeImmutable::createFromFormat('!Y-m-d', $date)?->format('Y-m-d') === $date;
+        return self::isValidDate($date) && substr($date, 0, 7) === $month;
+    }
+
+    private static function isValidDate(string $date): bool
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1) {
+            return false;
+        }
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+
+        return $parsed instanceof DateTimeImmutable && $parsed->format('Y-m-d') === $date;
     }
 
     private static function templateExists(int $clientId, int $templateId): bool

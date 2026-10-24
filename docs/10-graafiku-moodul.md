@@ -1,6 +1,6 @@
 # Töögraafiku moodul / Work schedule module
 
-**Süsteemi arendusversioon:** 1.83
+**Süsteemi arendusversioon:** 1.93
 
 Algoritmide, JSON-liideste, XML-vormingu ja piirijuhtude täpne kirjeldus on [tehnilises taastamisspetsifikatsioonis](12-tehniline-taastamisspetsifikatsioon.md); kontrollnäited [vastuvõtukontrollides](14-taastamise-vastuvotukontrollid.md).
 
@@ -32,7 +32,9 @@ F näeb kogu asukoha/osakonna graafikut koos kaastöötajatega ainult nendes gru
 
 Vali kuu; iga kehtiv põhi- või ajutine leping kuvatakse oma asukoha/osakonna all eraldi real ja kuu päevad eraldi veergudena. Kui leping kehtib ainult osa kuust, on valitavad ainult lepinguperioodi päevad. Ühel töötajal võib samal päeval olla mitu lepingurida ainult siis, kui vahetuste ajavahemikud ei kattu. Tühi **Off** valik tähendab vaba päeva.
 
-Päevaseks valikuks saab määrata vahetuse või erandi. Malli algusaeg ja kestus määravad tööaja; vahetus võib kesta kuni 24 tundi ja jätkuda järgmise päeva hommikusse. Näiteks `12Ö` algab 20:00 ja kestab 12 tundi; `24H` algab 08:00 ja kestab 24 tundi. Shift-tunnid lähevad Planned-summasse kõigil päevadel; Exception-tunnid lähevad sinna tööpäevadel, välja arvatud imporditud riigi- ja rahvuspühadel (`kind_id` 1 ja 2).
+Päevaseks valikuks saab määrata vahetuse või erandi. Erandi valikul saab enne malli klõpsamist määrata **järjestikuste kalendripäevade arvu 1–366**, valitud kuupäev kaasa arvatud; sama erand rakendub iga järgmise päeva lahtrile. Vahemik võib ületada kuu piiri ning järgmise kuu salvestatud kirjed ilmuvad vastava kuu graafikus. Vahetused, vabad päevad ja Block jäävad ühepäevaseks. Kogu vahemik salvestatakse ühe transaktsioonina: iga kuupäev peab jääma lepingu perioodi ning manager/asendaja peab saama seda lepingut muuta igas mõjutatud kuus. Vastasel juhul midagi ei salvestata. Kattuva vahetuse või Block-i korral lükatakse samuti kogu vahemik tagasi; olemasolevad tulevaste päevade väärtused asendatakse sama erandiga ainult siis, kui kogu vahemik valideerub.
+
+Malli algusaeg ja kestus määravad tööaja; vahetus võib kesta kuni 24 tundi ja jätkuda järgmise päeva hommikusse. Näiteks `12Ö` algab 20:00 ja kestab 12 tundi; `24H` algab 08:00 ja kestab 24 tundi. Shift-tunnid lähevad Planned-summasse kõigil päevadel; Exception-tunnid lähevad sinna tööpäevadel, välja arvatud imporditud riigi- ja rahvuspühadel (`kind_id` 1 ja 2).
 
 `Block`-mall blokeerib sama töötaja kattuvad vahetuse ja exception’i ajavahemikud, kuid Block-tunde Planned-summasse ei arvestata. Kogu päeva blokeerimiseks võib näiteks luua `EST`-malli algusega 00:00 ja kestusega 24 tundi. Täpselt kõrvuti lõppev/alustav vahemik on lubatud.
 
@@ -76,7 +78,9 @@ Level F sees complete coworker rosters only for exact property/department groups
 
 Choose a month; each valid primary or temporary contract appears under its own location/department row, with each date in its own column. If the contract is valid for only part of the month, only dates inside that contract period are editable. An employee may have multiple contract rows on one date only when shift intervals do not overlap. An empty **Off** choice means a day off.
 
-Each day can have a shift or an exception. A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Shift hours count as Planned on every day; exception hours count only on working weekdays, excluding imported holidays with `kind_id` 1 or 2.
+Each day can have a shift or an exception. When choosing an exception, enter **1–366 consecutive calendar days**, including the selected date; the same exception is applied to each following date. The range may cross a month boundary, and entries in the next month appear when viewing that month. Shifts, Off and Blocks remain single-day selections. The range saves atomically: every date must be within the contract period and the manager/substitute must be authorized for the contract in every affected month. Otherwise nothing is saved. An overlap with a shift or Block also rejects the whole range; existing future-day values are replaced only if the entire range validates. Migration 080 supplies the day-count and contract-boundary translations.
+
+A template's start time and duration determine its span; shifts may last up to 24 hours and continue into the next morning. For example, `12Ö` starts at 20:00 and lasts 12 hours; `24H` starts at 08:00 and lasts 24 hours. Shift hours count as Planned on every day; exception hours count only on working weekdays, excluding imported holidays with `kind_id` 1 or 2.
 
 A `Block` template prevents overlapping shift and exception intervals for the same employee, but Block hours are excluded from Planned. To block a full day, create a template such as `EST` starting at 00:00 for 24 hours. Exact end-to-start handoffs remain allowed.
 

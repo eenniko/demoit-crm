@@ -73,6 +73,18 @@ ob_start();
 handle_panel_schedule('POST');
 $response = json_decode(ob_get_clean(),true,512,JSON_THROW_ON_ERROR);
 check(http_response_code() === 200 && $response['success'], 'F active substitute AJAX denied.');
+$_POST = ['csrf_token' => 'valid', 'month' => $month, 'assignments' => [20 => [$date => 3]], 'repeat_days' => '3'];
+ob_start();
+handle_panel_schedule('POST');
+$response = json_decode(ob_get_clean(),true,512,JSON_THROW_ON_ERROR);
+check(http_response_code() === 200 && $response['success'], 'F active substitute consecutive exception AJAX denied.');
+$repeatStart = new DateTimeImmutable($date);
+$expectedRepeatDates = [];
+for ($offset = 0; $offset < 3; $offset++) {
+    $expectedRepeatDates[] = $repeatStart->modify('+' . $offset . ' days')->format('Y-m-d');
+}
+$savedRepeatDates = $pdo->query("SELECT schedule_date FROM employee_schedule_entries WHERE contract_id=20 AND schedule_date BETWEEN '" . $expectedRepeatDates[0] . "' AND '" . $expectedRepeatDates[2] . "' AND template_id=3 ORDER BY schedule_date")->fetchAll(PDO::FETCH_COLUMN);
+check($savedRepeatDates === $expectedRepeatDates, 'Schedule handler did not forward repeat_days and persist the full exception range.');
 $_POST['contract_id'] = '20';
 $_POST['workload_id'] = '';
 ob_start();
@@ -95,6 +107,10 @@ function render_panel_page(string $title, string $view, array $vars = [], string
 }
 function e(?string $value): string { return htmlspecialchars($value ?? '',ENT_QUOTES,'UTF-8'); }
 function t(string $key, string $fallback): string { return $fallback; }
+class TranslationService
+{
+    public static function translate(string $key, string $fallback = ''): string { return $fallback; }
+}
 class EmploymentCatalogService
 {
     public static function listForClient(int $clientId, string $catalog): array { return []; }
@@ -136,6 +152,10 @@ $dom = new DOMDocument();
 $dom->loadHTML($html,LIBXML_NOERROR|LIBXML_NOWARNING);
 $xpath = new DOMXPath($dom);
 check($xpath->query('//button[contains(concat(" ",normalize-space(@class)," ")," schedule-cell-button ")]')->length > 0,'Missing shift controls.');
+check($xpath->query('//input[@id="scheduleExceptionDays" and @min="1" and @max="366" and @value="1"]')->length === 1,
+    'Exception picker must provide a default one-day count, including the selected day.');
+check($xpath->query('//button[contains(concat(" ",normalize-space(@class)," ")," schedule-choice ") and @data-schedule-type="exception"]')->length > 0,
+    'Exception choices must identify their type for consecutive-day application.');
 check($xpath->query('//button[contains(concat(" ",normalize-space(@class)," ")," schedule-workload-button ")]')->length === 0,'Substitute workload buttons visible.');
 $activeModuleKeys = ['property','schedule','employees','employment'];
 $activeMenu = 'schedule';

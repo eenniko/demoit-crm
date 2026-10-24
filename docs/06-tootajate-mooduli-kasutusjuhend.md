@@ -1,7 +1,7 @@
 # DemoIT CRM - töötajate mooduli kasutusjuhend
 
 **Juhendi versioon:** 1.0  
-**Süsteemi arendusversioon:** 1.22  
+**Juhendi algversioon:** 1.22
 **Sihtrühm:** süsteemiadministraatorid ja ettevõtte kliendiadministraatorid
 
 Hilisemate vormimuudatuste, ajutise parooli voo tegelike piirangute ja kogu süsteemi taastamise jaoks loe ka [baasfunktsioonide juhendit](11-baasfunktsioonid-ja-teostuse-piirid.md) ning [dokumentatsioonikaarti](00-dokumentatsiooni-kaart.md). Käesoleva juhendi 1.22 tähistab selle algset väljalaset.

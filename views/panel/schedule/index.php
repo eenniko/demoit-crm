@@ -104,7 +104,7 @@
                             ?>
                             <td class="schedule-day <?= $nonWorkingDay ? 'schedule-weekend' : '' ?>">
                                 <?php if ($canManage && $withinContract): ?>
-                                    <input class="schedule-assignment" type="hidden" name="assignments[<?= $contractId ?>][<?= e($date) ?>]" value="<?= (int) ($entry['template_id'] ?? 0) ?>">
+                                    <input class="schedule-assignment" type="hidden" data-schedule-date="<?= e($date) ?>" name="assignments[<?= $contractId ?>][<?= e($date) ?>]" value="<?= (int) ($entry['template_id'] ?? 0) ?>">
                                     <button
                                         class="schedule-cell-button <?= $entry === null ? 'is-empty' : 'is-assigned' ?>"
                                         type="button"
@@ -112,6 +112,7 @@
                                         data-bs-target="#schedulePickerModal"
                                         data-employee="<?= e($contract['full_name'] ?: $contract['username']) ?>"
                                         data-date="<?= e($date) ?>"
+                                        data-contract-end-date="<?= e($contract['end_date'] ?? '') ?>"
                                         style="<?= $entryColor === null ? '' : ' --schedule-color: ' . e($entryColor) . ';' ?>"
                                         aria-label="<?= e(($contract['full_name'] ?: $contract['username']) . ' ' . $date . ' ' . ($entry['code'] ?? 'Off')) ?>">
                                         <?php if ($entry === null): ?><span aria-hidden="true"><?= $day ?></span><?php else: ?><?= e($entry['code']) ?><?php endif; ?>
@@ -164,6 +165,12 @@
                             <?php if ($typeTemplates !== []): ?>
                                 <div class="mb-4">
                                     <h3 class="h6"><?= e($label) ?></h3>
+                                    <?php if ($type === 'exception'): ?>
+                                        <div class="mb-2">
+                                            <label class="form-label small mb-1" for="scheduleExceptionDays">Consecutive days (including selected day)</label>
+                                            <input class="form-control form-control-sm" type="number" id="scheduleExceptionDays" min="1" max="366" value="1" required data-contract-range-error="<?= e(TranslationService::translate('ui.' . hash('sha256', 'The exception cannot extend beyond this contract.'), 'The exception cannot extend beyond this contract.')) ?>">
+                                        </div>
+                                    <?php endif; ?>
                                     <div class="row row-cols-2 row-cols-sm-3 g-2">
                                         <?php foreach ($typeTemplates as $template): ?>
                                             <div class="col">
@@ -172,6 +179,7 @@
                                                     type="button"
                                                     data-schedule-value="<?= (int) $template['id'] ?>"
                                                     data-schedule-code="<?= e($template['code']) ?>"
+                                                    data-schedule-type="<?= e($type) ?>"
                                                     data-schedule-color="<?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>"
                                                     style="--schedule-color: <?= e(ScheduleService::safeTemplateColor($template['color_hex'] ?? null)) ?>"
                                                     aria-pressed="false">
@@ -251,6 +259,7 @@
                 const overlapWarningModal = document.getElementById('scheduleOverlapWarningModal');
                 const overlapWarningMessage = document.getElementById('scheduleOverlapWarningMessage');
                 const context = document.getElementById('schedulePickerContext');
+                const exceptionDaysInput = document.getElementById('scheduleExceptionDays');
                 const workloadContext = document.getElementById('scheduleWorkloadContext');
                 const workloadDefaultPercent = document.getElementById('scheduleWorkloadDefaultPercent');
                 const form = document.querySelector('.schedule-form');
@@ -290,24 +299,26 @@
                 }
 
                 function restoreAssignment(assignmentToSave) {
-                    const assignment = Array.from(form.querySelectorAll('.schedule-assignment'))
-                        .find((input) => input.name === assignmentToSave.name);
-                    const button = assignment?.parentElement.querySelector('.schedule-cell-button');
-                    const previous = assignmentToSave.previousState;
-                    if (!assignment || !button || !previous) {
-                        return;
-                    }
+                    const assignments = assignmentToSave.assignments || [assignmentToSave];
+                    assignments.forEach(({ name, previousState }) => {
+                        const assignment = Array.from(form.querySelectorAll('.schedule-assignment'))
+                            .find((input) => input.name === name);
+                        const button = assignment?.parentElement.querySelector('.schedule-cell-button');
+                        if (!assignment || !button || !previousState) {
+                            return;
+                        }
 
-                    assignment.value = previous.value;
-                    button.textContent = previous.text;
-                    button.classList.toggle('is-empty', previous.isEmpty);
-                    button.classList.toggle('is-assigned', !previous.isEmpty);
-                    if (previous.color) {
-                        button.style.setProperty('--schedule-color', previous.color);
-                    } else {
-                        button.style.removeProperty('--schedule-color');
-                    }
-                    button.setAttribute('aria-label', previous.ariaLabel);
+                        assignment.value = previousState.value;
+                        button.textContent = previousState.text;
+                        button.classList.toggle('is-empty', previousState.isEmpty);
+                        button.classList.toggle('is-assigned', !previousState.isEmpty);
+                        if (previousState.color) {
+                            button.style.setProperty('--schedule-color', previousState.color);
+                        } else {
+                            button.style.removeProperty('--schedule-color');
+                        }
+                        button.setAttribute('aria-label', previousState.ariaLabel);
+                    });
                 }
 
                 function formatHours(value) {
@@ -386,6 +397,7 @@
                             }
                         }
                         formData.set(assignmentToSave.name, assignmentToSave.value);
+                        formData.set('repeat_days', String(assignmentToSave.repeatDays || 1));
                         const response = await fetch(form.action, {
                             method: 'POST',
                             body: formData,
@@ -555,6 +567,9 @@
                     const assignment = activeCellButton.parentElement.querySelector('.schedule-assignment');
                     const currentValue = assignment.value;
                     context.textContent = `${activeCellButton.dataset.employee} · ${activeCellButton.dataset.date}`;
+                    if (exceptionDaysInput) {
+                        exceptionDaysInput.value = '1';
+                    }
 
                     modal.querySelectorAll('.schedule-choice').forEach((choice) => {
                         const isCurrent = choice.dataset.scheduleValue === currentValue;
@@ -569,29 +584,82 @@
                         return;
                     }
 
-                    const assignment = activeCellButton.parentElement.querySelector('.schedule-assignment');
-                    const previousState = {
-                        value: assignment.value,
-                        text: activeCellButton.textContent.trim(),
-                        isEmpty: activeCellButton.classList.contains('is-empty'),
-                        color: activeCellButton.style.getPropertyValue('--schedule-color'),
-                        ariaLabel: activeCellButton.getAttribute('aria-label'),
-                    };
-                    assignment.value = choice.dataset.scheduleValue;
-                    pendingAssignment = { name: assignment.name, value: assignment.value, previousState };
-                    const isOff = assignment.value === '0';
-                    activeCellButton.textContent = isOff ? String(Number(activeCellButton.dataset.date.slice(-2))) : choice.dataset.scheduleCode;
-                    activeCellButton.classList.toggle('is-empty', isOff);
-                    activeCellButton.classList.toggle('is-assigned', !isOff);
-                    if (isOff) {
-                        activeCellButton.style.removeProperty('--schedule-color');
-                    } else {
-                        activeCellButton.style.setProperty('--schedule-color', choice.dataset.scheduleColor);
+                    const isException = choice.dataset.scheduleType === 'exception';
+                    const repeatDays = isException
+                        ? Number(exceptionDaysInput?.value ?? '0')
+                        : 1;
+                    if (isException && (!exceptionDaysInput
+                        || !Number.isInteger(repeatDays)
+                        || repeatDays < 1
+                        || repeatDays > 366
+                        || !exceptionDaysInput.checkValidity())) {
+                        exceptionDaysInput?.reportValidity();
+                        return;
                     }
-                    activeCellButton.setAttribute(
-                        'aria-label',
-                        `${activeCellButton.dataset.employee} ${activeCellButton.dataset.date} ${isOff ? 'Off' : choice.dataset.scheduleCode}`
-                    );
+
+                    const startDate = activeCellButton.dataset.date;
+                    const finalDate = new Date(`${startDate}T00:00:00Z`);
+                    finalDate.setUTCDate(finalDate.getUTCDate() + repeatDays - 1);
+                    const finalDateValue = finalDate.toISOString().slice(0, 10);
+                    const contractEndDate = activeCellButton.dataset.contractEndDate;
+                    if (contractEndDate && finalDateValue > contractEndDate) {
+                        showSaveStatus(exceptionDaysInput.dataset.contractRangeError, 'danger');
+                        return;
+                    }
+
+                    const row = activeCellButton.closest('tr');
+                    const changes = [];
+                    for (let offset = 0; offset < repeatDays; offset++) {
+                        const date = new Date(`${startDate}T00:00:00Z`);
+                        date.setUTCDate(date.getUTCDate() + offset);
+                        const dateValue = date.toISOString().slice(0, 10);
+                        if (dateValue.slice(0, 7) !== startDate.slice(0, 7)) {
+                            continue;
+                        }
+                        const assignment = Array.from(row.querySelectorAll('.schedule-assignment'))
+                            .find((input) => input.dataset.scheduleDate === dateValue);
+                        if (!assignment) {
+                            showSaveStatus(exceptionDaysInput.dataset.contractRangeError, 'danger');
+                            return;
+                        }
+                        const button = assignment.parentElement.querySelector('.schedule-cell-button');
+                        changes.push({
+                            name: assignment.name,
+                            value: choice.dataset.scheduleValue,
+                            assignment,
+                            button,
+                            previousState: {
+                                value: assignment.value,
+                                text: button.textContent.trim(),
+                                isEmpty: button.classList.contains('is-empty'),
+                                color: button.style.getPropertyValue('--schedule-color'),
+                                ariaLabel: button.getAttribute('aria-label'),
+                            },
+                        });
+                    }
+                    const anchor = activeCellButton.parentElement.querySelector('.schedule-assignment');
+                    if (!changes.some((change) => change.assignment === anchor)) {
+                        showSaveStatus(exceptionDaysInput.dataset.contractRangeError, 'danger');
+                        return;
+                    }
+
+                    changes.forEach(({ assignment, button }) => {
+                        assignment.value = choice.dataset.scheduleValue;
+                        button.textContent = choice.dataset.scheduleCode;
+                        button.classList.remove('is-empty');
+                        button.classList.add('is-assigned');
+                        button.style.setProperty('--schedule-color', choice.dataset.scheduleColor);
+                        button.setAttribute(
+                            'aria-label',
+                            `${activeCellButton.dataset.employee} ${assignment.dataset.scheduleDate} ${choice.dataset.scheduleCode}`
+                        );
+                    });
+                    pendingAssignment = {
+                        name: anchor.name,
+                        value: choice.dataset.scheduleValue,
+                        repeatDays,
+                        assignments: changes,
+                    };
                     saveAfterClose = true;
                     bootstrap.Modal.getOrCreateInstance(modal).hide();
                 });

@@ -1,10 +1,10 @@
 # Tehniline inventuur
 
-**Sihtversioon: 1.92. Genereeritud kontrollitud tööpuust 14.10.2026.**
+**Sihtversioon: 1.93. Genereeritud kontrollitud tööpuust 24.10.2026.**
 
 See register täiendab [taastamisspetsifikatsiooni](12-tehniline-taastamisspetsifikatsioon.md) ja [baasfunktsioonide juhendit](11-baasfunktsioonid-ja-teostuse-piirid.md). Faililingid on originaalallikate tuvastamiseks; iseseisva taastamise käitumine on dokumentides 11–14 ja skeem paketis 15. Saladustega konfiguratsiooni, isiklikke IDE seadeid ega andmebaasi sisu ei inventeerita.
 
-Inventuur katab 79 switch-marsruuti + enne switch'i käsitletava `/language` marsruudi, 37 loodavat tabelit ja 79 registreeritud migratsiooni. Meetodid tähistavad kavandatud vormikasutust; praegune router ei keela kõiki muid HTTP meetodeid ühtse 405-ga.
+Inventuur katab 79 switch-marsruuti + enne switch'i käsitletava `/language` marsruudi, 37 loodavat tabelit ja 80 registreeritud migratsiooni. Meetodid tähistavad kavandatud vormikasutust; praegune router ei keela kõiki muid HTTP meetodeid ühtse 405-ga.
 
 ## 1. Kõik marsruudid ja sisendid
 
@@ -76,7 +76,7 @@ Sisendid loetakse handler'ist ja selle kohalike helper'ite kaudu; kogu POST-i te
 | `/panel/property/edit` | `handle_panel_property_edit` | GET/POST (vt 11/12) | require_property_manager | POST:id, GET:id, POST:csrf_token, POST:name |
 | `/panel/property/reorder` | `handle_panel_property_reorder` | POST | require_property_manager | POST:csrf_token, POST:id, POST:direction |
 | `/panel/schedule/holidays/import` | `handle_panel_schedule_holiday_import` | POST | require_schedule_admin | POST:csrf_token, FILES:public_holidays_xml |
-| `/panel/schedule` | `handle_panel_schedule` | GET/POST (vt 11/12) | require_schedule_modules | GET:month, POST:month, GET:error, GET:message, POST:csrf_token, POST:assignments |
+| `/panel/schedule` | `handle_panel_schedule` | GET/POST (vt 11/12) | require_schedule_modules | GET:month, POST:month, GET:error, GET:message, POST:csrf_token, POST:assignments, POST:repeat_days |
 | `/panel/schedule/print` | `handle_panel_schedule_print` | GET | require_schedule_modules | GET:month |
 | `/panel/schedule/workload` | `handle_panel_schedule_workload` | POST + AJAX | require_schedule_modules | POST:csrf_token, POST:month, POST:contract_id, POST:workload_id |
 | `/panel/schedule/substitutes` | `handle_panel_schedule_substitutes` | GET/POST (vt 11/12) | require_schedule_modules | POST:csrf_token, POST:action, POST:id |
@@ -533,7 +533,7 @@ public static function formatBalance(float $hours): string;
 public static function templateLabel(array $template): string;
 public static function listScheduleContracts(int $clientId, int $managerId, bool $isClientAdmin, array $month, bool $forUpdate = false, ?int $locationEmployeeId = null, bool $includeDelegation = true): array;
 public static function getMonthEntries(int $clientId, array $contracts, array $month): array;
-public static function saveMonth(int $clientId, int $actorUserId, bool $isClientAdmin, string $managerMonth, mixed $assignments): array;
+public static function saveMonth(int $clientId, int $actorUserId, bool $isClientAdmin, string $managerMonth, mixed $assignments, int $repeatDays = 1): array;
 public static function findFirstShiftOverlap(array $entries): ?string;
 public static function formatTemplate(array $template): string;
 public static function safeTemplateColor(mixed $color): string;
@@ -884,6 +884,7 @@ CREATE tabeliallikas ei ole lõplik skeem: järgnevad ALTER-id ja PHP parandus-h
 ['file' => __DIR__ . '/../../sql/077_property_type_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.90' LIMIT 1"],
 ['file' => __DIR__ . '/../../sql/078_new_job_title_translation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.91' LIMIT 1"],
 ['file' => __DIR__ . '/../../sql/079_employment_ui_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.92' LIMIT 1"],
+['file' => __DIR__ . '/../../sql/080_schedule_consecutive_exception_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.93' LIMIT 1"],
 ```
 
 ## 6. Käivitusfailide kontrollsummad
@@ -899,7 +900,7 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [config/env.php](../config/env.php) | `83e93c36295f31e41d406c3e4a361b298417242529aa0ee075c3dbeade0b00fe` |
 | [index.php](../index.php) | `207fcdd589d2388abc7f275127c7f141906f25af0968f9ae83c2c108865ed972` |
 | [public/assets/css/app.css](../public/assets/css/app.css) | `284f388de6f317d91155283884096a2ae4880a5a03127d5fd1f5e7721e2825ea` |
-| [public/index.php](../public/index.php) | `b96b954372e4df4e64e41ad28f55b40ba42ce96c874be2c475e523392f8714f5` |
+| [public/index.php](../public/index.php) | `52be8dbad56685f2bd784cfe99b948f2bec85d2629b94cfcaa3dfbac39fe022e` |
 | [sql/001_core_schema.sql](../sql/001_core_schema.sql) | `8649d0c9edc42cdec495ffa9d05e19cc2705ad2fe97e6262bb001630147fb17a` |
 | [sql/002_client_modules.sql](../sql/002_client_modules.sql) | `47a7a2a0f14e2cf7841542abfa5ecc99ee5d20fd845761348a181e2396794da1` |
 | [sql/003_notifications_support.sql](../sql/003_notifications_support.sql) | `141cd5ae46803b3601310f91c46318fac5d1b85f3d12d5f92c7e3e53f03bc96e` |
@@ -979,6 +980,7 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [sql/077_property_type_translations.sql](../sql/077_property_type_translations.sql) | `afb243a61ea522b46f03112e964f176ce8ca835288be91466ef5de5f5fa1449e` |
 | [sql/078_new_job_title_translation.sql](../sql/078_new_job_title_translation.sql) | `1b067e89c9a82a2eb59a639210ec99fd611b23e9f67657a74773d2c5d0427ed9` |
 | [sql/079_employment_ui_translations.sql](../sql/079_employment_ui_translations.sql) | `4adbf7831e5a09ea24187fb79a7d12df618af46901f5083a2ed8c6f7c25c4c17` |
+| [sql/080_schedule_consecutive_exception_translations.sql](../sql/080_schedule_consecutive_exception_translations.sql) | `a65f484f5347445b94419ceaf64d9fa47f9507ae4a974c3e8232019d4fb6339f` |
 | [src/Services/AuditLogService.php](../src/Services/AuditLogService.php) | `fe57d5c474bce7adf8c120887ad1065c6e33666b9f558cdfc64b8ac3bbcb737a` |
 | [src/Services/AuthService.php](../src/Services/AuthService.php) | `44e30c47e47d5b5d4e740c296ba0a22bcafaf256879a20f754b986499b424455` |
 | [src/Services/ClientService.php](../src/Services/ClientService.php) | `c725843bb6e2d31eb133c0ff3c928f26f6306074ee110e9fd2fc98f30dde06fc` |
@@ -997,8 +999,8 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [src/Services/PublicHolidayService.php](../src/Services/PublicHolidayService.php) | `41fc1c3c075bfd2f455b6745d8c0d194ece89d908709a42db7176b1707a34946` |
 | [src/Services/ReportService.php](../src/Services/ReportService.php) | `a9c40089db595b491e3d100898d3e636be1eed414548d26ff0ca43edb5f35e04` |
 | [src/Services/RoleService.php](../src/Services/RoleService.php) | `8df34a5880502201727a1c85c31982e434dbf462b754474d32c9766e5bf022c5` |
-| [src/Services/ScheduleService.php](../src/Services/ScheduleService.php) | `81c83f4e25761ddb99ff12f0b60737491a701b6c1ec90871f03219ebc141d2c2` |
-| [src/Services/SchemaInstaller.php](../src/Services/SchemaInstaller.php) | `dfca9f448309c21af30fc607ed42472ad454f739b7f2ad557f752255b2e9e444` |
+| [src/Services/ScheduleService.php](../src/Services/ScheduleService.php) | `074bf7112f88d00dfa67067f1787a1d2083f33f910aaaf612dc4c8ea3079ed29` |
+| [src/Services/SchemaInstaller.php](../src/Services/SchemaInstaller.php) | `c295e17e5241b40692a9602fc7e8c960eb0daf9a4f48461e7e328cac92e69896` |
 | [src/Services/SettingsService.php](../src/Services/SettingsService.php) | `152b9ce88ee95d6d9769bc7a317dbacf5d38da9585b6505f2eb34ed5c5874f88` |
 | [src/Services/SubstituteService.php](../src/Services/SubstituteService.php) | `6b8b8d8ade0496ef8f53810e025c183596a4fda1de0849c139c40a49bdee2060` |
 | [src/Services/SupportService.php](../src/Services/SupportService.php) | `85b0cd8bb8e62e8b69b32dce9d01eb452b6886e0f23b555b6d35cbcb9b572f74` |
@@ -1010,11 +1012,11 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [tests/application-time.php](../tests/application-time.php) | `089726d6628c70e6ddb96df3a604fe92455157eac56893e2f54afe6ed18e6ecc` |
 | [tests/client-management.php](../tests/client-management.php) | `2171fb43728562a9201239c4c04b7a136629bc7b674b329b7072d7e6eebc844b` |
 | [tests/level-f-scope.php](../tests/level-f-scope.php) | `8d0ed533df07852afff66556fa59aa6380325d750d8c70f92460cc071a2e1a3c` |
-| [tests/manager-schedule.php](../tests/manager-schedule.php) | `f106aad9de67b6ad2dc6de243a09119e36b3458fe5caabb9146452a00b63b572` |
+| [tests/manager-schedule.php](../tests/manager-schedule.php) | `8f26b5f4df2220797274e5946b2a8eac856f2da15b4ea71f3e1e9cde9a98210f` |
 | [tests/notifications.php](../tests/notifications.php) | `7990282293c0ef1a3910b96e3e9e9fb93b7bda4a5edee08ebd13eb5281f1fc11` |
-| [tests/property-translations.php](../tests/property-translations.php) | `843efdc033e2b513b7a4969440f8ee0a0cacbf70d59f8948ae24911d80baa3a9` |
+| [tests/property-translations.php](../tests/property-translations.php) | `dad031046a20d50effe545eb0d5b988cf659f0c6ff4e8af39577b9260ded5863` |
 | [tests/schedule-print-scope.php](../tests/schedule-print-scope.php) | `6e58778727cda377d25e498c8212bb360236a91dd35842882fb26f198075e4bf` |
-| [tests/schedule-substitutes.php](../tests/schedule-substitutes.php) | `378d97496224ce1988afab73739e0a7b14886bfa9fed8091c558e724f0d65cd4` |
+| [tests/schedule-substitutes.php](../tests/schedule-substitutes.php) | `746683bff2bb2640e45a0282b0f4fedae3ff07e746fe3df699224cd936630bda` |
 | [tests/support-tickets.php](../tests/support-tickets.php) | `97457a9287a7b47e26b939c74b7331bca03836f250d624f481d4fecd92047ef0` |
 | [views/admin/clients/create.php](../views/admin/clients/create.php) | `90991d4a53ea174fe583e2425d5bb69f21c0c89ff5704f6e95516176318a27e4` |
 | [views/admin/clients/index.php](../views/admin/clients/index.php) | `8fa836ae3718c66c0c93049650aa21cc2f714156339280932d9f5effd59b8f24` |
@@ -1061,7 +1063,7 @@ SHA-256 on selle tööpuu tuvastamiseks, mitte dokumentatsiooni muutumatuse tõe
 | [views/panel/render.php](../views/panel/render.php) | `27f823d5498f9b3eb1a34e04d172a31947242dc89af7bef2d19f9a5caaab1a2d` |
 | [views/panel/reports/index.php](../views/panel/reports/index.php) | `59035f3f5650ff7baecb64749903a6655a0c1b441a58056d2d5207101c13d13e` |
 | [views/panel/schedule/holidays.php](../views/panel/schedule/holidays.php) | `1ffb4c509d7b017be5018c9fcc00fa8cede17133f7696d4d2024950d7091bf11` |
-| [views/panel/schedule/index.php](../views/panel/schedule/index.php) | `7d34cabc36d8c356864cba74874e97bebd7fb4cc024e73d719ec7854e611b696` |
+| [views/panel/schedule/index.php](../views/panel/schedule/index.php) | `05cf84d0348e15ded0d4341fbfc6b382503c2db10b99e263b101f810846383e7` |
 | [views/panel/schedule/nav.php](../views/panel/schedule/nav.php) | `ea268eb7fd448529e7a715a71940a226a4ea2ad8aa70bb479f5d58fd2ae17a08` |
 | [views/panel/schedule/print.php](../views/panel/schedule/print.php) | `89bdbf665ed2a4797df4190ab3aed82b622233ebc79225a2b6b8a991aa76358e` |
 | [views/panel/schedule/substitutes.php](../views/panel/schedule/substitutes.php) | `9917112346131cb5fc992e03c15b7f337dfaae4096d786c1c896b79d8eee8065` |

@@ -95,6 +95,7 @@ class SchemaInstaller
         ['file' => __DIR__ . '/../../sql/077_property_type_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.90' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/078_new_job_title_translation.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.91' LIMIT 1"],
         ['file' => __DIR__ . '/../../sql/079_employment_ui_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.92' LIMIT 1"],
+        ['file' => __DIR__ . '/../../sql/080_schedule_consecutive_exception_translations.sql', 'rowCheck' => "SELECT 1 FROM system_version_logs WHERE version = '1.93' LIMIT 1"],
     ];
 
     public static function ensureInstalled(): void
